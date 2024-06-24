@@ -7,8 +7,9 @@ from passlib.context import CryptContext
 from getpass import getpass
 pwdCtxt = CryptContext(schemes=["sha512_crypt"], deprecated="auto")
 
+
 class CLI():
-    def addManualRequest(self, stub, mgmtId, pw): # issue request message from CLI
+    def addManualRequest(self, stub, mgmtId, pw):  # issue request message from CLI
         mgmtAuth = pbdef.api__pb2.mgmtAuth()
         mgmtAuth.mgmtId = mgmtId
         mgmtAuth.pw = pw
@@ -19,31 +20,32 @@ class CLI():
             rq.pw = pw
 
             k = ""
+
             def getLoggedInClientsList():
                 loggedInClientsIt = stub.getLoggedInClients(mgmtAuth)
                 loggedInClients = []
                 for c in loggedInClientsIt:
                     loggedInClients.append(c.uid)
                 return loggedInClients
-            
+
             loggedInClientsList = getLoggedInClientsList()
 
             while k not in loggedInClientsList:
-              print("Select the client you want to send a message to. Available are: " + str(loggedInClientsList))
-              k = input("Use client with key: ")
-              loggedInClientsList = getLoggedInClientsList()
-            
+                print("Select the client you want to send a message to. Available are: " + str(loggedInClientsList))
+                k = input("Use client with key: ")
+                loggedInClientsList = getLoggedInClientsList()
+
             rq.clientUid = k
             print("Available message types are:\n0: INTRODUCE_SERVER\n1: START_MEASUREMENT\n2: STOP_MEASUREMENT\n3: REQUEST_MEASUREMENT_LIST\n5: REQUEST_MEASUREMENT_STATUS")
             mTpe = int(input("Enter message type: "))
             if mTpe == 0:
-              rq.msgType = pbdef.api__pb2.srvRequestType.INTRODUCE_SERVER
+                rq.msgType = pbdef.api__pb2.srvRequestType.INTRODUCE_SERVER
             elif mTpe == 1:
                 smpInterval = input("Enter sampling interval: ")
                 ppDev = ""
                 while ppDev not in ["MCP1", "MCP2", "CPU"]:
-                  ppDev = input("Enter device (MCP1, MCP2, CPU): ")
-                
+                    ppDev = input("Enter device (MCP1, MCP2, CPU): ")
+
                 uploadinterval = int(input("Enter upload interval in minutes: "))
                 msmtSettings = pbdef.api__pb2.mgmtMsmtSettings()
                 msmtSettings.mgmtId = mgmtId
@@ -65,22 +67,25 @@ class CLI():
                 rq.requestBody = remtMsmtName
             elif mTpe == 5:
                 rq.msgType = pbdef.api__pb2.srvRequestType.REQUEST_MEASUREMENT_STATUS
-            
+
             try:
-              resp = stub.issueRequestToClient(rq)
-              if resp.statusCode != 0:
-                raise Exception("Could not execute request successfully: " + resp.msg)
+                resp = stub.issueRequestToClient(rq)
+                if resp.statusCode != 0:
+                    raise Exception("Could not execute request successfully: " + resp.msg)
             except grpc.RpcError as e:
                 print("Error from server: " + e.details())
             except Exception as e:
                 print("Error: " + str(e))
-    def getLatestMessages(self, stub, mgmtId, pw): # get the messages from the client manager and cleans up queue of last messages
+
+    def getLatestMessages(self, stub, mgmtId, pw):  # get the messages from the client manager and cleans up queue of last messages
         mgmtAuth = pbdef.api__pb2.mgmtAuth()
         mgmtAuth.mgmtId = mgmtId
         mgmtAuth.pw = pw
         for msg in stub.getMessages(mgmtAuth):
-          message = json.loads(msg.msg)
-          print(message["content"])
+            message = json.loads(msg.msg)
+            print(message["content"])
+
+
 if __name__ == '__main__':
     argParser = argparse.ArgumentParser()
     argParser.add_argument("--createpassword", help="Create a password for management authentication with server", nargs="?", const=True)
@@ -94,9 +99,9 @@ if __name__ == '__main__':
         exit(0)
 
     with open('config/cli_secrets.json') as secrFile:
-      secrets = json.load(secrFile)
+        secrets = json.load(secrFile)
     with open('config/cli_config.json') as configFile:
-      config = json.load(configFile)
+        config = json.load(configFile)
 
     if (not "remoteHost" in config):
         print("ERROR: remoteHost not found in cli_config file. Please check for vailidity of the config file.")
@@ -117,16 +122,16 @@ if __name__ == '__main__':
     else:
         # setup secure connection
         with open(secrets["privKeyPath"], "rb") as privKeyReader:
-          privkey = privKeyReader.read()
-        
+            privkey = privKeyReader.read()
+
         with open(secrets["pubKeyPath"], "rb") as chainReader:
-          chain = chainReader.read()
+            chain = chainReader.read()
 
         # optionally load CA
         clientCa = None
         if ("pubKeyCA" in secrets):
             with open(secrets["pubKeyCA"], "rb") as caReader:
-              clientCa = caReader.read()
+                clientCa = caReader.read()
 
         channel = grpc.secure_channel(
             config["remoteHost"] + ": " + config["remotePort"],
@@ -135,10 +140,9 @@ if __name__ == '__main__':
 
     stub = pbdef.CMeasurementApiStub(channel)
     cli = CLI()
-    latestServerReaderThread = threading.Thread(target=cli.getLatestMessages, args=[stub,secrets["mgmtId"],secrets["pw"]])
+    latestServerReaderThread = threading.Thread(target=cli.getLatestMessages, args=[stub, secrets["mgmtId"], secrets["pw"]])
     latestServerReaderThread.start()
-    userCommunicatorThread = threading.Thread(target=cli.addManualRequest, args=[stub,secrets["mgmtId"],secrets["pw"]])
+    userCommunicatorThread = threading.Thread(target=cli.addManualRequest, args=[stub, secrets["mgmtId"], secrets["pw"]])
     userCommunicatorThread.start()
     userCommunicatorThread.join()
     latestServerReaderThread.join()
-    

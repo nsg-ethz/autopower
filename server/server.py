@@ -28,41 +28,47 @@ logging.basicConfig(level=logging.INFO)
 # Create password context for management
 pwdCtxt = CryptContext(schemes=["sha512_crypt"], deprecated="auto")
 
+
 class ExternalClient():
     def __init__(self, uid):
         # set up external Client class to manage each client in a separate thread.
         self.uid = uid
-        self.jobqueue = qu() # jobs to the device
-        self.responsedict = dict({}) # responses from the device
+        self.jobqueue = qu()  # jobs to the device
+        self.responsedict = dict({})  # responses from the device
         self.responsedictlock = RLock()
         self.responsedictcv = Condition(lock=self.responsedictlock)
         self.seqnoLock = Lock()
-        self.lastRequestNo = 0 # increasing request number to tie jobqueue content to responsequeue content
+        self.lastRequestNo = 0  # increasing request number to tie jobqueue content to responsequeue content
         # Define standard measurement settings
         self.ppDevice = "MCP1"
         self.ppSamplingInterval = "500"
         self.uploadIntervalMin = 5
-    
 
     def setPpDevice(self, ppdev):
         self.ppDevice = ppdev
+
     def getPpDevice(self):
         return self.ppDevice
+
     def setPpSampleInterval(self, sampInt):
         self.ppSamplingInterval = sampInt
+
     def getPpSampleInterval(self):
         return self.ppSamplingInterval
 
     def setuploadIntervalMin(self, uploadInt):
         self.uploadIntervalMin = uploadInt
+
     def getuploadIntervalMin(self):
         return self.uploadIntervalMin
 
     def scheduleDeletion(self):
-        self.jobqueue.put(None) # add None to jobqueue to terminate the thread waiting on this
+        self.jobqueue.put(None)  # add None to jobqueue to terminate the thread waiting on this
+
     def getMsmtSettings(self):
         sttngs = {"ppDevice": self.ppDevice, "ppSamplingInterval": self.ppSamplingInterval, "uploadIntervalMin": self.uploadIntervalMin}
         return sttngs
+
     def scheduleRequest(self, job):
         # adds a job to the local queue.
         self.seqnoLock.acquire()
@@ -72,15 +78,16 @@ class ExternalClient():
         self.jobqueue.put(job)
         self.seqnoLock.release()
         return seqno
-        
+
     def getNextRequest(self):
-        return self.jobqueue.get(block=True) # Get last content from scheduler queue. Will block if queue is empty
+        return self.jobqueue.get(block=True)  # Get last content from scheduler queue. Will block if queue is empty
+
     def setResponse(self, response):
         self.responsedictlock.acquire()
         self.responsedict[response.requestNo] = response
         self.responsedictcv.notify_all()
         self.responsedictlock.release()
-    
+
     def responseArrived(self, requestNo):
         self.responsedictlock.acquire()
         # return true if the response for requestNo is in the response dict. False otherwise
@@ -91,6 +98,7 @@ class ExternalClient():
 
         self.responsedictlock.release()
         return didArrive
+
     def getResponse(self, requestNo):
         # precondition: requestNo in responsedict
 
@@ -106,20 +114,23 @@ class ExternalClient():
         self.responsedictlock.acquire()
         while not self.responseArrived(requestNo):
             # wait_for is new in version 3.2 but docs do not specify if wait_for also returns a boolean on timeout (https://docs.python.org/3/library/threading.html#threading.Condition.wait_for)
-            noTimeout = self.responsedictcv.wait(timeout=30) # times out after 30 seconds
+            noTimeout = self.responsedictcv.wait(timeout=30)  # times out after 30 seconds
             if not noTimeout:
                 self.responsedictlock.release()
-                return False # on timeout give back issue
+                return False  # on timeout give back issue
         # block until requestNo has arrived
 
         self.responsedictlock.release()
         return True
+
     def purgeRequestNo(self, requestNo):
         self.responsedictlock.acquire()
-        if requestNo in self.responsedict: # only delete if existing. May not be the case if server generated error msg (e.g. timeout)
-          del self.responsedict[requestNo]
+        if requestNo in self.responsedict:  # only delete if existing. May not be the case if server generated error msg (e.g. timeout)
+            del self.responsedict[requestNo]
         self.responsedictlock.release()
 # shared class for communication with CMeasurementApiServicer
+
+
 class ClientManager():
     loggedInClients = dict({})
 
@@ -129,12 +140,13 @@ class ClientManager():
     def getNextRequestOfClient(self, clientId):
         ec = self.loggedInClients[clientId]
         return ec.getNextRequest()
+
     def setMsmtSettingsOfClient(self, clientId, ppdev, sampleInt, uploadInt):
         if clientId not in self.getLoggedInClientsList():
             pm = OutCommunicator()
             pm.addMessage("Cannot get settings of a non registered client." + str(clientId))
             return
-        
+
         ec = self.loggedInClients[clientId]
         ec.setPpDevice(ppdev)
         ec.setPpSampleInterval(sampleInt)
@@ -146,19 +158,21 @@ class ClientManager():
             ec = self.loggedInClients[clientId]
             msettings = ec.getMsmtSettings()
             return msettings
+
     def addNewClient(self, clientId):
         if clientId in self.getLoggedInClientsList():
             pm = OutCommunicator()
             pm.addMessage("Re-registered already existing client. Deleting old one.")
             # we delete the old ec as it is no longer needed. This is just an optimization.
             self.loggedInClients[clientId].scheduleDeletion()
-            
 
         ec = ExternalClient(clientId)
         self.loggedInClients[clientId] = ec
+
     def scheduleNewRequestToClient(self, clientId, job):
         ec = self.loggedInClients[clientId]
-        return ec.scheduleRequest(job) # returns requestNo
+        return ec.scheduleRequest(job)  # returns requestNo
+
     def addNewResponseToRequest(self, clientId, response):
         if clientId not in self.getLoggedInClientsList():
             pm = OutCommunicator()
@@ -167,14 +181,15 @@ class ClientManager():
 
         ec = self.loggedInClients[clientId]
         ec.setResponse(response)
+
     def getResponseOfRequestNo(self, clientId, requestNo):
-   
+
         if clientId not in self.getLoggedInClientsList():
             pm = OutCommunicator()
             errMsg = "Cannot wait on a request issued to non existing client " + clientId + ". Please try again later to check once the client has re-registered"
             pm.addMessage(errMsg)
             return False
-        
+
         ec = self.loggedInClients[clientId]
         if not ec.responseArrived(requestNo):
             pm = OutCommunicator()
@@ -183,6 +198,7 @@ class ClientManager():
             return False
 
         return ec.getResponse(requestNo)
+
     def waitOnRequestCompletion(self, clientId, requestNo):
         if clientId not in self.getLoggedInClientsList():
             pm = OutCommunicator()
@@ -193,6 +209,7 @@ class ClientManager():
         gotResponse = ec.waitForResponseTo(requestNo)
         # gotResponse is true if no timeout occurred
         return gotResponse
+
     def purgeResponseOfRequestNo(self, clientId, requestNo):
         if clientId not in self.getLoggedInClientsList():
             pm = OutCommunicator()
@@ -201,23 +218,26 @@ class ClientManager():
         ec = self.loggedInClients[clientId]
         ec.purgeRequestNo(requestNo)
         return True
-    def addSyncRequest(self, clientId, request):
-            requestNo = self.scheduleNewRequestToClient(clientId, request)
-            waitSucceeded = self.waitOnRequestCompletion(clientId, requestNo)
-            if not waitSucceeded:
-                print("Failed to get confirmation from client. This may be a timeout error.")
-                return
-            
-            response = self.getResponseOfRequestNo(clientId, requestNo)
-            if response.statusCode != 0:
-                print("Could not execute request successfully. Client issued error: " + response.msg)
-                return
-            
-            self.purgeResponseOfRequestNo(clientId, requestNo) # clean up
 
-            return response
+    def addSyncRequest(self, clientId, request):
+        requestNo = self.scheduleNewRequestToClient(clientId, request)
+        waitSucceeded = self.waitOnRequestCompletion(clientId, requestNo)
+        if not waitSucceeded:
+            print("Failed to get confirmation from client. This may be a timeout error.")
+            return
+
+        response = self.getResponseOfRequestNo(clientId, requestNo)
+        if response.statusCode != 0:
+            print("Could not execute request successfully. Client issued error: " + response.msg)
+            return
+
+        self.purgeResponseOfRequestNo(clientId, requestNo)  # clean up
+
+        return response
+
+
 class CLI():
-    def addManualRequest(self): # issue request message from CLI
+    def addManualRequest(self):  # issue request message from CLI
         cm = ClientManager()
         while True:
             # prepare new request
@@ -225,20 +245,20 @@ class CLI():
 
             k = ""
             while k not in cm.getLoggedInClientsList():
-              print("Select the client you want to send a message to. Available are: " + str(cm.getLoggedInClientsList()))
-              k = input("Use client with key: ")
+                print("Select the client you want to send a message to. Available are: " + str(cm.getLoggedInClientsList()))
+                k = input("Use client with key: ")
 
             rq.clientUid = k
             print("Available message types are:\n0: INTRODUCE_SERVER\n1: START_MEASUREMENT\n2: STOP_MEASUREMENT\n3: REQUEST_MEASUREMENT_LIST\n4: REQUEST_MEASUREMENT_DATA\n5:REQUEST_MEASUREMENT_STATUS")
             mTpe = int(input("Enter message type: "))
             if mTpe == 0:
-              rq.msgType = pbdef.api__pb2.srvRequestType.INTRODUCE_SERVER
+                rq.msgType = pbdef.api__pb2.srvRequestType.INTRODUCE_SERVER
             elif mTpe == 1:
                 smpInterval = input("Enter sampling interval: ")
                 ppDev = ""
                 while ppDev not in ["MCP1", "MCP2", "CPU"]:
-                  ppDev = input("Enter device (MCP1, MCP2, CPU): ")
-                
+                    ppDev = input("Enter device (MCP1, MCP2, CPU): ")
+
                 uploadinterval = int(input("Enter upload interval in minutes: "))
 
                 cm.setMsmtSettingsOfClient(k, ppDev, smpInterval, uploadinterval)
@@ -253,44 +273,47 @@ class CLI():
                 rq.requestBody = remtMsmtName
             elif mTpe == 5:
                 rq.msgType = pbdef.api__pb2.srvRequestType.REQUEST_MEASUREMENT_STATUS
-            print(cm.addSyncRequest(k, rq)) # blocks until the request was fulfilled or timeout
+            print(cm.addSyncRequest(k, rq))  # blocks until the request was fulfilled or timeout
 
-    def getLatestMessages(self): # get the messages from the client manager and cleans up queue of last messages
+    def getLatestMessages(self):  # get the messages from the client manager and cleans up queue of last messages
         pm = OutCommunicator()
         while True:
             print(pm.getNextMessageCli())
 
 
+class OutCommunicator():  # communicate to other scripts and issue requests
 
-class OutCommunicator(): # communicate to other scripts and issue requests
-
-    cliMessageQueue = qu() # a queue saving error/status messages
-    outMessageQueues = {} # a set of queues saving error/status messages for the out communication only
+    cliMessageQueue = qu()  # a queue saving error/status messages
+    outMessageQueues = {}  # a set of queues saving error/status messages for the out communication only
 
     # message handling
     def addMessageCli(self, message):
         self.cliMessageQueue.put(message)
-    def addMessageOut(self, message):        
+
+    def addMessageOut(self, message):
         timestamp = datetime.timestamp(datetime.now())
         outMsg = {"type": "message", "timestamp": timestamp, "content": message}
         for manUid in self.outMessageQueues.keys():
             outQ = self.outMessageQueues[manUid]
             outQ.put(json.dumps(outMsg))
 
-
     def addNewMessageOutListener(self, managementUid):
         # add a new queue for a listener (= connection outwards)
         self.outMessageQueues[managementUid] = qu()
+
     def addMessage(self, message):
         self.addMessageCli(message)
         self.addMessageOut(message)
 
     def getNextMessageCli(self):
-        return self.cliMessageQueue.get(block=True) # get latest message from message queue. Blocks if empty
+        return self.cliMessageQueue.get(block=True)  # get latest message from message queue. Blocks if empty
+
     def getNextMessageOut(self, managementUid):
         return self.outMessageQueues[managementUid].get(block=True)
-    
+
 # Implementation of server for measurement device management
+
+
 class CMeasurementApiServicer():
     def __init__(self, pgcon, allowedMgmtClients):
         # each thread should have an own postgres connection cursor for concurrent writes
@@ -298,7 +321,7 @@ class CMeasurementApiServicer():
         self.pgConn = pgcon
         self.allowedMgmtClients = allowedMgmtClients
         # tell database about prepared statements
-        prepare_ctxt="""
+        prepare_ctxt = """
         PREPARE insMsmtData (VARCHAR(255), INT, TIMESTAMP) AS
           INSERT INTO measurement_data (server_measurement_id, measurement_value, measurement_timestamp)
           VALUES(
@@ -312,11 +335,12 @@ class CMeasurementApiServicer():
         """
         self.pgCursor.execute(prepare_ctxt)
         self.pgConn.commit()
-    
+
     def logClientWasSeenNow(self, clientUid):
         # log that this client has been seen now to populate "latest" field in DB
-        self.pgCursor.execute("EXECUTE logClientActivity (%(cluid)s)", {'cluid': clientUid })
+        self.pgCursor.execute("EXECUTE logClientActivity (%(cluid)s)", {'cluid': clientUid})
         self.pgConn.commit()
+
     def registerClient(self, request, context):
         cmAdd = ClientManager()
         pm = OutCommunicator()
@@ -325,22 +349,22 @@ class CMeasurementApiServicer():
         self.pgConn.commit()
         pm.addMessage("UID '" + request.uid + "' registered")
 
-        cmAdd = None # never used again. Set to none in hope that the GC removes this 
+        cmAdd = None  # never used again. Set to none in hope that the GC removes this
         while True:
             cm = ClientManager()
             req = cm.getNextRequestOfClient(request.uid)
             if req == None:
                 # Terminate on the server side if there is a new registration with the same name. This should only happen if the same client with the server ID re-registered --> we end this call as it's no longer valid. This may or may never happen if GC is nice
                 break
-            yield req # send the request to the client
-        
+            yield req  # send the request to the client
+
     def putClientResponse(self, resp, context):
         # get responses from the client. This should always be a response to some request of the server
         cm = ClientManager()
         # if we get back a ping message, overwrite content with ip/peer of client
         if resp.msgType == pbdef.api__pb2.clientResponseType.INTRODUCE_CLIENT:
             # get ip address only (see https://stackoverflow.com/a/21908815)
-            ipPort = ulunquote(context.peer())[5:] # remove ipv4/ipv6 prefix
+            ipPort = ulunquote(context.peer())[5:]  # remove ipv4/ipv6 prefix
             ip, sep, _ = ipPort.rpartition(":")
             if not sep:
                 result = {"peer": None, "msg": resp.msg}
@@ -351,13 +375,13 @@ class CMeasurementApiServicer():
                 except Exception as e:
                     print("Error: Could not parse ip: " + e)
                     result = {"peer": None, "msg": resp.msg}
-                
-            
+
             resp.msg = json.dumps(result)
 
         cm.addNewResponseToRequest(resp.clientUid, resp)
         self.logClientWasSeenNow(resp.clientUid)
         return pbdef.api__pb2.nothing()
+
     def putMeasurementList(self, request_iterator, context):
         pm = OutCommunicator()
 
@@ -373,10 +397,10 @@ class CMeasurementApiServicer():
             # We need to tell the python Datetime that this is in UTC (see https://github.com/protocolbuffers/protobuf/issues/5910)
             mmtTime = mmt.msmtTime.ToDatetime(tzinfo=timezone.utc)
             if msmtIdSoFar != mmt.msmtId:
-              # optimization to just insert once we have a guaranteed different measurement id. If the ID already exists due to an outdated measurement, we just silently do nothing.
-              # This will even insert new samples if the client_run is officially finished (there's a sample after the first transmitted sample in this stream with a timestamp > stop_run)
-              # until this method call is finished.
-              self.pgCursor.execute("""
+                # optimization to just insert once we have a guaranteed different measurement id. If the ID already exists due to an outdated measurement, we just silently do nothing.
+                # This will even insert new samples if the client_run is officially finished (there's a sample after the first transmitted sample in this stream with a timestamp > stop_run)
+                # until this method call is finished.
+                self.pgCursor.execute("""
               WITH getRunIds AS (
                 SELECT runs.run_id AS run_id FROM runs, client_runs WHERE client_runs.client_uid = %(cluid)s AND runs.run_id = client_runs.run_id AND start_run <= %(msmtts)s AND (stop_run >= %(msmtts)s OR stop_run IS NULL)
               ),
@@ -392,17 +416,16 @@ class CMeasurementApiServicer():
               )
               ON CONFLICT DO NOTHING
               """, {'mmtid': mmt.msmtId, 'cluid': mmt.clientUid, 'msmtts': mmtTime})
-              self.pgConn.commit()
-              # TODO: Request the client to submit the measurement settings to fill the DB with a newly introduced API message
+                self.pgConn.commit()
+                # TODO: Request the client to submit the measurement settings to fill the DB with a newly introduced API message
             msmtIdSoFar = mmt.msmtId
 
             # in the normal case insert tuples just into the measurement_data table.
-            
+
             self.pgCursor.execute("EXECUTE insMsmtData (%(msmtid)s, %(msmtvalue)s, %(msmtts)s)", {'msmtid': mmt.msmtId, 'msmtvalue': mmt.msmtContent, 'msmtts': mmtTime})
             self.pgCursor.execute("EXECUTE logClientActivity (%(cluid)s)", {'cluid': mmt.clientUid})
             self.pgConn.commit()
 
-    
         return pbdef.api__pb2.nothing()
 
     def getMsmtSttngsAndStart(self, request, context):
@@ -425,14 +448,14 @@ class CMeasurementApiServicer():
         cm = ClientManager()
         pc = OutCommunicator()
         if request.clientUid in cm.getLoggedInClientsList():
-          if request.statusCode != 0:
-            # log errors to DB
-            pc.addMessage("Logging error from '" + request.clientUid + "': " + request.msg)
-            self.pgCursor.execute("INSERT INTO logmessages (client_uid, error_code, log_message) VALUES (%(cluid)s, %(statuscode)s, %(logmsg)s)", {'cluid': request.clientUid, 'statuscode': request.statusCode, 'logmsg': request.msg})
-            self.pgConn.commit()
-          else:
-            pc.addMessage("[Status] from '" + request.clientUid + "': " + request.msg)
-          self.logClientWasSeenNow(request.clientUid)
+            if request.statusCode != 0:
+                # log errors to DB
+                pc.addMessage("Logging error from '" + request.clientUid + "': " + request.msg)
+                self.pgCursor.execute("INSERT INTO logmessages (client_uid, error_code, log_message) VALUES (%(cluid)s, %(statuscode)s, %(logmsg)s)", {'cluid': request.clientUid, 'statuscode': request.statusCode, 'logmsg': request.msg})
+                self.pgConn.commit()
+            else:
+                pc.addMessage("[Status] from '" + request.clientUid + "': " + request.msg)
+            self.logClientWasSeenNow(request.clientUid)
         return pbdef.api__pb2.nothing()
 
     # Management messages
@@ -441,12 +464,11 @@ class CMeasurementApiServicer():
             # For invalid request always deny
             print("WARNING: Got invalid request with auth for management method. Ignoring.")
             return False
-        if request.mgmtId in self.allowedMgmtClients and pwdCtxt.verify(request.pw,self.allowedMgmtClients[request.mgmtId]):
-          return True
+        if request.mgmtId in self.allowedMgmtClients and pwdCtxt.verify(request.pw, self.allowedMgmtClients[request.mgmtId]):
+            return True
         else:
-          print("WARNING: Login failed due to invalid authentication paramaters. Ignoring.")
-          return False
-
+            print("WARNING: Login failed due to invalid authentication paramaters. Ignoring.")
+            return False
 
     def getLoggedInClients(self, request, context):
         # send all logged in clients
@@ -468,7 +490,7 @@ class CMeasurementApiServicer():
             # construct error via GRPC error handling
             context.abort_with_status(rpc_status.to_status(status_pb2.Status(code=code_pb2.NOT_FOUND, message="The provided client UID wasn't registered on the server.")))
             return pbdef.api__pb2.nothing()
-        
+
         # setMsmtSettingsOfClient(clientId, ppdev, sampleInt, uploadInt)
         cm.setMsmtSettingsOfClient(request.clientUid, request.ppDevice, request.ppSamplingInterval, request.uploadIntervalMin)
         return pbdef.api__pb2.nothing()
@@ -483,11 +505,11 @@ class CMeasurementApiServicer():
             context.abort_with_status(rpc_status.to_status(status_pb2.Status(code=code_pb2.NOT_FOUND, message="The provided client UID wasn't registered on the server.")))
             print("Got unknown client id. Aborting")
             return
-        
+
         clientId = request.clientUid
         # repack management request to client request
         requestToClient = pbdef.api__pb2.srvRequest()
-        
+
         requestToClient.clientUid = clientId
         requestToClient.msgType = request.msgType
         requestToClient.requestBody = request.requestBody
@@ -501,8 +523,9 @@ class CMeasurementApiServicer():
             return
 
         response = cm.getResponseOfRequestNo(clientId, requestNo)
-        cm.purgeResponseOfRequestNo(clientId, requestNo) # clean up
+        cm.purgeResponseOfRequestNo(clientId, requestNo)  # clean up
         return response
+
     def getMessages(self, request, context):
         if not self.isValidMgmtClient(request):
             context.abort_with_status(rpc_status.to_status(status_pb2.Status(code=code_pb2.UNAUTHENTICATED, message="This method needs authentication. Please set credentials.")))
@@ -517,7 +540,8 @@ class CMeasurementApiServicer():
             messageToSend.statusCode = 0
             messageToSend.msg = message
             yield messageToSend
-        
+
+
 def serve(secrets, config, args):
 
     pgConnection = postgres.connect(host=secrets["postgres"]["host"], database=secrets["postgres"]["database"], user=secrets["postgres"]["user"], password=secrets["postgres"]["password"])
@@ -551,13 +575,13 @@ def serve(secrets, config, args):
             private_key_certificate_chain_pairs=[(privkey, certChain)],
             root_certificates=clientCa,
             require_client_auth=True)
-        
+
         grpcServer.add_secure_port(config["listenOn"], srvCred)
 
     else:
         print("Warning: Started server in insecure mode. Please check that the keys are set correctly in the secrets.json config file.")
         grpcServer.add_insecure_port(config["listenOn"])
-    
+
     allowedMgmtClients = None
     if not "allowedMgmtClients" in secrets:
         print("Warning: No management clients set in secrets file. You will not be able to manage any device. Please set allowedMgmtClients!")
@@ -571,16 +595,17 @@ def serve(secrets, config, args):
     pt.start()
     clit = threading.Thread(target=cli.addManualRequest)
     if args.interactive:
-      # only start CLI input if requested via interactive flag
-      clit.daemon = True
-      clit.start()
-    
+        # only start CLI input if requested via interactive flag
+        clit.daemon = True
+        clit.start()
+
     grpcServer.start()
-    grpcServer.wait_for_termination() # last to exit
-    
+    grpcServer.wait_for_termination()  # last to exit
+
     if args.interactive:
-      clit.join()
+        clit.join()
     pt.join()
+
 
 if __name__ == '__main__':
     # get arguments
@@ -592,8 +617,8 @@ if __name__ == '__main__':
     args = argParser.parse_args()
 
     with open(args.secrets) as secrFile:
-      secrets = json.load(secrFile)
+        secrets = json.load(secrFile)
     with open(args.config) as configFile:
-      config = json.load(configFile)
-      
+        config = json.load(configFile)
+
     serve(secrets, config, args)
