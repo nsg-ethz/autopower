@@ -1,0 +1,6 @@
+{% extends "runManagement.html" %}
+{% block title %}Add new run{% endblock %}
+{% block runheading %}<h2>Add new run</h2>{% endblock %}
+{% block formaction %}
+action="{{ url_for('addNewRun') }}"
+{% endblock %}

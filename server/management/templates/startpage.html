@@ -1,0 +1,69 @@
+{% extends "mainlayout.html" %}
+{% block title %}Autopower Management Home{% endblock %}
+{% block head %}
+  {{ super() }}
+  <link href="{{ url_for('static', filename='startpage.css') }}" rel="stylesheet" />
+{% endblock %}
+{% block main %}
+<div class="autopowerDevicesList">
+    {% for device in autopowerDevices %}
+    <div class="autopowerDevice bg-light border p-2 mt-2">
+        <div class="alert p-2 autopowerDeviceStatus alert-secondary" id="status-{{ device.client_uid | e }}" data-apcluid="{{ device.client_uid | e }}">Unknown</div>
+        <h2>{{ device.client_uid | e }}</h2>
+        <a href="{{ url_for('deviceManagementPage', deviceUid=device.client_uid) }}">Manage {{ device.client_uid | e }}</a>
+    </div>
+    {% endfor %}
+</div>
+<script>
+    $(document).ready(function() {
+        $(".autopowerDeviceStatus").each(function() {
+            // for each status label of the autopower device, check the status
+            var clientUid = $(this).data("apcluid");
+            var statusBox = $(this);
+            $.ajax({
+                type:"POST",
+                dataType: "json",
+                url:"{{ url_for('getDeviceStatusPost') }}",
+                data: {deviceUid:clientUid},
+                success: function(resp) {
+                    if (!resp.status && resp.inMeasuringMode && !resp.ppHasExited && resp.ppHasWrittenOnce) {
+                        $.ajax({
+                            type:"POST",
+                            url:"{{ url_for('getLastMeasurementTimestampOfDevicePost') }}",
+                            data:{deviceUid:clientUid},
+                            success: function(resp) {
+                                var lastMsmtTs = new Date(resp);
+                                var oneHourAgo = new Date();
+                                oneHourAgo.setHours(oneHourAgo.getHours() - 1);
+                                if (lastMsmtTs < oneHourAgo) {
+                                    setAlertSeverity(statusBox,"alert-warning");
+                                    statusBox.text("Measuring. But latest data is older than one hour.");
+                                } else {
+                                    setAlertSeverity(statusBox,"alert-success");
+                                    statusBox.text("Measuring");
+                                }
+                            },
+                            error: function(xhr) {
+                                setAlertSeverity(statusBox,"alert-info");
+                                statusBox.text("Measuring. Waiting on data.");
+                            }
+                        });
+                    } else {
+                        setAlertSeverity(statusBox,"alert-warning");
+                        statusBox.text("Not measuring");
+                    }
+                },
+                error: function(xhr) {
+                    resp = xhr.responseJSON;
+                    setAlertSeverity(statusBox,"alert-primary");
+                    if (resp && resp.status) {
+                        statusBox.text(resp.status);
+                    } else {
+                        statusBox.text("ERROR. Check page for status")
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

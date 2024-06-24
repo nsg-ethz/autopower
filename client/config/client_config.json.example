@@ -1,0 +1,8 @@
+{
+    "clientUid": "ßß§$$$rplceClientUid$$$§ßß",
+    "remoteHost": "ßß§$$$rplceremoteHost$$$§ßß",
+    "remotePort": "25181",
+    "ppBinaryPath": "/usr/bin/pinpoint",
+    "ppDevice": "MCP1",
+    "ppSamplingInterval": "500"
+}

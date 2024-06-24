@@ -1,0 +1,5 @@
+import sys
+sys.path.insert(0,'<pathToThisDir>/venv/lib/python3.11/site-packages')
+sys.path.insert(0, '<pathToThisDir>')
+
+from app import app as application

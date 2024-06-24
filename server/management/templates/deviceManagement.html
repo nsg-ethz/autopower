@@ -1,0 +1,154 @@
+{% extends "mainlayout.html" %}
+{% block title %}Manage {{ deviceUid | e }}{% endblock %}
+{% block main %}
+{% block head %}
+{{ super() }}
+<link href="{{ url_for('static', filename='deviceMgmt.css' )}}" rel="stylesheet" />
+{% endblock %}
+<h2>{{ deviceUid | e}}</h2>
+<div class="deviceManagementControls">
+    <div>Last seen {{ lastSeen | e }}</div>
+    <div id="ip" class="mb-2">IP: <code class="p-2" id="ipLabel">Not yet known</code></div>
+    <div class="bg-light p-2">
+        <div class="alert alert-info p-2" id="deviceStatus">No status.</div>
+        <div class="row p-2">
+            <button type="button" class="btn btn-danger col-sm" id="stopMsmtBtn">Stop measurement</button>
+            <button type="button" class="btn btn-primary col-sm" id="pingBtn">Check connectivity with device</button>
+        </div>
+        <div class="row pt-2">
+            <form method="POST" id="startMsmtForm" action="{{ url_for('startMeasurementAtDevice', deviceUid=deviceUid) }}">
+                <label for="msmtSamplingInt">Sampling interval [ms]</label>
+                <input type="number" id="msmtSamplingInt" name="msmtSamplingInt" class="form-control" value="500">
+                <label for="msmtUploadInt">Upload interval [min]</label>
+                <input type="number" id="msmtUploadInt" name="msmtUploadInt" class="form-control" value="1">
+                <label for="msmtPpDevSel">Measurement target</label>
+                <select name="msmtPpDevSel" id="msmtPpDevSel" class="form-select">
+                    {% for msmtPpDev in msmtPpDevList %}
+                    <option value="{{ msmtPpDev | e }}">{{ msmtPpDev | e }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary form-control mt-2" id="startMsmtBtn">Start measurement</button>
+            </form>
+        </div>
+    </div>
+    <div>
+        <h3>Measurements</h3>
+        <div>
+            {% for measurement in autopowerDevMeasurements %}
+            <div class="mt-2 bg-light border p-2" id="smsmtid-{{ measurement.shared_measurement_id.replace(':','-') | e }}">
+                <div class="msmtActive alert alert-success p-1" style="display: none;">
+                    Active measurement
+                </div>
+                <h4><a href="{{ url_for('manageMeasurement', measurementId=measurement.server_measurement_id) }}">{{ measurement.shared_measurement_id | e }}</a></h4>
+                {% if measurement.run_id %}
+                <div>Run <span class="runid"><a href="{{ url_for('manageRun', runId=measurement.run_id) }}">{{ measurement.run_id | e }}</a></span></div>
+                <div>Dut <span class="dutid"><a href="{{ url_for('manageDut', dutId=measurement.dut_id) }}">{{ measurement.dut_name | e }}</a></span></div>
+                {% else %}
+                <div>Not part of any run. <a href="{{ url_for('manageMeasurement', measurementId=measurement.server_measurement_id) }}">Edit measurement</a> to add run.</div>
+                {% endif %}
+                <div> <a href="{{ url_for('downloadMsmt', measurementId=measurement.server_measurement_id)}}">Download raw .csv</a></div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='formAJAXSubmit.js') }}"></script>
+<script>
+    var msg = $("#deviceStatus");
+
+    function updateStatus() {
+        $(document).ready(function() {
+            $.getJSON("{{ url_for('getDeviceStatus', deviceUid=deviceUid) }}", null,function(resp, status, xhr) {
+            if (resp.status) {
+                setAlertSeverity(msg,"alert-danger");
+                msg.text(resp.status);
+            } else {
+                if (!resp.inMeasuringMode) {
+                    setAlertSeverity(msg,"alert-secondary");
+                    msg.text("Not measuring");
+                    $("#stopMsmtBtn").prop('disabled', true);
+                    $("#startMsmtBtn").prop('disabled', false);
+                    $("#msmtSamplingInt").prop('disabled',false);
+                    $("#msmtUploadInt").prop('disabled', false);
+                    $("#msmtPpDevSel").prop('disabled', false);
+                    $(".inProgress").removeClass("inProgress");
+                } else if (resp.inMeasuringMode && !resp.ppHasExited && resp.ppHasWrittenOnce) {
+                    setAlertSeverity(msg,"alert-info");
+                    msg.text("Measuring id " + resp.measurementSettings.sharedMsmtId);
+                    $("#stopMsmtBtn").prop('disabled', false);
+                    $("#startMsmtBtn").prop('disabled', true);
+                    $("#msmtSamplingInt").val(resp.measurementSettings.ppSamplingInterval).prop('disabled',true);
+                    $("#msmtUploadInt").val(resp.measurementSettings.uploadInterval).prop('disabled', true);
+                    $("#msmtPpDevSel").val(resp.measurementSettings.ppDevice).prop('disabled',true);
+                    $(".inProgress").removeClass("inProgress");
+                    $("#smsmtid-" + resp.measurementSettings.sharedMsmtId.replace(/:/g,'-')).addClass("inProgress");
+                } else {
+                    setAlertSeverity(msg,"alert-warning");
+                    msg.text("Not yet measuring. If this occurs on multiple reloads, please check for errors.");
+                }
+            }
+        });
+        });
+    }
+    $(document).ready(function() {
+        updateStatus();
+
+        $("#stopMsmtBtn").click(function() {
+            $("#stopMsmtBtn").prop("disabled",true);
+            $("#stopMsmtBtn").text("Stopping measurement...");
+            $.ajax({url:"{{ url_for('stopMeasurementAtDevice', deviceUid=deviceUid) }}", success: function(res) {
+                $("#stopMsmtBtn").text("Stop measurement");
+                $("#stopMsmtBtn").prop("disabled",false);
+                updateStatus();
+            },
+            error:function(xhr) {
+                setAlertSeverity(msg,"alert-danger");
+                msg.text("Error: " + xhr.status +  "; " + xhr.statusText + ". Response from server: " + xhr.responseText);
+                $("#stopMsmtBtn").prop("disabled",false);
+            }});
+        });
+
+        $("#pingBtn").click(function() {
+            $.ajax({url:"{{url_for('requestIntroduceClient', deviceUid=deviceUid)}}", success:function(res){
+                if (res.msg == "PONG") {
+                    setAlertSeverity(msg,"alert-success");
+                    msg.text("Device is online");
+                } else {
+                    setAlertSeverity(msg,"alert-warning");
+                    msg.text("Did't receive response from device in time.");
+                }
+            },
+            error:function(xhr) {
+                setAlertSeverity(msg,"alert-danger");
+                msg.text("Error: " + xhr.status +  "; " + xhr.statusText + ". Response from server: " + xhr.responseText);
+            }});
+        });
+
+        // get IP address if available
+        $.ajax({url:"{{url_for('requestIntroduceClient', deviceUid=deviceUid)}}", success:function(res){
+                if (res.msg == "PONG" && res.peer != null) {
+                    $("#ipLabel").text(res.peer);
+                } else {
+                    $("#ipLabel").text("Unknown");
+                }
+            },
+            error:function(xhr) {
+                $("#ipLabel").text("Unknown");
+            }});
+        // measurement form AJAX
+        makeAjaxForm(
+            $(startMsmtForm), 
+            function(resp) {
+                        $("#startMsmtBtn").text("Start measurement");
+                        updateStatus();
+            },
+            function(xhr) {
+                    setAlertSeverity(msg,"alert-danger");
+                    msg.text("Error: " + xhr.status +  "; " + xhr.statusText + ". Response from server: " + xhr.responseText);
+                    $("#startMsmtBtn").prop("disabled", false);
+                    $("#startMsmtBtn").text("Start measurement");
+            }
+        );
+    });
+</script>
+{% endblock %}

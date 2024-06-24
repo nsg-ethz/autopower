@@ -1,0 +1,46 @@
+{% extends "mainlayout.html" %}
+{% block title %}Autopower Management Runs{% endblock %}
+{% block main %}
+<a href="{{ url_for('newRunPage')}}" class="btn btn-primary">New Run</a>
+<div class="runList">
+    {% for run in runs %}
+    <div class="run bg-light border p-2 mt-2">
+        <h2>{{ run.run_id | e }}</h2>
+        <div>
+            <p class="bg-primary-subtle p-2">{{ run.run_description }}</p>
+        </div>
+        <div>Start: <span title="{{ run.start_run | e }}">{{ run.start_ago | e }}</span></div>
+        <div>
+            {% if run.stop_run %}
+            Stop: &thickapprox; <span title="{{ run.stop_run | e }}">{{ run.stop_run.strftime("%Y-%m-%d, %H:%M") | e }}</span>
+            {% else %}
+            No stop timestamp set yet.
+            {% endif %}
+        </div>
+        <div>
+            DUT: <a href="{{ url_for('manageDut', dutId=run.dut_id) }}">{{ run.dut_name | e}}</a></span>
+        </div>
+        <div>
+            <h4>Clients</h4>
+            <ul>
+                {% for client in clients[run.run_id] %}
+                <li><a href="{{ url_for('deviceManagementPage', deviceUid=client.client_uid) }}">{{ client.client_uid | e }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% if measurements[run.run_id] %}
+        <div>
+            <h4>Downloads</h4>
+            <ul>
+                {% for msmt in measurements[run.run_id] %}
+                <li>{{ msmt.client_uid | e }}: <a href="{{ url_for('downloadMsmt', measurementId=msmt.server_measurement_id)}}">{{ msmt.shared_measurement_id | e }}</a></li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        <a href="{{ url_for('manageRun', runId=run.run_id) }}">Edit Run {{ run.run_id | e }}</a>
+        <a href="{{ url_for('finishRun', runId=run.run_id) }}">Finish run</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

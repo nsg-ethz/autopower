@@ -1,0 +1,13 @@
+[Unit]
+Description=Autopower server
+Before=apache2.service
+Wants=postgresql.service time-sync.target network-online.target
+After=postgresql.service time-sync.target network.target network-online.target
+[Service]
+User=autopower
+Group=autopower
+Type=simple
+ExecStart=/usr/autopower/venv/bin/python /usr/autopower/server.py -s /usr/autopower/config/secrets.json -c /usr/autopower/config/server_config.json
+Restart=on-failure
+[Install]
+WantedBy=default.target

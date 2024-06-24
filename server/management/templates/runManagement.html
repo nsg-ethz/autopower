@@ -1,0 +1,96 @@
+{% extends "mainlayout.html" %}
+{% block title %}Manage {{ runId | e }}{% endblock %}
+{% block main %}
+{% if showDelete %}
+<button id="deleteBtn" class="btn btn-danger mb-2" data-bs-toggle="modal" data-bs-target="#confirmDeletionModal">Delete run</button>
+{% endif %}
+{% block runheading %}<h2>{{ runId | e}}</h2>{% endblock %}
+<div class="alert p-2" id="runStatus">Enter RUN information</div>
+<form id="runForm" method="POST" {% block formaction %}action="{{ url_for('updateRun', runId=runId) }}"{% endblock %} class="bg-light border p-2">
+    <label for="dut">Device under test</label>
+    <select id="dut" name="dut" class="form-control select2">
+        {% for dut in duts %}
+          <option value="{{ dut.dut_id | e }}" {% if (dut and run and (dut.dut_id == run.dut_id)) %}selected{% endif %}>{{ dut.dut_name | e }}</option>
+        {% endfor %}
+    </select>
+    <label for="clientIds">Clients in this run</label>
+    <select id="clientIds" name="clientIds" class="form-select select2" multiple>
+        {% for client in clientIds %}
+          <option value="{{ client.client_uid | e }}" {% if selectedClients and client.client_uid in selectedClients %}selected{% endif %}>{{ client.client_uid | e}}</option>
+        {% endfor %}
+    </select>
+    <fieldset class="border">
+      <legend>Start</legend>
+      <label for="startDate">Start date of run (BETA, {{ serverTz | e }})</label>
+      <input type="date" id="startDate" name="startDate" class="form-control" {% if startDate %}value="{{ startDate | e }}"{% endif %}>
+      <label for="startTime">Start time of run (BETA, {{ serverTz | e }})</label>
+      <input type="time" id="startTime" step="0.001" name="startTime" class="form-control" {% if startTime %}value="{{ startTime | e }}"{% endif %}>
+    </fieldset>
+    <fieldset class="border mt-2">
+      <legend>Stop</legend>
+      <label for="stopDate">Stop date of run (BETA, {{ serverTz | e }})</label>
+      <input type="date" id="stopDate" name="stopDate" class="form-control" {% if stopDate %}value="{{ stopDate | e }}"{% endif %}>
+      <label for="stopTime">Stop time of run (BETA, {{ serverTz | e }})</label>
+      <input type="time" id="stopTime" step="0.001" name="stopTime" class="form-control" {%if stopTime %}value="{{ stopTime | e }}"{% endif %}>
+    </fieldset>
+    <label for="rundesc">Run description</label>
+    <textarea name="rundesc" id="rundesc" class="form-control">{% if run and run.run_description %}{{ run.run_description | e }}{% endif %}</textarea>
+    <button type="submit" id="runSaveBtn" class="btn btn-primary form-control mt-2">Save</button>
+</form>
+<script src="{{ url_for('static', filename='formAJAXSubmit.js') }}"></script>
+<script>
+  $(document).ready(function() {
+    var msg = $("#runStatus");
+    makeAjaxForm(
+      $("#runForm"),
+      function(resp) {
+        $("#runForm").hide();
+        msg.text("Saved run");
+        $("#deleteBtn").hide();
+        setAlertSeverity(msg, "alert-success");
+      },
+      function(xhr) {
+        msg.text("Error: " + xhr.status +  "; " + xhr.statusText + ". Response from server: " + xhr.responseText);
+        setAlertSeverity(msg, "alert-danger");
+        $("#runSaveBtn").prop("disabled", false);
+      }
+    );
+  });
+</script>
+{% if showDelete %}
+<div class="modal fade" id="confirmDeletionModal" tabindex="-1" aria-labelledby="confirmDeletionLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="confirmDeletionLabel">Delete Run "{{ runId | e }}"</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Do you want to permanently delete Run "{{ runid | e}}"?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">No</button>
+        <button type="button" class="btn btn-danger" id="deleteBtnConfirm" data-bs-dismiss="modal">Yes. Delete Run "{{ runId | e }}"</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  $(document).ready(function() {
+    $("#deleteBtnConfirm").click(function() {
+      $.ajax({url:"{{ url_for('deleteRun', runId=runId) }}",
+      success:function() {
+        $("#runForm").text("Deleted");
+        $("#deleteBtn").hide();
+      },
+      error:function(xhr) {
+        $("#runForm").text("Error: " + xhr.status +  "; " + xhr.statusText + ". Response from server: " + xhr.responseText);
+        $("#deleteBtn").hide();
+      }
+      })
+    });
+  });
+</script>
+
+{% endif %}
+{% endblock %}

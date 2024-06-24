@@ -1,0 +1,23 @@
+{% extends "mainlayout.html" %}
+{% block title %}Autopower Management DUTs{% endblock %}
+{% block main %}
+<a href="{{ url_for('newDutPage')}}" class="btn btn-primary">Add new DUT</a>
+
+<div class="dutList">
+    {% for dut in duts %}
+    <div class="dut bg-light border p-2 mt-2">
+        <h2>{{ dut.dut_name | e }}</h2>
+        <div>
+            <ul>
+                {% if dut.device_model %}<li>Model: {{ dut.device_model | e }}</li>{% endif %}
+                {% if dut.ipv6_address %}<li>IPv6: {{ dut.ipv6_address | e }}</li>{% endif %}
+                {% if dut.ipv4_address %}<li>IPv4: {{ dut.ipv4_address | e }}</li>{% endif %}
+                {% if dut.loc %}<li>Location: {{ dut.loc | e }}</li>{% endif %}
+                {% if dut.dut_owner %}<li>Owner: {{ dut.dut_owner | e }}</li>{% endif %}
+            </ul>
+        </div>
+        <a href="{{ url_for('manageDut', dutId=dut.dut_id) }}">Edit {{ dut.dut_name | e }}</a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

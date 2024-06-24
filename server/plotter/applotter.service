@@ -1,0 +1,15 @@
+[Unit]
+Description=Autopower Plotter Gunicorn server
+Before=apache2.service
+Wants=postgresql.service time-sync.target network-online.target
+After=postgresql.service time-sync.target network.target network-online.target
+[Service]
+User=www-data
+Group=www-data
+Type=simple
+WorkingDirectory=/usr/autopower/plotter
+Environment="PATH=/usr/autopower/plotter/venv/bin"
+ExecStart=/usr/autopower/plotter/venv/bin/gunicorn --worker-class gevent --workers 8 --threads 2 --bind localhost:6000 app:server
+Restart=on-failure
+[Install]
+WantedBy=default.target

@@ -1,0 +1,149 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+package autopapi;
+message nothing {}
+
+// status messages unrealted to any request from the server. Used mostly for errors but also status messages
+message cmMCode {
+  string clientUid = 1;
+  uint32 statusCode = 2; // status code like error code: 0 if success/status, otherwise an error occurred
+  string msg = 3; // further information about the error
+}
+
+// request is handled outside of gRPC in the program due to current lack of real bidirectional method call support.
+// { requestId = "startMeasurement", requestBody = "" } starts a measurement with given measurementSettings immediately on the client
+// { requestId = "stopMeasurement", requestBody = "" } stops a measurement immediately
+// { requestId = "requestMeasurementList", requestBody = "" } requests the client to upload the list of saved measurements
+// { requestId = "requestFinishedMeasurement", "requestBody" = "<measurement_id>" } requests all of <measurement_id>'s content to be uploaded to server
+enum srvRequestType {
+  INTRODUCE_SERVER = 0; // special message to tell client about working stream connection to server.
+  START_MEASUREMENT = 1;
+  STOP_MEASUREMENT = 2;
+  REQUEST_MEASUREMENT_LIST = 3; // get the list of measurements
+  REQUEST_MEASUREMENT_DATA = 4; // get the content of the measurement specified in requestBody. This is expected to be a finished measurement.
+  REQUEST_MEASUREMENT_STATUS = 5; // get the status of the current measurement (running, parameters)
+}
+
+// responses to a srvRequest
+// { requestId = "introduceClient", responseBody = "" } responds back to server that the client is alive
+// { requestId = "startedMeasurementResponse", responseBody = "" } responds back on the status of starting a measurement
+// { requestId = "stoppedMeasurementResponse", responseBody = "" } responds back status of stopped measurement
+// { requestId = "measurementListResponse", responseBody = "<measurement_list>" } responds with a string of measurements stored on the client in responseBody
+// { requestId = "measurementDataResponse", responseBody = "" } responds with the status of pushing the data of some measurement to the servers DB
+// { requestId = "measurementStatusResponse", responseBody = "<json>" } responds with the status information of the measurement state of the client
+enum clientResponseType {
+  INTRODUCE_CLIENT = 0; // ping response to INTRODUCE_SERVER
+  STARTED_MEASUREMENT_RESPONSE = 1;
+  STOPPED_MEASUREMENT_RESPONSE = 2;
+  MEASUREMENT_LIST_RESPONSE = 3;
+  MEASUREMENT_DATA_RESPONSE = 4;
+  MEASUREMENT_STATUS_RESPONSE = 5;
+}
+
+// a message from the server to trigger some action on the measurement device
+message srvRequest {
+  string clientUid = 1; // id for the client this request gets to
+  srvRequestType msgType = 2; // id for the message as header
+  optional string requestBody = 3; // content
+  uint32 requestNo = 4; // id of this request. A sequence number like identifier to identify responses
+}
+
+// response to a srvRequest
+message clientResponse {
+  string clientUid = 1; // id for the client giving this response to a srvRequest
+  uint32 statusCode = 2; // code for specifying if this was successful/error message
+  clientResponseType msgType = 3; // id for the response of the client
+  optional string msg = 4; // content
+  uint32 requestNo = 5; // requestNo of the request this response belongs to
+}
+
+// an unique identifier for client machine
+message clientUid {
+  string uid = 1;
+}
+
+// an unique identifier for a management machine
+
+message msmtSettings {
+  string clientUid = 1;
+  string ppDevice = 3;
+  string ppSamplingInterval = 4;
+  uint32 uploadIntervalMin = 5; // upload interval in minutes. If this is 0, we never upload unless manually requested
+}
+
+message msmtSample {
+  string clientUid = 1;
+  string msmtId = 2; // id of measurement this sample belongs to
+  google.protobuf.Timestamp msmtTime = 3;
+  uint32 msmtContent = 4;
+}
+
+message msmtName {
+  string clientUid = 1;
+  string name = 2;
+}
+
+// an unique identifier for a management machine with attatched password for auth
+message mgmtAuth {
+  string mgmtId = 1; // unique id to identify management machine
+  string pw = 2; // password to identify this management machine
+}
+
+message mgmtMsmtSettings {
+  string clientUid = 1;
+  string ppDevice = 3;
+  string ppSamplingInterval = 4;
+  uint32 uploadIntervalMin = 5; // upload interval in minutes. If this is 0, we never upload unless manually requested
+  string mgmtId = 6;
+  string pw = 7;
+}
+
+// a message from the management client to the server to trigger some action on the measurement device
+message mgmtRequest {
+  string clientUid = 1; // id for the client this request gets to
+  srvRequestType msgType = 2; // id for the message as header
+  optional string requestBody = 3; // content
+  uint32 requestNo = 4; // id of this request. A sequence number like identifier to identify responses
+  string mgmtId = 5;
+  string pw = 6;
+}
+
+service CMeasurementApi {
+
+  /// -- autopower device calls -- ///
+
+  // registers on server and listens on stream for commands from server
+  // @returns command stream from server
+  rpc registerClient(clientUid) returns (stream srvRequest) {}
+  // informs server of success/failure of a srvRequest
+  // @returns a clientResponse stream to some issued srvRequests
+  rpc putClientResponse(clientResponse) returns (nothing) {}
+  // upload file list to server
+  // @param stream of all measurement names to the server
+  rpc putMeasurementList(stream msmtName) returns (nothing) {}
+  // upload measurement/measurement samples to server
+  // @param msmtSample stream is the file content requested by the server initially
+  rpc putMeasurement(stream msmtSample) returns (nothing) {}
+  // gets all necessary data for measurement and then immediately starts the measurement
+  // @returns measurement settings
+  rpc getMsmtSttngsAndStart(clientUid) returns (msmtSettings) {}
+  // informs remote server of local status or error
+  // @param the cmStatus informing the server
+  rpc putStatusMsg(cmMCode) returns (nothing) {}
+
+  /// -- management calls for external CLI/plotter -- ///
+
+  // gets the list of currently registered clients - they may not be currenly connected
+  // @returns stream of client UIDs
+  rpc getLoggedInClients(mgmtAuth) returns (stream clientUid) {}
+  // sets measurement settings of a client locally on the server but does not start a measurement yet
+  // @param measurement settings for a device
+  rpc setMsmtSttings(mgmtMsmtSettings) returns (nothing) {}
+  // request the server to relay a request to an autopower device
+  // @param a request from the server to the autopower device
+  // @returns a response of the client
+  rpc issueRequestToClient(mgmtRequest) returns (clientResponse) {}
+  // get status and error messages from server
+  // @returns stream of error/status messages from any client
+  rpc getMessages(mgmtAuth) returns (stream cmMCode) {}
+}

@@ -1,0 +1,12 @@
+dash
+pandas
+psycopg2-binary
+timeago
+tzlocal
+dash_ag_grid
+dash_daq
+dash_datetimepicker
+statsmodels
+gunicorn
+gevent
+psycogreen

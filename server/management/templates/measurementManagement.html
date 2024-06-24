@@ -1,0 +1,37 @@
+{% extends "mainlayout.html" %}
+{% block title %}Manage {{ sharedMsmtId | e }}{% endblock %}
+{% block main %}
+<h2>{{ sharedMsmtId | e}}</h2>
+<div>Measured with <span class="msmtDevice">{{ clientUid | e}}</span></div>
+<div class="bg-light border p-2">
+    <div class="alert p-2" id="mmStatus">Manage measurement</div>
+    <form id="mmForm" method="POST" action="{{ url_for('updateMeasurement', measurementId=measurementId) }}">
+        <label for="run">Run</label>
+        <select id="run" name="runId" class="form-select">
+        {% for run in runsOfThisDevice %}
+          <option value="{{ run.run_id | e }}" {% if (run.run_id == currRun) %}selected{% endif %}>{{ run.run_id | e }}</option>
+        {% endfor %}
+        </select>
+        <button id="saveMmBtn" type="submit" class="btn btn-primary form-control mt-2">Save</button>
+    </form>
+</div>
+<script src="{{ url_for('static', filename='formAJAXSubmit.js') }}"></script>
+<script>
+  var msg = $("#mmStatus");
+  $(document).ready(function() {
+    makeAjaxForm(
+      $(mmForm),
+      function(resp) {
+        $("#mmForm").hide();
+        msg.text("Saved measurement");
+        setAlertSeverity(msg, "alert-success");
+      },
+      function(xhr) {
+        msg.text("Error: " + xhr.status +  "; " + xhr.statusText + ". Response from server: " + xhr.responseText);
+        setAlertSeverity(msg, "alert-danger");
+        $("#saveMmBtn").prop("disabled", false);
+      }
+    );
+  });
+</script>
+{% endblock %}

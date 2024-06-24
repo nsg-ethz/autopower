@@ -1,0 +1,86 @@
+{% extends "mainlayout.html" %}
+{% block title %}Manage {{ dut.dut_name | e }}{% endblock %}
+{% block main %}
+{% if showDelete %}
+<button id="deleteBtn" class="btn btn-danger mb-2" data-bs-toggle="modal" data-bs-target="#confirmDeletionModal">Delete {{ dut.dut_name | e }}</button>
+{% endif %}
+<div class="bg-light border p-2">
+    <h2>{{ dut.dut_name | e}}</h2>
+    <div class="alert p-2" id="dutStatus">Enter DUT information</div>
+    <form id="dutForm" method="POST" {% block formaction %}action="{{ url_for('updateDut', dutId=dutId) }}"{% endblock %}>
+        <label for="dutname">Name of device under test</label>
+        <input type="text" id="dutname" name="dutname" class="form-control" value="{% if dut.dut_name %}{{ dut.dut_name | e }}{% else %}{% endif %}">
+        <label for="devicemodel">Device model</label>
+        <input type="text" id="devicemodel" name="devicemodel" class="form-control" value="{% if dut.device_model %}{{ dut.device_model | e }}{% else %}{% endif %}">
+        <label for="ipv6address">IPv6 Address</label>
+        <input type="text" id="ipv6address" name="ipv6address" class="form-control" value="{% if dut.ipv6_address %}{{ dut.ipv6_address | e }}{% else %}{% endif %}">
+        <label for="ipv4address">IPv4 Address</label>
+        <input type="text" id="ipv4address" name="ipv4address" class="form-control" value="{% if dut.ipv4_address %}{{ dut.ipv4_address | e }}{% else %}{% endif %}">
+        <label for="location">Location</label>
+        <input type="text" id="location" name="location" class="form-control" value="{% if dut.loc %}{{ dut.loc | e }}{% else %}{% endif %}">
+        <label for="dutowner">DUT owner</label>
+        <input type="text" id="dutowner" name="dutowner" class="form-control" value="{% if dut.dut_owner %}{{ dut.dut_owner | e }}{% else %}{% endif %}">
+        <button id="dutSaveBtn" type="submit" class="btn btn-primary form-control mt-2">Save</button>
+    </form>
+</div>
+<script src="{{ url_for('static', filename='formAJAXSubmit.js') }}"></script>
+<script>
+  var msg = $("#dutStatus");
+  $(document).ready(function() {
+    makeAjaxForm(
+      $(dutForm),
+      function(resp) {
+                  $("#dutForm").hide();
+                  msg.text("Saved DUT");
+                  $("#deleteBtn").hide();
+                  setAlertSeverity(msg, "alert-success");
+      },
+      function(xhr) {
+                    msg.text("Error: " + xhr.status +  "; " + xhr.statusText + ". Response from server: " + xhr.responseText);
+                    setAlertSeverity(msg, "alert-danger");
+                    $("#dutSaveBtn").prop("disabled", false);
+      }
+    );
+
+  });
+</script>
+{% if showDelete %}
+<div class="modal fade" id="confirmDeletionModal" tabindex="-1" aria-labelledby="confirmDeletionLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="confirmDeletionLabel">Delete "{{ dut.dut_name | e }}"</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        Do you want to permanently delete "{{ dut.dut_name | e}}"?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">No</button>
+        <button type="button" class="btn btn-danger" id="deleteBtnConfirm" data-bs-dismiss="modal">Yes. Delete "{{ dut.dut_name | e }}"</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  $(document).ready(function() {
+    $("#deleteBtnConfirm").click(function() {
+      $.ajax({url:"{{ url_for('deleteDut', dutId=dutId) }}",
+      success:function() {
+        msg.text("Deleted");
+        setAlertSeverity(msg,"alert-success");
+        $("#dutForm").hide();
+        $("#deleteBtn").hide();
+      },
+      error:function(xhr) {
+        msg.text("Error: " + xhr.status +  "; " + xhr.statusText + ". Response from server: " + xhr.responseText);
+        setAlertSeverity(msg,"alert-danger");
+      }
+      })
+    });
+  });
+
+</script>
+
+{% endif %}
+{% endblock %}
