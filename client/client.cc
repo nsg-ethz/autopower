@@ -198,6 +198,15 @@ void AutopowerClient::getAndSavePpData() {
       // std::cerr << "Starting pinpoint..." << std::endl;
       // pinpoint sometimes just terminates unexpectedly --> also happens on
       // CLI.
+      try {
+        std::stoi(ppSamplingInterval);
+      } catch (std::invalid_argument const& sampInv) {
+        std::string errMsg = "ERROR: Could not start pinpoint as sampling interval is invalid!";
+        std::cerr << errMsg << std::endl;
+        putStatusToServer(1, errMsg);
+        return;
+      }
+      
       if (!execlp(ppBinaryPath.c_str(), ppBinaryPath.c_str(), "--timestamp", "-c", "-e",
                   ppDevice.c_str(), "-i", ppSamplingInterval.c_str(), "-n", NULL)) {
         std::cerr << "ERROR: Could not start pinpoint!" << std::endl;
