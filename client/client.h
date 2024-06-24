@@ -1,12 +1,12 @@
 #pragma once
+#include "api.grpc.pb.h"
+#include "api.pb.h"
 #include <condition_variable>
 #include <csignal>
 #include <ctime>
 #include <mutex>
 #include <shared_mutex>
 #include <string>
-#include "api.grpc.pb.h"
-#include "api.pb.h"
 
 // describes a measurement sample
 struct CMsmtSample {
@@ -25,21 +25,21 @@ class AutopowerClient {
   std::string msmtId;             // shared id of this measurement
   uint32_t internalMmtId;         // local (private to database) ID of this measurement
   std::mutex msmtIdMtx;
-  std::shared_mutex hasExitedMtx; // mutex to protect the exit/running status of pinpoint
+  std::shared_mutex hasExitedMtx;          // mutex to protect the exit/running status of pinpoint
   std::condition_variable_any hasExitedCv; // Condition variable to notify about termination of pinpoint
-  
+
   bool ppHasExited = true;
   bool isMeasuring = false;
   std::shared_mutex measuringMtx;
   std::condition_variable_any measuringCv;
 
-  std::shared_mutex writtenOnceMtx;  // lock to protect the written once variable
+  std::shared_mutex writtenOnceMtx;             // lock to protect the written once variable
   std::condition_variable_any hasWrittenOnceCv; // condition variable to notify successful write once
   std::shared_mutex ppIsRunningMtx;
   pid_t lastKnownPpPid; // the last known pid from pinpoint. Used to check if pinpoint is actually running in status message
   bool thisMeasurementHasWrittenOnce = false;
   uint32_t periodicUploadMinutes = 5; // time to periodically upload the data in minutes. If this is 0 we never upload the content and rely on manually uploading the files
-  
+
   std::unique_ptr<autopapi::CMeasurementApi::Stub> stub; // stub for connecting to GRPC server
   bool measuring() {
     // read measuring
@@ -58,7 +58,7 @@ class AutopowerClient {
   }
 
   void setHasWrittenOnce(bool writtenOnce) {
-    std::unique_lock<std::shared_mutex>wl(writtenOnceMtx);
+    std::unique_lock<std::shared_mutex> wl(writtenOnceMtx);
     this->thisMeasurementHasWrittenOnce = writtenOnce;
     if (writtenOnce) {
       hasWrittenOnceCv.notify_all();
@@ -85,7 +85,7 @@ class AutopowerClient {
   }
   bool getPpIsCurrentlyRunning() {
     std::shared_lock rlck(ppIsRunningMtx);
-    return 0 == kill(lastKnownPpPid,0);
+    return 0 == kill(lastKnownPpPid, 0);
   }
 
   void putStatusToServer(uint32_t statuscode, std::string message);
@@ -101,7 +101,7 @@ class AutopowerClient {
   std::unique_ptr<autopapi::CMeasurementApi::Stub> createGrpcConnection(std::string remoteHost, std::string remotePort, std::string privKeyClientPath, std::string pubKeyClientPath, std::string pubKeyCA = "");
 
   void getAndSavePpData();
-  std::pair <bool,std::string> startMeasurement();
+  std::pair<bool, std::string> startMeasurement();
   bool stopMeasurement();
   bool uploadMeasurementList();
   bool streamMeasurementData(std::string measId = "");
@@ -110,7 +110,7 @@ class AutopowerClient {
 
 public:
   AutopowerClient(std::string _clientUid,
-          std::string _remoteHost, std::string _remotePort, std::string _privKeyPath, std::string _pubKeyPath, std::string _pubKeyCA,
-          std::string _pgConnString,
-          std::string _ppBinaryPath, std::string _ppDevice, std::string _ppSamplingInterval);
+                  std::string _remoteHost, std::string _remotePort, std::string _privKeyPath, std::string _pubKeyPath, std::string _pubKeyCA,
+                  std::string _pgConnString,
+                  std::string _ppBinaryPath, std::string _ppDevice, std::string _ppSamplingInterval);
 };

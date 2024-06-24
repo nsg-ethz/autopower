@@ -28,16 +28,15 @@
 #include <thread>
 #include <unistd.h>
 
-
 void AutopowerClient::putStatusToServer(uint32_t statuscode, std::string message) {
-    grpc::ClientContext msgCtxt;
-    class autopapi::nothing nth;
-    autopapi::cmMCode cmCde;
-    cmCde.set_statuscode(statuscode);
-    cmCde.set_msg(message);
-    cmCde.set_clientuid(clientUid);
+  grpc::ClientContext msgCtxt;
+  class autopapi::nothing nth;
+  autopapi::cmMCode cmCde;
+  cmCde.set_statuscode(statuscode);
+  cmCde.set_msg(message);
+  cmCde.set_clientuid(clientUid);
 
-    stub->putStatusMsg(&msgCtxt, cmCde, &nth);
+  stub->putStatusMsg(&msgCtxt, cmCde, &nth);
 }
 
 void AutopowerClient::putResponseToServer(uint32_t statuscode, std::string message, autopapi::clientResponseType respType, uint32_t requestNo) {
@@ -200,13 +199,13 @@ void AutopowerClient::getAndSavePpData() {
       // CLI.
       try {
         std::stoi(ppSamplingInterval);
-      } catch (std::invalid_argument const& sampInv) {
+      } catch (std::invalid_argument const &sampInv) {
         std::string errMsg = "ERROR: Could not start pinpoint as sampling interval is invalid!";
         std::cerr << errMsg << std::endl;
         putStatusToServer(1, errMsg);
         return;
       }
-      
+
       if (!execlp(ppBinaryPath.c_str(), ppBinaryPath.c_str(), "--timestamp", "-c", "-e",
                   ppDevice.c_str(), "-i", ppSamplingInterval.c_str(), "-n", NULL)) {
         std::cerr << "ERROR: Could not start pinpoint!" << std::endl;
@@ -218,7 +217,7 @@ void AutopowerClient::getAndSavePpData() {
       close(pipe_comm[1]);
       // close(pipe_error_comm[1]);
       char rdbuffer;
-      //char errrdbuffer;
+      // char errrdbuffer;
 
       std::string line = "";
 
@@ -250,7 +249,7 @@ void AutopowerClient::getAndSavePpData() {
             std::cerr << errorMsg << std::endl;
 
             // put error to server
-            putStatusToServer(1,errorMsg);
+            putStatusToServer(1, errorMsg);
           }
           line = "";
         } else {
@@ -281,7 +280,7 @@ void AutopowerClient::getAndSavePpData() {
           putStatusToServer(1, errorMsg);
           loggedErrorToServer = true;
         }
-      } 
+      }
     }
 
     if (measuring()) {
@@ -294,7 +293,7 @@ void AutopowerClient::getAndSavePpData() {
 
 // Start a measurement
 // returns pair with boolean telling success and string giving back shared measurment id of this measurement
-std::pair<bool,std::string> AutopowerClient::startMeasurement() {
+std::pair<bool, std::string> AutopowerClient::startMeasurement() {
   std::unique_lock mm(measuringMtx);
   std::cout << "Starting new measurement..." << std::endl;
   // log measurement start to database
@@ -303,7 +302,7 @@ std::pair<bool,std::string> AutopowerClient::startMeasurement() {
     pgcon.prepare(
         "addMsmt",
         "INSERT INTO measurements (shared_measurement_id, client_uid) VALUES ($1, $2) RETURNING internal_measurement_id");
-    setMsmtIdToNow();  
+    setMsmtIdToNow();
     std::string sharedMsmtId = getSharedMsmtId();
 
     // save measurement start to database
@@ -326,17 +325,17 @@ std::pair<bool,std::string> AutopowerClient::startMeasurement() {
     } catch (std::exception &e) {
       std::cerr << "Warning: Could not parse sampling interval: " << e.what() << ". Setting wait time to 10 seconds." << std::endl;
     }
-    if (!hasWrittenOnceCv.wait_until(wol,std::chrono::system_clock::now() + std::chrono::seconds(waitTime),[this]() {return this->thisMeasurementHasWrittenOnce;})) {
+    if (!hasWrittenOnceCv.wait_until(wol, std::chrono::system_clock::now() + std::chrono::seconds(waitTime), [this]() { return this->thisMeasurementHasWrittenOnce; })) {
       wol.unlock();
       std::cout << "Couldn't start measurement as the measurement did not write in the last " << waitTime << " seconds. Thus stopping again. Please check pinpoint output!" << std::endl;
       stopMeasurement();
-      return std::pair<bool,std::string>(false, sharedMsmtId);
+      return std::pair<bool, std::string>(false, sharedMsmtId);
     }
     std::cout << "Started measurement." << std::endl;
-    return std::pair<bool,std::string>(true, sharedMsmtId);
+    return std::pair<bool, std::string>(true, sharedMsmtId);
   } catch (std::exception &e) {
     std::cerr << "Error while starting measurement: " << e.what() << std::endl;
-    return std::pair<bool,std::string>(false,"");
+    return std::pair<bool, std::string>(false, "");
   }
 }
 
@@ -352,9 +351,9 @@ bool AutopowerClient::stopMeasurement() {
         throw std::runtime_error(errorMsg);
       }
     } catch (std::exception &e) {
-        stoppedMsmtSuccessfully = false;
-        std::cerr << "Error: Could not stop measurement successfully: " << e.what() << std::endl;
-        putStatusToServer(1,e.what());
+      stoppedMsmtSuccessfully = false;
+      std::cerr << "Error: Could not stop measurement successfully: " << e.what() << std::endl;
+      putStatusToServer(1, e.what());
     }
   }
 
@@ -454,7 +453,7 @@ bool AutopowerClient::streamMeasurementData(std::string measId) {
     std::string ts = tuple["measurement_timestamp"].as<std::string>();
     std::replace(ts.begin(), ts.end(), ' ', 'T');
     bool couldParseTs = google::protobuf::util::TimeUtil::FromString(ts, gTimestamp);
-    
+
     if (!couldParseTs) {
       delete gTimestamp;
       uploadWasSuccessful = false;
@@ -485,7 +484,7 @@ bool AutopowerClient::streamMeasurementData(std::string measId) {
   grpc::Status wStatus = smpStream->Finish();
   if (!wStatus.ok()) {
     uploadWasSuccessful = false;
-    std::string errorMsg = "Writing samples to server failed:" + wStatus.error_message() + "; " + wStatus.error_details(); 
+    std::string errorMsg = "Writing samples to server failed:" + wStatus.error_message() + "; " + wStatus.error_details();
     // write failed. Since we only set the was_uploaded field to true if Write() returned true, we know the server at least received the tuples.
     // thus no need to revert the transaction.
     std::cerr << errorMsg << std::endl;
@@ -609,7 +608,7 @@ void AutopowerClient::manageMsmt() {
           statusCode = 1;
           statusMsg = "Could not start measurement successfully. Please check the client for error messages from pinpoint.";
         }
-        
+
         putResponseToServer(statusCode, statusMsg, autopapi::clientResponseType::STARTED_MEASUREMENT_RESPONSE, sRequest.requestno());
 
       } else if (sRequest.msgtype() == autopapi::srvRequestType::STOP_MEASUREMENT) {
@@ -619,7 +618,7 @@ void AutopowerClient::manageMsmt() {
           statusCode = 1;
           statusMsg = "Measurement didn't stop successfully. Please check for errors";
         }
-      
+
         putResponseToServer(statusCode, statusMsg, autopapi::clientResponseType::STOPPED_MEASUREMENT_RESPONSE, sRequest.requestno());
 
       } else if (sRequest.msgtype() == autopapi::srvRequestType::INTRODUCE_SERVER) {
@@ -636,7 +635,7 @@ void AutopowerClient::manageMsmt() {
           statusCode = 1;
           statusMsg = "Could not send measurement list. Please check client for errors.";
         }
-        
+
         putResponseToServer(statusCode, statusMsg, autopapi::clientResponseType::MEASUREMENT_LIST_RESPONSE, sRequest.requestno());
       } else if (sRequest.msgtype() == autopapi::srvRequestType::REQUEST_MEASUREMENT_STATUS) {
         // get measuring
@@ -685,7 +684,7 @@ void AutopowerClient::manageMsmt() {
     std::cerr << sf.error_code() << ": " << sf.error_message() << ": " << sf.error_details() << std::endl;
     std::cerr << "Server stream exited. Will attempt re-register." << std::endl;
     cc.TryCancel(); // try to free up context as this is no longer possible to use.
-    sleep(5); // sleep for 5 seconds before re-registering
+    sleep(5);       // sleep for 5 seconds before re-registering
   }
   std::cerr << "manageMsmt() exited..." << std::endl;
   putStatusToServer(1, "manageMsmt() thread exited. This points to a crash.");
@@ -695,9 +694,9 @@ void AutopowerClient::manageMsmt() {
 }
 
 AutopowerClient::AutopowerClient(std::string _clientUid,
-                 std::string _remoteHost, std::string _remotePort, std::string _privKeyPath, std::string _pubKeyPath, std::string _pubKeyCA,
-                 std::string _pgConnString,
-                 std::string _ppBinaryPath, std::string _ppDevice, std::string _ppSamplingInterval)
+                                 std::string _remoteHost, std::string _remotePort, std::string _privKeyPath, std::string _pubKeyPath, std::string _pubKeyCA,
+                                 std::string _pgConnString,
+                                 std::string _ppBinaryPath, std::string _ppDevice, std::string _ppSamplingInterval)
     : // set up variables for environment
       clientUid(_clientUid),
       pgConString(_pgConnString),
@@ -715,18 +714,18 @@ AutopowerClient::AutopowerClient(std::string _clientUid,
 }
 
 int main(int argc, char **argv) {
-  std::string clientUid = ""; // unique ID for this client
-  std::string remoteHost = ""; // domain of control server
-  std::string remotePort = ""; // port of server
-  std::string privKeyPath = ""; // path to private key for authentification to server
-  std::string pubKeyPath = ""; // path to public key for authentification to server
-  std::string pubKeyCA = ""; // path to public key of custom CA. Only use this if the servers CA is not trusted
-  std::string ppBinaryPath = ""; // absolute path to pinpoint binary
-  std::string ppDevice = ""; // device to measure (MCP1, MCP2, CPU etc.)
+  std::string clientUid = "";          // unique ID for this client
+  std::string remoteHost = "";         // domain of control server
+  std::string remotePort = "";         // port of server
+  std::string privKeyPath = "";        // path to private key for authentification to server
+  std::string pubKeyPath = "";         // path to public key for authentification to server
+  std::string pubKeyCA = "";           // path to public key of custom CA. Only use this if the servers CA is not trusted
+  std::string ppBinaryPath = "";       // absolute path to pinpoint binary
+  std::string ppDevice = "";           // device to measure (MCP1, MCP2, CPU etc.)
   std::string ppSamplingInterval = ""; // sampling interval for pinpoint in ms
-  std::string secretsFilePath = ""; // absolute path to secrets (postgres string, certs, ...)
-  std::string configFilePath = ""; // absolute path to config file (JSON)
-  std::string postgresString = ""; // string to connect to postgres DB
+  std::string secretsFilePath = "";    // absolute path to secrets (postgres string, certs, ...)
+  std::string configFilePath = "";     // absolute path to config file (JSON)
+  std::string postgresString = "";     // string to connect to postgres DB
   // get arguments from cli
   int arg;
   while ((arg = getopt(argc, argv, "u:r:p:b:d:i:e:f:s:c:h")) != -1) {
@@ -759,7 +758,7 @@ int main(int argc, char **argv) {
       secretsFilePath = optarg;
       break;
     case 'c': // path to config file. CLI args overwrite config file contents
-        configFilePath = optarg;
+      configFilePath = optarg;
       break;
     case 'h': // print help
       std::cerr << "Autopower measurement client. Available flags:" << std::endl
@@ -778,13 +777,12 @@ int main(int argc, char **argv) {
                 << "  -c path to config file" << std::endl
                 << "  -h print this help information" << std::endl;
       return 0;
-      
+
     default:
       std::cerr << "Available flages: u,k,r,p,b,d,i,s,c,h. Please see -h for explanation" << std::endl;
       return -1;
     }
   }
-
 
   // read secrets from config file
   if (secretsFilePath.empty()) {
@@ -827,7 +825,7 @@ int main(int argc, char **argv) {
 
     Json::Value config;
     configFile >> config;
-    
+
     if (clientUid.empty() && config["clientUid"]) {
       clientUid = config["clientUid"].asString();
     }
@@ -852,7 +850,7 @@ int main(int argc, char **argv) {
       ppSamplingInterval = config["ppSamplingInterval"].asString();
     }
   }
-  
+
   if (clientUid.empty()) {
     std::random_device rd;
     std::uniform_int_distribution<int> rdist(200, 2000);
