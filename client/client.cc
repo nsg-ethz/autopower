@@ -1,6 +1,7 @@
 #include "client.h"
 #include "api.grpc.pb.h"
 #include "api.pb.h"
+#include <algorithm>
 #include <csignal>
 #include <cstddef>
 #include <cstdint>
@@ -27,6 +28,12 @@
 #include <sys/wait.h>
 #include <thread>
 #include <unistd.h>
+#include <vector>
+
+bool AutopowerClient::isValidPpDevice(std::string device) {
+  // check if device is in the supportedDevices list
+  return std::find(this->supportedDevices.begin(), this->supportedDevices.end(), device) != this->supportedDevices.end();
+}
 
 void AutopowerClient::putStatusToServer(uint32_t statuscode, std::string message) {
   grpc::ClientContext msgCtxt;
@@ -200,9 +207,18 @@ void AutopowerClient::getAndSavePpData() {
       try {
         std::stoi(ppSamplingInterval);
       } catch (std::invalid_argument const &sampInv) {
-        std::string errMsg = "ERROR: Could not start pinpoint as sampling interval is invalid!";
+        std::string errMsg = "ERROR: Could not start pinpoint as sampling interval is invalid! Stopping measurement.";
         std::cerr << errMsg << std::endl;
         putStatusToServer(1, errMsg);
+        stopMeasurement();
+        return;
+      }
+
+      if (!isValidPpDevice(ppDevice)) {
+        std::string errMsg = "ERROR: Could not start pinpoint as device is not whitelisted on the client and may not be supported! Please check the client side configuration! Stopping measurement.";
+        std::cerr << errMsg << std::endl;
+        putStatusToServer(1, errMsg);
+        stopMeasurement();
         return;
       }
 
@@ -569,7 +585,7 @@ void AutopowerClient::manageMsmt() {
 
         // verify data
         std::string newPpdev = mset.ppdevice();
-        if (!(newPpdev == "CPU" || newPpdev == "MCP1" || newPpdev == "MCP2")) {
+        if (!isValidPpDevice(newPpdev)) {
           std::string errorDescription = "Error: Received invalid device for pinpoint. Only CPU, MCP1 and MCP2 are allowed. Ignoring request.";
           std::cerr << errorDescription << std::endl;
 
@@ -616,7 +632,7 @@ void AutopowerClient::manageMsmt() {
         std::string statusMsg = "Measurement stopped successfully";
         if (!stopMeasurement()) {
           statusCode = 1;
-          statusMsg = "Measurement didn't stop successfully. Please check for errors";
+          statusMsg = "Measurement didn't stop successfully. Please check for errors on the client.";
         }
 
         putResponseToServer(statusCode, statusMsg, autopapi::clientResponseType::STOPPED_MEASUREMENT_RESPONSE, sRequest.requestno());
@@ -696,12 +712,12 @@ void AutopowerClient::manageMsmt() {
 AutopowerClient::AutopowerClient(std::string _clientUid,
                                  std::string _remoteHost, std::string _remotePort, std::string _privKeyPath, std::string _pubKeyPath, std::string _pubKeyCA,
                                  std::string _pgConnString,
-                                 std::string _ppBinaryPath, std::string _ppDevice, std::string _ppSamplingInterval)
+                                 std::string _ppBinaryPath, std::string _ppDevice, std::string _ppSamplingInterval, std::vector<std::string> _supportedDevices)
     : // set up variables for environment
       clientUid(_clientUid),
       pgConString(_pgConnString),
       ppBinaryPath(_ppBinaryPath), ppDevice(_ppDevice),
-      ppSamplingInterval(_ppSamplingInterval) {
+      ppSamplingInterval(_ppSamplingInterval), supportedDevices(_supportedDevices) {
   // connect to external server
   this->stub = createGrpcConnection(_remoteHost, _remotePort, _privKeyPath, _pubKeyPath, _pubKeyCA);
   std::cout << "Started client UID " << clientUid << " and ppBinaryPath: " << ppBinaryPath << std::endl;
@@ -714,18 +730,20 @@ AutopowerClient::AutopowerClient(std::string _clientUid,
 }
 
 int main(int argc, char **argv) {
-  std::string clientUid = "";          // unique ID for this client
-  std::string remoteHost = "";         // domain of control server
-  std::string remotePort = "";         // port of server
-  std::string privKeyPath = "";        // path to private key for authentification to server
-  std::string pubKeyPath = "";         // path to public key for authentification to server
-  std::string pubKeyCA = "";           // path to public key of custom CA. Only use this if the servers CA is not trusted
-  std::string ppBinaryPath = "";       // absolute path to pinpoint binary
-  std::string ppDevice = "";           // device to measure (MCP1, MCP2, CPU etc.)
-  std::string ppSamplingInterval = ""; // sampling interval for pinpoint in ms
-  std::string secretsFilePath = "";    // absolute path to secrets (postgres string, certs, ...)
-  std::string configFilePath = "";     // absolute path to config file (JSON)
-  std::string postgresString = "";     // string to connect to postgres DB
+  std::string clientUid = "";                // unique ID for this client
+  std::string remoteHost = "";               // domain of control server
+  std::string remotePort = "";               // port of server
+  std::string privKeyPath = "";              // path to private key for authentification to server
+  std::string pubKeyPath = "";               // path to public key for authentification to server
+  std::string pubKeyCA = "";                 // path to public key of custom CA. Only use this if the servers CA is not trusted
+  std::string ppBinaryPath = "";             // absolute path to pinpoint binary
+  std::string ppDevice = "";                 // device to measure (MCP1, MCP2, CPU etc.)
+  std::string ppSamplingInterval = "";       // sampling interval for pinpoint in ms
+  std::string secretsFilePath = "";          // absolute path to secrets (postgres string, certs, ...)
+  std::string configFilePath = "";           // absolute path to config file (JSON)
+  std::string postgresString = "";           // string to connect to postgres DB
+  std::vector<std::string> supportedDevices; // vector of allowed and supported devices for pinpoint
+
   // get arguments from cli
   int arg;
   while ((arg = getopt(argc, argv, "u:r:p:b:d:i:e:f:s:c:h")) != -1) {
@@ -849,6 +867,17 @@ int main(int argc, char **argv) {
     if (ppSamplingInterval.empty() && config["ppSamplingInterval"]) {
       ppSamplingInterval = config["ppSamplingInterval"].asString();
     }
+
+    if (!config["supportedDevices"]) {
+      std::cerr << "Could not find any supported devices in config file. Please whitelist the available counters you get via running pinpoint -l!" << std::endl;
+      return -1;
+    } else {
+      // we can get the devices --> save as allowed ones.
+      const Json::Value declaredDevices = config["supportedDevices"];
+      for (int i = 0; i < declaredDevices.size(); i++) {
+        supportedDevices.push_back(declaredDevices[i].asString());
+      }
+    }
   }
 
   if (clientUid.empty()) {
@@ -858,7 +887,7 @@ int main(int argc, char **argv) {
   }
 
   if (remoteHost.empty()) {
-    remoteHost = "<somevm.example.com>";
+    remoteHost = "localhost";
   }
 
   if (remotePort.empty()) {
@@ -879,7 +908,7 @@ int main(int argc, char **argv) {
 
   // finally start client
   try {
-    AutopowerClient c(clientUid, remoteHost, remotePort, privKeyPath, pubKeyPath, pubKeyCA, postgresString, ppBinaryPath, ppDevice, ppSamplingInterval);
+    AutopowerClient c(clientUid, remoteHost, remotePort, privKeyPath, pubKeyPath, pubKeyCA, postgresString, ppBinaryPath, ppDevice, ppSamplingInterval, supportedDevices);
   } catch (std::exception &e) {
     std::cerr << "FATAL ERROR: An exception occurred: " << e.what() << std::endl;
   }

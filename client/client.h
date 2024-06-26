@@ -7,6 +7,7 @@
 #include <mutex>
 #include <shared_mutex>
 #include <string>
+#include <vector>
 
 // describes a measurement sample
 struct CMsmtSample {
@@ -18,12 +19,13 @@ struct CMsmtSample {
 
 class AutopowerClient {
   std::string clientUid;
-  std::string ppBinaryPath;       // absolute path to pinpoint binary
-  std::string ppDevice;           // device to run pinpoint on
-  std::string ppSamplingInterval; // sampling interval for pinpoint
-  std::string pgConString;        // string for connecting to postgres DB
-  std::string msmtId;             // shared id of this measurement
-  uint32_t internalMmtId;         // local (private to database) ID of this measurement
+  std::string ppBinaryPath;                  // absolute path to pinpoint binary
+  std::string ppDevice;                      // device to run pinpoint on
+  std::string ppSamplingInterval;            // sampling interval for pinpoint
+  std::string pgConString;                   // string for connecting to postgres DB
+  std::string msmtId;                        // shared id of this measurement
+  std::vector<std::string> supportedDevices; // supported devices by pinpoint
+  uint32_t internalMmtId;                    // local (private to database) ID of this measurement
   std::mutex msmtIdMtx;
   std::shared_mutex hasExitedMtx;          // mutex to protect the exit/running status of pinpoint
   std::condition_variable_any hasExitedCv; // Condition variable to notify about termination of pinpoint
@@ -83,10 +85,13 @@ class AutopowerClient {
     std::unique_lock<std::shared_mutex> rlck(ppIsRunningMtx);
     this->lastKnownPpPid = pid;
   }
+
   bool getPpIsCurrentlyRunning() {
     std::shared_lock rlck(ppIsRunningMtx);
     return 0 == kill(lastKnownPpPid, 0);
   }
+
+  bool isValidPpDevice(std::string device);
 
   void putStatusToServer(uint32_t statuscode, std::string message);
   void putResponseToServer(uint32_t statuscode, std::string message, autopapi::clientResponseType respType, uint32_t requestNo);
@@ -112,5 +117,5 @@ public:
   AutopowerClient(std::string _clientUid,
                   std::string _remoteHost, std::string _remotePort, std::string _privKeyPath, std::string _pubKeyPath, std::string _pubKeyCA,
                   std::string _pgConnString,
-                  std::string _ppBinaryPath, std::string _ppDevice, std::string _ppSamplingInterval);
+                  std::string _ppBinaryPath, std::string _ppDevice, std::string _ppSamplingInterval, std::vector<std::string> _supportedDevices);
 };
