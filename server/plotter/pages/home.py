@@ -11,13 +11,9 @@ from tzlocal import get_localzone
 
 dash.register_page(__name__, path="/")
 
-with open('../config/secrets.json') as secrFile:
-    secrets = json.load(secrFile)
-with open('../config/server_config.json') as configFile:
-    config = json.load(configFile)
-
-
 def createDb():
+    with open('../config/secrets.json') as secrFile:
+      secrets = json.load(secrFile)
     return postgres.connect(host=secrets["postgres"]["host"], database=secrets["postgres"]["database"], user=secrets["postgres"]["user"], password=secrets["postgres"]["password"])
 
 

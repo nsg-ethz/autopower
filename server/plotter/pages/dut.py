@@ -16,16 +16,9 @@ logging.basicConfig(level=logging.INFO)
 
 dash.register_page(__name__, path_template="/dut/<dut_id>")
 
-
-secrFile = open('../config/secrets.json')
-secrets = json.load(secrFile)
-secrFile.close()
-configFile = open('../config/server_config.json')
-config = json.load(configFile)
-configFile.close()
-
-
 def createDb():
+    with open('../config/secrets.json') as secrFile:
+      secrets = json.load(secrFile)
     pgcon = postgres.connect(host=secrets["postgres"]["host"], database=secrets["postgres"]["database"], user=secrets["postgres"]["user"], password=secrets["postgres"]["password"])
     pgcurs = pgcon.cursor()
     # getMmtAggregateOfDut: (msmt_ids, bin_interval, bin_start_timestamp, measurement_start_timestamp, end_timestamp)
