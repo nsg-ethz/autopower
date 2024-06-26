@@ -62,6 +62,18 @@ message clientUid {
   string uid = 1;
 }
 
+// an authenticated clientUid for management machines
+message authClientUid {
+  string clientUid = 1;
+  string mgmtId = 2;
+  string pw = 3;
+}
+
+message registrationStatus {
+  string clientUid = 1;
+  string regStatus = 2;
+}
+
 // an unique identifier for a management machine
 
 message msmtSettings {
@@ -136,6 +148,9 @@ service CMeasurementApi {
   // gets the list of currently registered clients - they may not be currenly connected
   // @returns stream of client UIDs
   rpc getLoggedInClients(mgmtAuth) returns (stream clientUid) {}
+  // gets if the client is registered at the server
+  // @returns status of registration
+  rpc getRegistrationStatus(authClientUid) returns (registrationStatus) {}
   // sets measurement settings of a client locally on the server but does not start a measurement yet
   // @param measurement settings for a device
   rpc setMsmtSttings(mgmtMsmtSettings) returns (nothing) {}

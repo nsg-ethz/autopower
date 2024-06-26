@@ -145,19 +145,16 @@ def getAllMeasurementMetadataOfDevice(deviceUid):
 
 def deviceIsRegistered(deviceUid):
     # Check if device deviceUid is registered at the server
-    mgmtAuth = pbdef.api__pb2.mgmtAuth()
+    mgmtAuth = pbdef.api__pb2.authClientUid()
     mgmtAuth.mgmtId = secrets["mgmtId"]
     mgmtAuth.pw = secrets["pw"]
+    mgmtAuth.clientUid = deviceUid
     try:
-        currentlyLoggedInClients = stub.getLoggedInClients(mgmtAuth, timeout=10)  # may benefit from a message checking if device is in the server list instead of manual looping
+        regStatus = stub.getRegistrationStatus(mgmtAuth, timeout=10)  # may benefit from a message checking if device is in the server list instead of manual looping
     except grpc.RpcError as e:
         return False
 
-    for client in currentlyLoggedInClients:
-        if client.uid == deviceUid:
-            return True
-
-    return False
+    return regStatus.clientUid == deviceUid and regStatus.regStatus == "Registered" # return true iff server returned registered for this device
 
 
 @app.route("/")

@@ -82,6 +82,24 @@ class clientUid(_message.Message):
     uid: str
     def __init__(self, uid: _Optional[str] = ...) -> None: ...
 
+class authClientUid(_message.Message):
+    __slots__ = ("clientUid", "mgmtId", "pw")
+    CLIENTUID_FIELD_NUMBER: _ClassVar[int]
+    MGMTID_FIELD_NUMBER: _ClassVar[int]
+    PW_FIELD_NUMBER: _ClassVar[int]
+    clientUid: str
+    mgmtId: str
+    pw: str
+    def __init__(self, clientUid: _Optional[str] = ..., mgmtId: _Optional[str] = ..., pw: _Optional[str] = ...) -> None: ...
+
+class registrationStatus(_message.Message):
+    __slots__ = ("clientUid", "regStatus")
+    CLIENTUID_FIELD_NUMBER: _ClassVar[int]
+    REGSTATUS_FIELD_NUMBER: _ClassVar[int]
+    clientUid: str
+    regStatus: str
+    def __init__(self, clientUid: _Optional[str] = ..., regStatus: _Optional[str] = ...) -> None: ...
+
 class msmtSettings(_message.Message):
     __slots__ = ("clientUid", "ppDevice", "ppSamplingInterval", "uploadIntervalMin")
     CLIENTUID_FIELD_NUMBER: _ClassVar[int]

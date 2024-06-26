@@ -74,6 +74,11 @@ class CMeasurementApiStub(object):
                 request_serializer=api__pb2.mgmtAuth.SerializeToString,
                 response_deserializer=api__pb2.clientUid.FromString,
                 _registered_method=True)
+        self.getRegistrationStatus = channel.unary_unary(
+                '/autopapi.CMeasurementApi/getRegistrationStatus',
+                request_serializer=api__pb2.authClientUid.SerializeToString,
+                response_deserializer=api__pb2.registrationStatus.FromString,
+                _registered_method=True)
         self.setMsmtSttings = channel.unary_unary(
                 '/autopapi.CMeasurementApi/setMsmtSttings',
                 request_serializer=api__pb2.mgmtMsmtSettings.SerializeToString,
@@ -121,7 +126,7 @@ class CMeasurementApiServicer(object):
         raise NotImplementedError('Method not implemented!')
 
     def putMeasurement(self, request_iterator, context):
-        """upload finished measurement to server
+        """upload measurement/measurement samples to server
         @param msmtSample stream is the file content requested by the server initially
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
@@ -149,6 +154,14 @@ class CMeasurementApiServicer(object):
 
         gets the list of currently registered clients - they may not be currenly connected
         @returns stream of client UIDs
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def getRegistrationStatus(self, request, context):
+        """gets if the client is registered at the server
+        @returns status of registration
         """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -216,6 +229,11 @@ def add_CMeasurementApiServicer_to_server(servicer, server):
                     servicer.getLoggedInClients,
                     request_deserializer=api__pb2.mgmtAuth.FromString,
                     response_serializer=api__pb2.clientUid.SerializeToString,
+            ),
+            'getRegistrationStatus': grpc.unary_unary_rpc_method_handler(
+                    servicer.getRegistrationStatus,
+                    request_deserializer=api__pb2.authClientUid.FromString,
+                    response_serializer=api__pb2.registrationStatus.SerializeToString,
             ),
             'setMsmtSttings': grpc.unary_unary_rpc_method_handler(
                     servicer.setMsmtSttings,
@@ -422,6 +440,33 @@ class CMeasurementApi(object):
             '/autopapi.CMeasurementApi/getLoggedInClients',
             api__pb2.mgmtAuth.SerializeToString,
             api__pb2.clientUid.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def getRegistrationStatus(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/autopapi.CMeasurementApi/getRegistrationStatus',
+            api__pb2.authClientUid.SerializeToString,
+            api__pb2.registrationStatus.FromString,
             options,
             channel_credentials,
             insecure,

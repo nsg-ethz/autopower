@@ -136,7 +136,8 @@ class ClientManager():
 
     def getLoggedInClientsList(self):
         return list(self.loggedInClients.keys())
-
+    def isInLoggedInClientsList(self, id):
+        return id in self.loggedInClients.keys()
     def getNextRequestOfClient(self, clientId):
         ec = self.loggedInClients[clientId]
         return ec.getNextRequest()
@@ -480,6 +481,19 @@ class CMeasurementApiServicer():
             cluid = pbdef.api__pb2.clientUid()
             cluid.uid = client
             yield cluid
+    
+    def getRegistrationStatus(self, request, context):
+        if not self.isValidMgmtClient(request):
+            context.abort_with_status(rpc_status.to_status(status_pb2.Status(code=code_pb2.UNAUTHENTICATED, message="This method needs authentication. Please set credentials.")))
+            return
+        cm = ClientManager()
+        registrationStatus = pbdef.api__pb2.registrationStatus()
+        registrationStatus.clientUid = request.clientUid
+        if cm.isInLoggedInClientsList(request.clientUid):
+            registrationStatus.regStatus = "Registered"
+        else:
+            registrationStatus.regStatus = "Not registered"
+        return registrationStatus
 
     def setMsmtSttings(self, request, context):
         if not self.isValidMgmtClient(request):
