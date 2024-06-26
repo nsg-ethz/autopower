@@ -7,9 +7,9 @@ After=postgresql.service time-sync.target network.target network-online.target
 User=www-data
 Group=www-data
 Type=simple
-WorkingDirectory=/usr/autopower/plotter
-Environment="PATH=/usr/autopower/plotter/venv/bin"
-ExecStart=/usr/autopower/plotter/venv/bin/gunicorn --worker-class gevent --workers 8 --threads 2 --bind localhost:6000 app:server
+WorkingDirectory=/usr/autopower/server/plotter
+Environment="PATH=/usr/autopower/server/plotter/venv/bin"
+ExecStart=/usr/autopower/server/plotter/venv/bin/gunicorn --worker-class gevent --workers 8 --threads 2 --bind localhost:6000 app:server
 Restart=on-failure
 [Install]
 WantedBy=default.target
