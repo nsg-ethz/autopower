@@ -586,7 +586,17 @@ void AutopowerClient::manageMsmt() {
         // verify data
         std::string newPpdev = mset.ppdevice();
         if (!isValidPpDevice(newPpdev)) {
-          std::string errorDescription = "Error: Received invalid device for pinpoint. Only CPU, MCP1 and MCP2 are allowed. Ignoring request.";
+          std::string errorDescription = "Error: Received invalid device for pinpoint. Only ";
+
+          for (std::string dev : this->supportedDevices) {
+            errorDescription += dev + ", ";
+          }
+
+          // fencepost solving:
+          errorDescription.pop_back();
+          errorDescription.pop_back();
+
+          errorDescription += " allowed. Ignoring request.";
           std::cerr << errorDescription << std::endl;
 
           // put warning to server
