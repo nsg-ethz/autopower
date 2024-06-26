@@ -250,7 +250,7 @@ class CLI():
                 k = input("Use client with key: ")
 
             rq.clientUid = k
-            print("Available message types are:\n0: INTRODUCE_SERVER\n1: START_MEASUREMENT\n2: STOP_MEASUREMENT\n3: REQUEST_MEASUREMENT_LIST\n4: REQUEST_MEASUREMENT_DATA\n5:REQUEST_MEASUREMENT_STATUS")
+            print("Available message types are:\n0: INTRODUCE_SERVER\n1: START_MEASUREMENT\n2: STOP_MEASUREMENT\n3: REQUEST_MEASUREMENT_LIST\n4: REQUEST_MEASUREMENT_DATA\n5: REQUEST_MEASUREMENT_STATUS")
             mTpe = int(input("Enter message type: "))
             if mTpe == 0:
                 rq.msgType = pbdef.api__pb2.srvRequestType.INTRODUCE_SERVER
@@ -274,7 +274,7 @@ class CLI():
                 rq.requestBody = remtMsmtName
             elif mTpe == 5:
                 rq.msgType = pbdef.api__pb2.srvRequestType.REQUEST_MEASUREMENT_STATUS
-            print(cm.addSyncRequest(k, rq))  # blocks until the request was fulfilled or timeout
+            print("Response: " + str(cm.addSyncRequest(k, rq)))  # blocks until the request was fulfilled or timeout
 
     def getLatestMessages(self):  # get the messages from the client manager and cleans up queue of last messages
         pm = OutCommunicator()
@@ -312,42 +312,39 @@ class OutCommunicator():  # communicate to other scripts and issue requests
     def getNextMessageOut(self, managementUid):
         return self.outMessageQueues[managementUid].get(block=True)
 
+# postgres connection creation class
+class pgConnectorFactory():
+    def __init__ (self, host, database, user, password):
+        self.host = host
+        self.database = database
+        self.user = user
+        self.password = password
+    def createConnection(self):
+      return postgres.connect(host=self.host,database=self.database,user=self.user,password=self.password)
+
 # Implementation of server for measurement device management
 
 
 class CMeasurementApiServicer():
-    def __init__(self, pgcon, allowedMgmtClients):
+    def __init__(self, pgfac, allowedMgmtClients):
         # each thread should have an own postgres connection cursor for concurrent writes
-        self.pgCursor = pgcon.cursor()
-        self.pgConn = pgcon
+        self.pgConn = pgfac.createConnection()
+        self.pgFactory = pgfac
         self.allowedMgmtClients = allowedMgmtClients
-        # tell database about prepared statements
-        prepare_ctxt = """
-        PREPARE insMsmtData (VARCHAR(255), INT, TIMESTAMP) AS
-          INSERT INTO measurement_data (server_measurement_id, measurement_value, measurement_timestamp)
-          VALUES(
-            (SELECT server_measurement_id FROM measurements WHERE shared_measurement_id = $1 LIMIT 1) -- handles only the server id
-            ,$2,$3);
-        PREPARE logClientActivity (VARCHAR(255)) AS
-          UPDATE clients SET last_seen = NOW() WHERE client_uid = $1;
-        PREPARE addClient (VARCHAR(255)) AS
-          INSERT INTO clients (client_uid) VALUES ($1) 
-            ON CONFLICT (client_uid) DO UPDATE SET last_seen = NOW();
-        """
-        self.pgCursor.execute(prepare_ctxt)
-        self.pgConn.commit()
 
     def logClientWasSeenNow(self, clientUid):
         # log that this client has been seen now to populate "latest" field in DB
-        self.pgCursor.execute("EXECUTE logClientActivity (%(cluid)s)", {'cluid': clientUid})
-        self.pgConn.commit()
+        with self.pgConn.cursor() as curs:
+            curs.execute("UPDATE clients SET last_seen = NOW() WHERE client_uid = %(cluid)s;", {'cluid': clientUid})
+            self.pgConn.commit()
 
     def registerClient(self, request, context):
         cmAdd = ClientManager()
         pm = OutCommunicator()
         cmAdd.addNewClient(request.uid)
-        self.pgCursor.execute("EXECUTE addClient (%(cluid)s)", {'cluid': request.uid})
-        self.pgConn.commit()
+        with self.pgConn.cursor() as curs:
+            curs.execute("INSERT INTO clients (client_uid) VALUES (%(cluid)s) ON CONFLICT (client_uid) DO UPDATE SET last_seen = NOW();", {'cluid': request.uid})
+            self.pgConn.commit()
         pm.addMessage("UID '" + request.uid + "' registered")
 
         cmAdd = None  # never used again. Set to none in hope that the GC removes this
@@ -394,38 +391,48 @@ class CMeasurementApiServicer():
 
     def putMeasurement(self, msmts, context):
         msmtIdSoFar = ""
-        for mmt in msmts:
-            # We need to tell the python Datetime that this is in UTC (see https://github.com/protocolbuffers/protobuf/issues/5910)
-            mmtTime = mmt.msmtTime.ToDatetime(tzinfo=timezone.utc)
-            if msmtIdSoFar != mmt.msmtId:
-                # optimization to just insert once we have a guaranteed different measurement id. If the ID already exists due to an outdated measurement, we just silently do nothing.
-                # This will even insert new samples if the client_run is officially finished (there's a sample after the first transmitted sample in this stream with a timestamp > stop_run)
-                # until this method call is finished.
-                self.pgCursor.execute("""
-              WITH getRunIds AS (
-                SELECT runs.run_id AS run_id FROM runs, client_runs WHERE client_runs.client_uid = %(cluid)s AND runs.run_id = client_runs.run_id AND start_run <= %(msmtts)s AND (stop_run >= %(msmtts)s OR stop_run IS NULL)
-              ),
-              getRunId AS ( -- ensures that only one result can get back. Otherwise return NULL
-                SELECT CASE WHEN (COUNT(*) <> 1) THEN NULL ELSE (SELECT * FROM getRunIds LIMIT 1) END FROM getRunIds
-              )
-              INSERT INTO
-              measurements (shared_measurement_id, client_uid, run_id)
-              VALUES (
-                %(mmtid)s,
-                %(cluid)s,
-                (SELECT * FROM getRunId LIMIT 1) -- will return NULL if there is no run id else the run id
-              )
-              ON CONFLICT DO NOTHING
-              """, {'mmtid': mmt.msmtId, 'cluid': mmt.clientUid, 'msmtts': mmtTime})
-                self.pgConn.commit()
-                # TODO: Request the client to submit the measurement settings to fill the DB with a newly introduced API message
-            msmtIdSoFar = mmt.msmtId
+        with self.pgFactory.createConnection() as con:
+            # own connection for a measurement upload to not conflict in any way with others.
+            with con.cursor() as curs:
+                curs.execute("""
+                    PREPARE insMsmtData (VARCHAR(255), INT, TIMESTAMP) AS
+                        INSERT INTO measurement_data (server_measurement_id, measurement_value, measurement_timestamp)
+                        VALUES(
+                            (SELECT server_measurement_id FROM measurements WHERE shared_measurement_id = $1 LIMIT 1) -- handles only the server id
+                        ,$2,$3);
+                """)
 
-            # in the normal case insert tuples just into the measurement_data table.
+                for mmt in msmts:
+                    # We need to tell the python Datetime that this is in UTC (see https://github.com/protocolbuffers/protobuf/issues/5910)
+                    mmtTime = mmt.msmtTime.ToDatetime(tzinfo=timezone.utc)
+                    if msmtIdSoFar != mmt.msmtId:
+                        # optimization to just insert once we have a guaranteed different measurement id. If the ID already exists due to an outdated measurement, we just silently do nothing.
+                        # This will even insert new samples if the client_run is officially finished (there's a sample after the first transmitted sample in this stream with a timestamp > stop_run)
+                        # until this method call is finished.
+                        curs.execute("""
+                        WITH getRunIds AS (
+                            SELECT runs.run_id AS run_id FROM runs, client_runs WHERE client_runs.client_uid = %(cluid)s AND runs.run_id = client_runs.run_id AND start_run <= %(msmtts)s AND (stop_run >= %(msmtts)s OR stop_run IS NULL)
+                        ),
+                        getRunId AS ( -- ensures that only one result can get back. Otherwise return NULL
+                            SELECT CASE WHEN (COUNT(*) <> 1) THEN NULL ELSE (SELECT * FROM getRunIds LIMIT 1) END FROM getRunIds
+                        )
+                        INSERT INTO
+                        measurements (shared_measurement_id, client_uid, run_id)
+                        VALUES (
+                            %(mmtid)s,
+                            %(cluid)s,
+                            (SELECT * FROM getRunId LIMIT 1) -- will return NULL if there is no run id else the run id
+                        )
+                        ON CONFLICT DO NOTHING
+                        """, {'mmtid': mmt.msmtId, 'cluid': mmt.clientUid, 'msmtts': mmtTime})
+                        con.commit()
+                        # TODO: Request the client to submit the measurement settings to fill the DB with a newly introduced API message
+                    msmtIdSoFar = mmt.msmtId
 
-            self.pgCursor.execute("EXECUTE insMsmtData (%(msmtid)s, %(msmtvalue)s, %(msmtts)s)", {'msmtid': mmt.msmtId, 'msmtvalue': mmt.msmtContent, 'msmtts': mmtTime})
-            self.pgCursor.execute("EXECUTE logClientActivity (%(cluid)s)", {'cluid': mmt.clientUid})
-            self.pgConn.commit()
+                    # in the normal case insert tuples just into the measurement_data table.
+                    curs.execute("EXECUTE insMsmtData (%(msmtid)s, %(msmtvalue)s, %(msmtts)s)", {'msmtid': mmt.msmtId, 'msmtvalue': mmt.msmtContent, 'msmtts': mmtTime})
+                    self.logClientWasSeenNow(mmt.clientUid)
+                    con.commit()
 
         return pbdef.api__pb2.nothing()
 
@@ -452,8 +459,9 @@ class CMeasurementApiServicer():
             if request.statusCode != 0:
                 # log errors to DB
                 pc.addMessage("Logging error from '" + request.clientUid + "': " + request.msg)
-                self.pgCursor.execute("INSERT INTO logmessages (client_uid, error_code, log_message) VALUES (%(cluid)s, %(statuscode)s, %(logmsg)s)", {'cluid': request.clientUid, 'statuscode': request.statusCode, 'logmsg': request.msg})
-                self.pgConn.commit()
+                with self.pgConn.cursor() as curs:
+                    curs.execute("INSERT INTO logmessages (client_uid, error_code, log_message) VALUES (%(cluid)s, %(statuscode)s, %(logmsg)s)", {'cluid': request.clientUid, 'statuscode': request.statusCode, 'logmsg': request.msg})
+                    self.pgConn.commit()
             else:
                 pc.addMessage("[Status] from '" + request.clientUid + "': " + request.msg)
             self.logClientWasSeenNow(request.clientUid)
@@ -558,8 +566,6 @@ class CMeasurementApiServicer():
 
 def serve(secrets, config, args):
 
-    pgConnection = postgres.connect(host=secrets["postgres"]["host"], database=secrets["postgres"]["database"], user=secrets["postgres"]["user"], password=secrets["postgres"]["password"])
-
     grpcServer = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     if ("ssl" in secrets):
         # Read encryption
@@ -567,23 +573,22 @@ def serve(secrets, config, args):
             print("ERROR: privKeyPath is not set in config file. Please see the example config and set it correctly.")
             exit(1)
 
-        srvPrivKeyReader = open(secrets["ssl"]["privKeyPath"], "rb")
-        privkey = srvPrivKeyReader.read()
-        srvPrivKeyReader.close()
+        with open(secrets["ssl"]["privKeyPath"], "rb") as srvPrivKeyReader:
+            privkey = srvPrivKeyReader.read()
 
         if (not "pubKeyPath" in secrets["ssl"]):
             print("ERROR: pubKeyPath is not set in config file. Please see the example config and set it correctly.")
             exit(1)
-        srvChainReader = open(secrets["ssl"]["pubKeyPath"], "rb")
-        certChain = srvChainReader.read()
-        srvChainReader.close()
+
+        with open(secrets["ssl"]["pubKeyPath"], "rb") as srvChainReader:
+            certChain = srvChainReader.read()
 
         if (not "pubKeyCA" in secrets["ssl"]):
             print("ERROR: pubKeyCA is not set in config file. Please see the example config and set it correctly.")
             exit(1)
-        caReader = open(secrets["ssl"]["pubKeyCA"], "rb")
-        clientCa = caReader.read()
-        caReader.close()
+
+        with open(secrets["ssl"]["pubKeyCA"], "rb") as caReader:
+            clientCa = caReader.read()
 
         srvCred = grpc.ssl_server_credentials(
             private_key_certificate_chain_pairs=[(privkey, certChain)],
@@ -601,7 +606,9 @@ def serve(secrets, config, args):
         print("Warning: No management clients set in secrets file. You will not be able to manage any device. Please set allowedMgmtClients!")
     else:
         allowedMgmtClients = secrets["allowedMgmtClients"]
-    pbdef.add_CMeasurementApiServicer_to_server(CMeasurementApiServicer(pgConnection, allowedMgmtClients), grpcServer)
+
+    dbFactory = pgConnectorFactory(host=secrets["postgres"]["host"], database=secrets["postgres"]["database"], user=secrets["postgres"]["user"], password=secrets["postgres"]["password"])
+    pbdef.add_CMeasurementApiServicer_to_server(CMeasurementApiServicer(dbFactory, allowedMgmtClients), grpcServer)
     # Start output CLI
     cli = CLI()
     pt = threading.Thread(target=cli.getLatestMessages)
