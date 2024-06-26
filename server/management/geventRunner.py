@@ -12,5 +12,4 @@ if socket.socket is gevent.socket.socket:
     import grpc.experimental.gevent
     grpc.experimental.gevent.init_gevent()
 
-
 from app import app as application

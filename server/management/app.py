@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, Response
+from flask import Flask, render_template, request, Response, stream_with_context
 from markupsafe import escape
 import psycopg2 as postgres
 import psycopg2.extras as pgextra
@@ -13,6 +13,7 @@ from tzlocal import get_localzone
 import ipaddress
 from datetime import datetime
 import hashlib
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 allowedPpDevList = ["MCP1", "MCP2", "CPU"]
 
@@ -74,6 +75,10 @@ def createPgConnection():
 #### Start and define flask app ####
 app = Flask(__name__)
 
+# see https://www.blopig.com/blog/2023/10/deploying-a-flask-app-part-ii-using-an-apache-reverse-proxy/
+app.wsgi_app = ProxyFix(
+    app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
+)
 
 def issueRequest(deviceUid, rq, parseJSON=False):
     # parse JSON tries to parse the response as JSON
@@ -213,14 +218,16 @@ def downloadMsmt(measurementId):
 
         pgcurs.execute("SELECT measurement_timestamp, measurement_value FROM measurement_data WHERE server_measurement_id = %(srvmmid)s ORDER BY measurement_timestamp ASC", {'srvmmid': int(measurementId)})
         pgConnection.commit()
-        # see https://stackoverflow.com/a/51464820
 
+        # see https://stackoverflow.com/a/51464820 and https://flask.palletsprojects.com/en/2.3.x/patterns/streaming/
+        
+        @stream_with_context
         def buildCsv():
             yield 'measurement_timestamp,measurment_value\n'
-            for row in pgcurs.fetchall():
+            for row in pgcurs:
                 yield row[0].isoformat() + ',' + str(row[1]) + '\n'
 
-        return Response(buildCsv(), mimetype='text/csv', headers={"Content-Disposition": "filename=" + escape(sharedName[0])})
+        return buildCsv(), {"Content-Type": "text/csv", "Content-Disposition": "filename=" + escape(sharedName[0])}
 
 
 @app.route("/manageDevice/<deviceUid>/startMeasurement", methods=["POST"])
