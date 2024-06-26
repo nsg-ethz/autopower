@@ -9,7 +9,7 @@ Group=www-data
 Type=simple
 WorkingDirectory=/usr/autopower/server/management
 Environment="PATH=/usr/autopower/server/management/venv/bin"
-ExecStart=/usr/autopower/server/management/venv/bin/gunicorn --worker-class gevent --workers 8 --threads 2 --bind localhost:5000 geventRunner:application --timeout 300
+ExecStart=/usr/autopower/server/management/venv/bin/gunicorn --worker-class gevent --workers 8 --threads 2 --bind localhost:5000 geventRunner:application
 Restart=on-failure
 [Install]
 WantedBy=default.target

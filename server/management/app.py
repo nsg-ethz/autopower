@@ -215,17 +215,16 @@ def downloadMsmt(measurementId):
         sharedName = pgcurs.fetchone()
         if sharedName is None:
             return "No measurement found for this id", 404
-
-        pgcurs.execute("SELECT measurement_timestamp, measurement_value FROM measurement_data WHERE server_measurement_id = %(srvmmid)s ORDER BY measurement_timestamp ASC", {'srvmmid': int(measurementId)})
-        pgConnection.commit()
-
-        # see https://stackoverflow.com/a/51464820 and https://flask.palletsprojects.com/en/2.3.x/patterns/streaming/
+        
+        # see https://stackoverflow.com/a/51464820 and https://flask.palletsprojects.com/en/2.3.x/patterns/streaming/, https://www.postgresql.org/message-id/21932.973561518%40sss.pgh.pa.us as fact that the server side cursor is per connection
         
         @stream_with_context
         def buildCsv():
-            yield 'measurement_timestamp,measurment_value\n'
-            for row in pgcurs:
-                yield row[0].isoformat() + ',' + str(row[1]) + '\n'
+            with pgConnection.cursor(name="downloadCurs") as pgServerCurs:
+                pgServerCurs.execute("SELECT measurement_timestamp, measurement_value FROM measurement_data WHERE server_measurement_id = %(srvmmid)s ORDER BY measurement_timestamp ASC", {'srvmmid': int(measurementId)})
+                yield 'measurement_timestamp,measurment_value\n'
+                for row in pgServerCurs:
+                    yield row[0].isoformat() + ',' + str(row[1]) + '\n'
 
         return buildCsv(), {"Content-Type": "text/csv", "Content-Disposition": "filename=" + escape(sharedName[0])}
 
