@@ -409,6 +409,8 @@ class CMeasurementApiServicer():
                         # optimization to just insert once we have a guaranteed different measurement id. If the ID already exists due to an outdated measurement, we just silently do nothing.
                         # This will even insert new samples if the client_run is officially finished (there's a sample after the first transmitted sample in this stream with a timestamp > stop_run)
                         # until this method call is finished.
+                        # Ensure that this client is in the clients relation for integrity constraints
+                        curs.execute("INSERT INTO clients (client_uid) VALUES (%(cluid)s) ON CONFLICT (client_uid) DO UPDATE SET last_seen = NOW();", {'cluid': mmt.clientUid})
                         curs.execute("""
                         WITH getRunIds AS (
                             SELECT runs.run_id AS run_id FROM runs, client_runs WHERE client_runs.client_uid = %(cluid)s AND runs.run_id = client_runs.run_id AND start_run <= %(msmtts)s AND (stop_run >= %(msmtts)s OR stop_run IS NULL)
@@ -460,6 +462,8 @@ class CMeasurementApiServicer():
                 # log errors to DB
                 pc.addMessage("Logging error from '" + request.clientUid + "': " + request.msg)
                 with self.pgConn.cursor() as curs:
+                    # may need to create client if not exists already
+                    curs.execute("INSERT INTO clients (client_uid) VALUES (%(cluid)s) ON CONFLICT (client_uid) DO UPDATE SET last_seen = NOW();", {'cluid': request.clientUid})
                     curs.execute("INSERT INTO logmessages (client_uid, error_code, log_message) VALUES (%(cluid)s, %(statuscode)s, %(logmsg)s)", {'cluid': request.clientUid, 'statuscode': request.statusCode, 'logmsg': request.msg})
                     self.pgConn.commit()
             else:
