@@ -15,7 +15,7 @@ jobs:
             mkdir -p $MY_INSTALL_DIR
             export PATH="$MY_INSTALL_DIR/bin:$PATH"
             apt update
-            apt install -y sudo bazel-bootstrap cmake git build-essential autoconf libtool pkg-config libjsoncpp-dev libpqxx-dev libc6
+            apt install -y sudo cmake git build-essential autoconf libtool pkg-config libjsoncpp-dev libpqxx-dev libc6
             git clone --recurse-submodules -b v1.64.2 --depth 1 --shallow-submodules https://github.com/grpc/grpc
             cd grpc
             mkdir -p cmake/build
@@ -26,12 +26,10 @@ jobs:
               ../..
             make -j 2
             make install
-            ls
-            pwd
             cd ../../../
             cd client/
-            pwd
-            ls
+            chmod +x genCppProto.sh
+            ./genCppProto.sh
             mkdir -p cmake/build
             cd cmake/build
             cmake ../..
