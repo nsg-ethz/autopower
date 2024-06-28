@@ -1,0 +1,44 @@
+name: CI Client builder
+on: [workflow_dispatch, push]
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v3
+    - uses: pguyot/arm-runner-action@v2
+      with:
+        image_additional_mb: 8192
+        base_image: raspios_lite_arm64:latest
+        bind_mount_repository: true
+        commands: |
+            export MY_INSTALL_DIR=$HOME/.local
+            mkdir -p $MY_INSTALL_DIR
+            export PATH="$MY_INSTALL_DIR/bin:$PATH"
+            apt update
+            apt install -y sudo bazel-bootstrap cmake git build-essential autoconf libtool pkg-config libjsoncpp-dev libpqxx-dev libc6
+            git clone --recurse-submodules -b v1.64.2 --depth 1 --shallow-submodules https://github.com/grpc/grpc
+            cd grpc
+            mkdir -p cmake/build
+            cd cmake/build
+            cmake -DgRPC_INSTALL=ON \
+              -DgRPC_BUILD_TESTS=OFF \
+              -DCMAKE_INSTALL_PREFIX=$MY_INSTALL_DIR \
+              ../..
+            make -j 2
+            make install
+            ls
+            pwd
+            cd ../../../
+            cd client/
+            pwd
+            ls
+            mkdir -p cmake/build
+            cd cmake/build
+            cmake ../..
+            make -j 2
+            cd ../..
+    - name: Upload binary release file
+      uses: actions/upload-artifact@v3
+      with:
+        name: Release
+        path: cmake/build/client
