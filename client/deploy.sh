@@ -4,6 +4,7 @@
 
 REMOTEHOST="<somevm.example.com>"
 REMOTEIP="129.132.31.132"
+REMOTEIP6=""
 read -p "Enter name of device to deploy: " DEVICENAME
 
 # install needed services (including adding zabbix)
@@ -23,9 +24,16 @@ cp bin/pinpoint /usr/bin/pinpoint
 chmod +x /usr/bin/pinpoint
 # set hostname
 hostnamectl set-hostname "${DEVICENAME}"
+
 # Add hostname to /etc/hosts
+echo "::1 ${DEVICENAME}" >> /etc/hosts
 echo "127.0.0.3  ${DEVICENAME}" >> /etc/hosts
+
 # add server to /etc/hosts
+if [ -n "${REMOTEIP6}" ]; then
+  echo "${REMOTIEP6}  ${REMOTEHOST}" >> /etc/hosts
+fi
+
 echo "${REMOTEIP}  ${REMOTEHOST}" >> /etc/hosts
 
 # set up postgres
