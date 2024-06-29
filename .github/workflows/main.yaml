@@ -10,6 +10,8 @@ jobs:
         image_additional_mb: 8192
         base_image: raspios_lite_arm64:latest
         bind_mount_repository: true
+        copy_artifact_path: client/cmake/build/client
+        copy_artifact_dest: ${{ github.workspace }}
         commands: |
             export MY_INSTALL_DIR=$HOME/.local
             mkdir -p $MY_INSTALL_DIR
@@ -34,9 +36,10 @@ jobs:
             cd cmake/build
             cmake ../..
             make -j 2
+            mv client mmclient
             cd ../..
     - name: Upload binary release file
       uses: actions/upload-artifact@v3
       with:
-        name: Release
-        path: cmake/build/client
+        name: mmclient ARM release
+        path: ${{ github.workspace }}/mmclient
