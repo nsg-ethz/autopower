@@ -10,7 +10,7 @@ jobs:
         image_additional_mb: 8192
         base_image: raspios_lite_arm64:latest
         bind_mount_repository: true
-        copy_artifact_path: client/cmake/build/client
+        copy_artifact_path: client/cmake/build/mmclient
         copy_artifact_dest: ${{ github.workspace }}
         commands: |
             export MY_INSTALL_DIR=$HOME/.local
