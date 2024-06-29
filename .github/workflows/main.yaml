@@ -4,7 +4,7 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: pguyot/arm-runner-action@v2
       with:
         image_additional_mb: 8192
@@ -13,11 +13,13 @@ jobs:
         copy_artifact_path: client/cmake/build/mmclient
         copy_artifact_dest: ${{ github.workspace }}
         commands: |
+            # update system and install dependencies
+            apt update
+            apt install -y cmake git build-essential autoconf libtool pkg-config libjsoncpp-dev libpqxx-dev
+            # Compile gRPC 
             export MY_INSTALL_DIR=$HOME/.local
             mkdir -p $MY_INSTALL_DIR
             export PATH="$MY_INSTALL_DIR/bin:$PATH"
-            apt update
-            apt install -y sudo cmake git build-essential autoconf libtool pkg-config libjsoncpp-dev libpqxx-dev libc6
             git clone --recurse-submodules -b v1.64.2 --depth 1 --shallow-submodules https://github.com/grpc/grpc
             cd grpc
             mkdir -p cmake/build
@@ -28,8 +30,8 @@ jobs:
               ../..
             make -j 2
             make install
-            cd ../../../
-            cd client/
+            # Compile client
+            cd ../../../client
             chmod +x genCppProto.sh
             ./genCppProto.sh
             mkdir -p cmake/build
@@ -37,9 +39,8 @@ jobs:
             cmake ../..
             make -j 2
             mv client mmclient
-            cd ../..
     - name: Upload binary release file
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: mmclient ARM release
+        name: mmclient
         path: ${{ github.workspace }}/mmclient
