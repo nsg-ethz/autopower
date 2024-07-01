@@ -14,7 +14,7 @@ This folder contains files needed for the client side of the autopower project:
 
 In order to deploy an autopower device, you may need to use a Raspberry Pi 4 - preferred Pi 4 4 GB or more to compile the code. Deployment was tested on a Raspberry Pi 3 B, 3 B+ and 4 B 1 GB is enough.
 
-First compile [our fork of pinpoint](https://github.com/nsg-ethz/pinpoint/tree/feature/skip-workload) which contains a flag to skip the workload parameter as shown in the [official pinpoint repository README.md](https://github.com/osmhpi/pinpoint/blob/master/README.md) file and copy the resulting binary to the `bin/` folder. If needed, rename the client to mmclient.
+First compile [our fork of pinpoint](https://github.com/nsg-ethz/pinpoint/tree/feature/skip-workload) from the `skip-workload` branch which contains a flag to skip the workload parameter as shown in the [official pinpoint repository README.md](https://github.com/osmhpi/pinpoint/blob/master/README.md) file and copy the resulting binary to the `bin/` folder. If needed, rename the client to mmclient.
 
 Afterwards compile the autopower client (mmclient) from this repository as described in COMPILING.md and copy the resulting `client` binary to bin/mmclient.
 
