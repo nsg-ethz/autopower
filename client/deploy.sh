@@ -2,9 +2,7 @@
 
 # Deploy an autopower device should only be run on the Raspberry Pi
 
-REMOTEHOST="<somevm.example.com>"
-REMOTEIP="129.132.31.132"
-REMOTEIP6=""
+source serverIpConfig.sh
 read -p "Enter name of device to deploy: " DEVICENAME
 
 # install needed services (including adding zabbix)
@@ -87,11 +85,12 @@ chown root:zabbix /etc/zabbix/psk.psk
 systemctl restart zabbix-agent2
 systemctl enable zabbix-agent2
 
-# enable firewall and only allow ssh on port 21092 and zabbix agent to ${REMOTEIP} - this assumes that zabbix is installed on ${REMOTEIP}
+# enable firewall and only allow ssh on port 21092 and zabbix agent to ${REMOTEIP}/${REMOTIEP6} - this assumes that zabbix is installed on ${REMOTEIP}/${REMOTIEP6}
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow 21092/tcp
 ufw allow from "${REMOTEIP}" to any port 10050 proto tcp
+ufw allow from "${REMOTIEP6}" to any port 10050 proto tcp
 ufw logging off
 ufw --force enable
 

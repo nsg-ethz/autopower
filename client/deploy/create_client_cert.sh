@@ -4,7 +4,8 @@
 
 # source: https://github.com/grpc/grpc/issues/9593
 
-CN="<somevm.example.com>"
+source ipConfig.sh
+
 openssl genrsa -des3 -passout pass:1111 -out client.key 4096
 openssl req -new -passin pass:1111 -key client.key -out client.csr -sha512 -subj  "/C=CH/ST=Switzerland/L=Zuerich/O=ETH-Zuerich/OU=D-ITET/CN=${CN}"
 openssl rsa -passin pass:1111 -in client.key -out client.key

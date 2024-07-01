@@ -1,8 +1,9 @@
 #!/bin/bash
 # Follows https://github.com/grpc/grpc/issues/9593#issuecomment-277946137
 # Generate valid CA
-CN="<somevm.example.com>"
-CN="localhost"
+source ipConfig.sh
+echo "Creating certs for CA with CN ${CN}"
+
 if [ -f ca.key ]; then
   echo "ca.key exists already. Skipping creation of CA. If you want to re-generate a CA, please delete ca.key"
   exit 1
