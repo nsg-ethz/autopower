@@ -21,9 +21,11 @@
         <div>
             DUT: <a href="{{ url_for('manageDut', dutId=run.dut_id) }}">{{ run.dut_name | e}}</a></span>
         </div>
-        <div class="mt-2 mb-2">
-            <button id="finishRunBtn-{{ run.run_id | e }}"class="finishRunBtn btn btn-danger mb-2" data-bs-toggle="modal" data-bs-target="#confirmStopModal" data-runid="{{ run.run_id | e }}">Finish run</button>
-        </div>
+        {% if not run.stop_run %}
+            <div class="mt-2 mb-2">
+                <button id="finishRunBtn-{{ run.run_id | e }}" class="finishRunBtn btn btn-danger mb-2" data-bs-toggle="modal" data-bs-target="#confirmStopModal" data-runid="{{ run.run_id | e }}">Finish run</button>
+            </div>
+        {% endif %}
         <div>
             <h4>Clients</h4>
             <ul>
