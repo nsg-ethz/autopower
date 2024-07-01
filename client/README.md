@@ -33,11 +33,12 @@ First of all, flash an OS to the SD card of the Raspberry Pi. This project was t
 5. Change OS settings in the imager:
   - Set the hostname to the device name used (e.g. autopower1).
   - Set the username `ethditet` and a secure password
-  - Set up SSH under services and paste your SSH key (this will be overwritten later on)
+  - Set up SSH under services and paste your SSH key (the deploy.sh script also can append one later on)
   - Disable telemetry under options
   - Now save the settings
+6. Write the image to the SD card
 
-**Note:** Instead of using the imager, you may also [download the image](https://www.raspberrypi.com/software/operating-systems/) and use use dd to flash it: `dd if=/path/to/raspberrypiosLite64bit.img of=/path/to/sdcard bs=4M`. You may need to enable SSH by creating an empty file in the bootfs volume of the SD card called `ssh` manually: `touch /media/bootfs/ssh`. After that, continue with the deploy script as follows.
+**Note:** Instead of using the imager, you may also [download the OS image](https://www.raspberrypi.com/software/operating-systems/) and use use dd to flash it: `dd if=/path/to/raspberrypiosLite64bit.img of=/path/to/sdcard bs=4M`. You may need to enable SSH by creating an empty file in the bootfs volume of the SD card called `ssh` manually: `touch /media/bootfs/ssh`. After that, continue with the deploy script as follows.
 
 ### Deployment on the Pi
 
