@@ -15,6 +15,7 @@
         <button id="saveMmBtn" type="submit" class="btn btn-primary form-control mt-2">Save</button>
     </form>
 </div>
+<div class="text-secondary">Measurements cannot be deleted via Management UI for security reasons. Delete measurements manually from the database as shown in server/USING-POSTGRES.ms</div>
 <script src="{{ url_for('static', filename='formAJAXSubmit.js') }}"></script>
 <script>
   var msg = $("#mmStatus");
