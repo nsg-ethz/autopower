@@ -48,7 +48,7 @@ cp config/secrets.json.example /etc/mmclient/secrets.json
 # replace magic string ßß§$$$rplacePw$$$§ßß with actual password
 sed -i 's/ßß§$$$rplacePw$$$§ßß/'"${PGPASSWORD}"'/' /etc/mmclient/secrets.json
 echo "Create client certificates..."
-./deploy/create_client_cert.sh
+./deploy/create_client_cert.sh "${REMOTEHOST}"
 mv client.key /etc/mmclient/client.key
 mv client.csr /etc/mmclient/client_"${DEVICENAME}".csr
 

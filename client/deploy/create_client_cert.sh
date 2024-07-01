@@ -4,7 +4,7 @@
 
 # source: https://github.com/grpc/grpc/issues/9593
 
-source cnConfig.sh
+CN="${1}"
 
 openssl genrsa -des3 -passout pass:1111 -out client.key 4096
 openssl req -new -passin pass:1111 -key client.key -out client.csr -sha512 -subj  "/C=CH/ST=Switzerland/L=Zuerich/O=ETH-Zuerich/OU=D-ITET/CN=${CN}"

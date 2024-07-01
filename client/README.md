@@ -5,8 +5,8 @@
 This folder contains files needed for the client side of the autopower project:
 
 - `deploy.sh` A bash script which runs on the Raspberry Pi to setup the environment. This asks interactively for a device name and sets up all respective binaries, the database, firewall, Zabbix client for monitoring, etc
-- `deploy/create_client_cert.sh` A script to generate certificates for the clients. Those need to be signed from a CA trusted by the server to allow encrypted connection.
-- `serverIpConfig.sh` A bash script containing configuration parameters like the domain of the autopower server. Edit this to your needs. Also do the same to `deploy/cnConfig.sh` for the CN in the certificates.
+- `deploy/create_client_cert.sh <CN>` A script to generate certificates for the clients. Those need to be signed from a CA trusted by the server to allow encrypted connection.
+- `serverIpConfig.sh` A bash script containing configuration parameters like the domain of the autopower server. Edit this to your needs. 
 - `config/client_config.json.example`: Example config file for the client. This contains setting parameters like the uid of an autopower device.
 - `config/secrets.json.example`: Example config file which contains secrets like the path to certificates for the client.
 
@@ -20,7 +20,7 @@ Afterwards compile the autopower client (mmclient) from this repository as descr
 
 You can also use the precompiled binaries from [GitHub releases](https://github.com/nsg-ethz/autopower/releases).
 
-Now edit the `serverIpConfig.sh` script with the domain and IP of the autopower server and the `deploy/cnConfig.sh` file with the CN (usually the domain) of your server.
+Now edit the `serverIpConfig.sh` script with the domain and IP of the autopower server.
 
 ### Setting up a Raspberry Pi
 
@@ -42,7 +42,7 @@ First of all, flash an OS to the SD card of the Raspberry Pi. This project was t
 
 ### Deployment on the Pi
 
-**Note:** This method uses a USB stick, but you can of course also copy the files via SFTP or SCP if you know the IP.
+**Note:** This method uses a USB stick mounted at `/mnt`, but you can of course also copy the files via SFTP or SCP if you know the IP.
 
 **SSH Keys:** To add a SSH key for SSH connection to the Pi (e.g. if you did not use the Raspberry Pi imager), put your SSH Key into a file called `ssh_key.pub` in the `client/deploy/` folder. This will then be added to each Pis' `authorized_keys` file.
 
