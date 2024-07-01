@@ -8,14 +8,28 @@
 <div class="autopowerDevicesList">
     {% for device in autopowerDevices %}
     <div class="autopowerDevice bg-light border p-2 mt-2">
-        <div class="alert p-2 autopowerDeviceStatus alert-secondary" id="status-{{ device.client_uid | e }}" data-apcluid="{{ device.client_uid | e }}">Unknown</div>
         <h2>{{ device.client_uid | e }}</h2>
-        <a href="{{ url_for('deviceManagementPage', deviceUid=device.client_uid) }}">Manage {{ device.client_uid | e }}</a>
+        <div class="alert p-2 autopowerDeviceStatus alert-secondary" id="status-{{ device.client_uid | e }}" data-apcluid="{{ device.client_uid | e }}">Unknown</div>
+        <div>Last seen <span data-lastseen="{{ device.last_seen | e }}" class="lastSeenTimestamp">{{ getTimeAgo(device.last_seen) | e }}</span></div>
+        <div>
+            <a href="{{ url_for('deviceManagementPage', deviceUid=device.client_uid) }}">Manage {{ device.client_uid | e }}</a>
+        </div>
     </div>
     {% endfor %}
 </div>
 <script>
     $(document).ready(function() {
+        $(".lastSeenTimestamp").each(function() {
+            var timeBox = $(this);
+            var lsTimestamp = new Date(timeBox.data("lastseen"));
+
+            var longAgo = new Date();
+            longAgo.setHours(longAgo.getHours() - 6);
+            
+            if (lsTimestamp < longAgo) {
+                timeBox.addClass("text-warning");
+            }
+        });
         $(".autopowerDeviceStatus").each(function() {
             // for each status label of the autopower device, check the status
             var clientUid = $(this).data("apcluid");

@@ -111,6 +111,12 @@ def convertToLocalTime(timezoneAwareTs):
     timestampLocal = timezoneAwareTs.astimezone(localtz).replace(tzinfo=None)
     return timestampLocal
 
+def getTimeAgo(timestamp):
+    # convert timestamp to local time - for now it is not checked if timeago supports timezones
+    timestampLocal = convertToLocalTime(timestamp)
+    return timeago.format(timestampLocal)
+# Register this function in template
+app.jinja_env.globals.update(getTimeAgo=getTimeAgo)
 
 def getLastSeenTimeAgo(deviceUid):
     with createPgConnection() as pgConnection:
@@ -118,9 +124,7 @@ def getLastSeenTimeAgo(deviceUid):
         pgcurs.execute("SELECT last_seen FROM clients WHERE client_uid = %(cluid)s LIMIT 1", {'cluid': deviceUid})
         pgConnection.commit()
         activeTimestamp = pgcurs.fetchone()
-        # convert timestamp to local time - for now it is not checked if timeago supports timezones
-        timestampLocal = convertToLocalTime(activeTimestamp["last_seen"])
-        return timeago.format(timestampLocal)
+        return getTimeAgo(activeTimestamp["last_seen"])
 
 
 def getAllMeasurementMetadataOfDevice(deviceUid):
@@ -161,7 +165,7 @@ def deviceIsRegistered(deviceUid):
 def homepage():
     with createPgConnection() as pgConnection:
         pgcurs = pgConnection.cursor(cursor_factory=pgextra.RealDictCursor)
-        pgcurs.execute("SELECT client_uid FROM clients ORDER BY client_uid ASC")
+        pgcurs.execute("SELECT client_uid, last_seen FROM clients ORDER BY client_uid ASC")
         pgConnection.commit()
         return render_template("startpage.html", autopowerDevices=pgcurs.fetchall())
 
