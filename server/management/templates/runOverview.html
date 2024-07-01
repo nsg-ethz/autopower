@@ -86,8 +86,8 @@ $(document).ready(function() {
             type:"POST",
             data:{runId:rId},
             url:"{{ url_for('finishRunPost') }}",
-            success:function() {
-                stopStatusBox.text("Stopped. Please reload this page");
+            success:function(status) {
+                stopStatusBox.text(status);
                 stopStatusBox.addClass("alert-success");
                 stopStatusBox.removeClass("d-none");
             },
