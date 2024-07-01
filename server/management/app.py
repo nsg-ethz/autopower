@@ -369,6 +369,13 @@ def manageRun(runId):
         selectedClients = []
         for client in clnts:
             selectedClients.append(client["client_uid"])
+        
+        pgcurs.execute("SELECT shared_measurement_id, server_measurement_id FROM measurements WHERE run_id = %(runid)s", {'runid': runId})
+        pgConnection.commit()
+        linkedMmts = pgcurs.fetchall()
+
+        # only show delete if no measurements are linked
+        showDelete = not linkedMmts
 
         # Manage timing
 
@@ -384,7 +391,7 @@ def manageRun(runId):
             stopTime = convertToLocalTime(run["stop_run"]).strftime('%H:%M:%S.%f')[:-3]
             stopDate = convertToLocalTime(run["stop_run"]).strftime('%Y-%m-%d')
 
-        return render_template("runManagement.html", runId=runId, run=run, duts=duts, clientIds=clientIds, selectedClients=selectedClients, serverTz=get_localzone(), startTime=startTime, startDate=startDate, stopTime=stopTime, stopDate=stopDate, showDelete=True)
+        return render_template("runManagement.html", runId=runId, run=run, duts=duts, clientIds=clientIds, selectedClients=selectedClients, serverTz=get_localzone(), startTime=startTime, startDate=startDate, stopTime=stopTime, stopDate=stopDate, showDelete=showDelete, linkedMmts=linkedMmts)
 
 
 @app.route("/runs")
@@ -437,12 +444,20 @@ def deleteRun(runId):
         if not pgcurs.fetchone():
             return "This run doesn't exist", 404
         try:
+            pgcurs.execute("SELECT shared_measurement_id FROM measurements WHERE run_id = %(runid)s", {'runid': runId})
+            pgConnection.commit()
+            linkedMmts = []
+            for mmId in pgcurs:
+                linkedMmts.append(mmId[0])
+            if linkedMmts != []:
+                return "Cannot delete run which is still linked to a measurement. Please delete or unlink the measurement(s) " + str(linkedMmts) + " before deleting the run.", 403
+
             pgcurs.execute("DELETE FROM client_runs WHERE run_id = %(runid)s", {'runid': runId})
             pgcurs.execute("DELETE FROM runs WHERE run_id = %(runid)s", {'runid': runId})
             pgConnection.commit()
-        except ForeignKeyViolation:
+        except ForeignKeyViolation as fke:
             pgConnection.rollback()
-            return "Cannot delete run which is still linked to a measurement. Please delete the measurement before deleting the run.", 403
+            return "Cannot delete run which is still linked to a measurement. Please delete or unlink the measurement(s) before deleting the run. Error: " + str(fke), 403
         return str(runId)
 
 

@@ -5,6 +5,15 @@
 <button id="deleteBtn" class="btn btn-danger mb-2" data-bs-toggle="modal" data-bs-target="#confirmDeletionModal">Delete run</button>
 {% endif %}
 {% block runheading %}<h2>{{ runId | e}}</h2>{% endblock %}
+{% if linkedMmts %}
+<div>Linked with
+  <ul>
+    {% for mmt in linkedMmts %}
+    <li><a href="{{ url_for('manageMeasurement', measurementId=mmt.server_measurement_id) }}">{{ mmt.shared_measurement_id | e }}</a></li>
+  {% endfor %}
+  </ul>
+</div>
+{% endif %}
 <div class="alert p-2" id="runStatus">Enter RUN information</div>
 <form id="runForm" method="POST" {% block formaction %}action="{{ url_for('updateRun', runId=runId) }}"{% endblock %} class="bg-light border p-2">
     <label for="dut">Device under test</label>
