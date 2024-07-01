@@ -45,5 +45,34 @@ To export the result of an SQL query as `.csv` file, the COPY command can be use
 COPY (<sql_query>) TO 'path/to/output.csv' DELIMITER ',' CSV HEADER;
 ```
 
+## Maintenance and deletion of measurements/clients
+To avoid deletion of measurements, the Management UI does not provide a way to delete measurements and measurement samples.Therefore, you will need to remove measurements manually with psql.
+
+### Deleting a measurement and all related datapoints
+
+To get the measurement id of the measurement you delete, assuming you know the `shared_measurement_id` (e.g. via Management UI) execute:
+
+```sql
+SELECT * FROM measurements WHERE shared_measurement_id = '<Id>';
+```
+We now assume the `server_measurement_id` is `<smid>`.
+
+Now delete the samples from the `measurement_data` relation:
+
+```sql
+DELETE FROM measurement_data WHERE server_measurement_id = <smid>;
+```
+Afterwards, you can delete the measurement:
+```sql
+DELETE FROM measurements WHERE server_measurement_id = <smid>
+```
+### Deleting a run
+
+In order to delete a run, no measurement can be linked to it. Please delete measurements as described above or unlink measurements by setting the run_id field to NULL in the respective measurements:
+
+```sql
+UPDATE measurements SET run_id = NULL WHERE server_measurement_id = <smid>
+```
+
 ## Further links
 * [Postgresql SQL commands documentation](https://www.postgresql.org/docs/current/sql-commands.html)
