@@ -29,7 +29,7 @@ echo "127.0.0.3  ${DEVICENAME}" >> /etc/hosts
 
 # add server to /etc/hosts
 if [ -n "${REMOTEIP6}" ]; then
-  echo "${REMOTIEP6}  ${REMOTEHOST}" >> /etc/hosts
+  echo "${REMOTEIP6}  ${REMOTEHOST}" >> /etc/hosts
 fi
 
 echo "${REMOTEIP}  ${REMOTEHOST}" >> /etc/hosts
@@ -85,12 +85,12 @@ chown root:zabbix /etc/zabbix/psk.psk
 systemctl restart zabbix-agent2
 systemctl enable zabbix-agent2
 
-# enable firewall and only allow ssh on port 21092 and zabbix agent to ${REMOTEIP}/${REMOTIEP6} - this assumes that zabbix is installed on ${REMOTEIP}/${REMOTIEP6}
+# enable firewall and only allow ssh on port 21092 and zabbix agent to ${REMOTEIP}/${REMOTEIP6} - this assumes that zabbix is installed on ${REMOTEIP}/${REMOTEIP6}
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow 21092/tcp
 ufw allow from "${REMOTEIP}" to any port 10050 proto tcp
-ufw allow from "${REMOTIEP6}" to any port 10050 proto tcp
+ufw allow from "${REMOTEIP6}" to any port 10050 proto tcp
 ufw logging off
 ufw --force enable
 
