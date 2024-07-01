@@ -2,7 +2,7 @@
 The clients authenticate with a certificate which is signed by a Certificate authority (CA) trusted by the server. Please ensure that `openssl` is installed on your machine.
 
 ## Creating a CA
-To set up a CA, run `./create_certs.sh`. If asked, enter a secure password. This will create the public and private keys for the CA (`ca.key` and `ca.cer`), as well as `server.key` (private key for server) and `server.cer` (public key for server).
+To set up a CA, edit `cnConfig.sh` with your CN attribute and run `./create_certs.sh`. If asked, enter a secure password. This will create the public and private keys for the CA (`ca.key` and `ca.cer`), as well as `server.key` (private key for server) and `server.cer` (public key for server).
 
 ## Creating a management/client cert manually
 

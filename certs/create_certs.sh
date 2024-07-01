@@ -1,7 +1,7 @@
 #!/bin/bash
 # Follows https://github.com/grpc/grpc/issues/9593#issuecomment-277946137
 # Generate valid CA
-source ipConfig.sh
+source cnConfig.sh
 echo "Creating certs for CA with CN ${CN}"
 
 if [ -f ca.key ]; then

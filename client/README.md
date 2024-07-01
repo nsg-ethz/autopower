@@ -6,6 +6,7 @@ This folder contains files needed for the client side of the autopower project:
 
 - `deploy.sh` A bash script which runs on the Raspberry Pi to setup the environment. This asks interactively for a device name and sets up all respective binaries, the database, firewall, Zabbix client for monitoring, etc
 - `deploy/create_client_cert.sh` A script to generate certificates for the clients. Those need to be signed from a CA trusted by the server to allow encrypted connection.
+- `serverIpConfig.sh` A bash script containing configuration parameters like the domain of the autopower server. Edit this to your needs. Also do the same to `deploy/cnConfig.sh` for the CN in the certificates.
 - `config/client_config.json.example`: Example config file for the client. This contains setting parameters like the uid of an autopower device.
 - `config/secrets.json.example`: Example config file which contains secrets like the path to certificates for the client.
 
@@ -13,9 +14,13 @@ This folder contains files needed for the client side of the autopower project:
 
 In order to deploy an autopower device, you may need to use a Raspberry Pi 4 - preferred Pi 4 4 GB or more to compile the code. Deployment was tested on a Raspberry Pi 3 B, 3 B+ and 4 B 1 GB is enough.
 
-First compile [my fork of pinpoint](https://github.com/UsualSpec/pinpoint/tree/feature/skip-workload) which contains a flag to skip the workload parameter as shown in the [official pinpoint repository README.md](https://github.com/osmhpi/pinpoint/blob/master/README.md) file and copy the resulting binary to the `bin/` folder. Rename the client to mmclient
+First compile [our fork of pinpoint](https://github.com/nsg-ethz/pinpoint/tree/feature/skip-workload) which contains a flag to skip the workload parameter as shown in the [official pinpoint repository README.md](https://github.com/osmhpi/pinpoint/blob/master/README.md) file and copy the resulting binary to the `bin/` folder. If needed, rename the client to mmclient.
 
 Afterwards compile the autopower client (mmclient) from this repository as described in COMPILING.md and copy the resulting `client` binary to bin/mmclient.
+
+You can also use the precompiled binaries from [GitHub releases](https://github.com/nsg-ethz/autopower/releases).
+
+Now edit the `serverIpConfig.sh` script with the domain and IP of the autopower server and the `deploy/cnConfig.sh` file with the CN (usually the domain) of your server.
 
 ### Setting up a Raspberry Pi
 
