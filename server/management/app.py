@@ -795,3 +795,8 @@ def finishRun(runId):
             return "OK"
         else:
             return "Not all clients could be stopped successfully: " + str(failedClientMsg)
+
+@app.route("/finishRunPost", methods=["POST"])
+def finishRunPost():
+    runId = int(request.form.get("runId"))
+    return finishRun(runId)

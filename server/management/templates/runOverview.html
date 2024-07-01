@@ -8,6 +8,7 @@
         <h2>{{ run.run_id | e }}</h2>
         <div>
             <p class="bg-primary-subtle p-2">{{ run.run_description }}</p>
+            <p id="stopStatus-{{ run.run_id | e}}" class="alert d-none">No status</p>
         </div>
         <div>Start: <span title="{{ run.start_run | e }}">{{ run.start_ago | e }}</span></div>
         <div>
@@ -19,6 +20,9 @@
         </div>
         <div>
             DUT: <a href="{{ url_for('manageDut', dutId=run.dut_id) }}">{{ run.dut_name | e}}</a></span>
+        </div>
+        <div class="mt-2 mb-2">
+            <button id="finishRunBtn-{{ run.run_id | e }}"class="finishRunBtn btn btn-danger mb-2" data-bs-toggle="modal" data-bs-target="#confirmStopModal" data-runid="{{ run.run_id | e }}">Finish run</button>
         </div>
         <div>
             <h4>Clients</h4>
@@ -38,9 +42,60 @@
             </ul>
         </div>
         {% endif %}
-        <a href="{{ url_for('manageRun', runId=run.run_id) }}">Edit Run {{ run.run_id | e }}</a>
-        <a href="{{ url_for('finishRun', runId=run.run_id) }}">Finish run</a>
+        <div>
+            <a href="{{ url_for('manageRun', runId=run.run_id) }}">Edit Run {{ run.run_id | e }}</a>
+        </div>
     </div>
     {% endfor %}
 </div>
+<div class="modal fade" id="confirmStopModal" tabindex="-1" aria-labelledby="confirmStopLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="confirmStopLabel">Stop Run <span class="runIdContainer"></span></h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Do you want to stop Run <span class="runIdContainer"></span>?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">No</button>
+          <button type="button" class="btn btn-danger" id="stopBtnConfirm" data-bs-dismiss="modal">Yes. Stop Run <span class="runIdContainer"></span></button>
+        </div>
+      </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $(".toast").toast();
+    $(".finishRunBtn").each(function() {
+        const clickBtn = $(this);
+        clickBtn.click(function(event) {
+            $(".runIdContainer").text(clickBtn.data("runid"));
+            $("#stopBtnConfirm").data("runid", clickBtn.data("runid"));
+        });
+    });
+
+    $("#stopBtnConfirm").click(function() {
+        const rId = $("#stopBtnConfirm").data("runid");
+        const stopStatusBox = $("#stopStatus-" +rId);
+        $.ajax({
+            type:"POST",
+            data:{runId:rId},
+            url:"{{ url_for('finishRunPost') }}",
+            success:function() {
+                stopStatusBox.text("Stopped. Please reload this page");
+                stopStatusBox.addClass("alert-success");
+                stopStatusBox.removeClass("d-none");
+            },
+            error:function(xhr) {
+                stopStatusBox.text(xhr.responseText);
+                stopStatusBox.addClass("alert-danger");
+                stopStatusBox.removeClass("d-none");
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
