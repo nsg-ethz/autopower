@@ -9,10 +9,11 @@
 <div class="deviceManagementControls">
     <div>Last seen {{ lastSeen | e }}</div>
     <div id="ip" class="mb-2">IP: <code class="p-2" id="ipLabel">Not yet known</code></div>
+    <div class="alert alert-info p-2" id="deviceConnectivityStatus">No connection status yet</div>
     <div class="bg-light p-2">
-        <div class="alert alert-info p-2" id="deviceStatus">No status.</div>
+        <div class="alert alert-info p-2" id="deviceStatus">No status</div>
         <div class="row p-2">
-            <button type="button" class="btn btn-danger col-sm" id="stopMsmtBtn">Stop measurement</button>
+            <button type="button" class="btn btn-danger col-sm" id="stopMsmtBtn" disabled>Stop measurement</button>
             <button type="button" class="btn btn-primary col-sm" id="pingBtn">Check connectivity with device</button>
         </div>
         <div class="row pt-2">
@@ -27,7 +28,7 @@
                     <option value="{{ msmtPpDev | e }}">{{ msmtPpDev | e }}</option>
                     {% endfor %}
                 </select>
-                <button type="submit" class="btn btn-primary form-control mt-2" id="startMsmtBtn">Start measurement</button>
+                <button type="submit" class="btn btn-primary form-control mt-2" id="startMsmtBtn" disabled>Start measurement</button>
             </form>
         </div>
     </div>
@@ -107,20 +108,23 @@
                 $("#stopMsmtBtn").prop("disabled",false);
             }});
         });
-
+        var deviceConnectStatusBox = $("#deviceConnectivityStatus");
         $("#pingBtn").click(function() {
+            $("#pingBtn").prop("disabled", true);
             $.ajax({url:"{{url_for('requestIntroduceClient', deviceUid=deviceUid)}}", success:function(res){
                 if (res.msg == "PONG") {
-                    setAlertSeverity(msg,"alert-success");
-                    msg.text("Device is online");
+                    setAlertSeverity(deviceConnectStatusBox,"alert-success");
+                    deviceConnectStatusBox.text("Checked online");
                 } else {
-                    setAlertSeverity(msg,"alert-warning");
-                    msg.text("Did't receive response from device in time.");
+                    setAlertSeverity(deviceConnectStatusBox,"alert-warning");
+                    deviceConnectStatusBox.text("Did't receive response from device in time.");
                 }
+                $("#pingBtn").prop("disabled", false);
             },
             error:function(xhr) {
-                setAlertSeverity(msg,"alert-danger");
-                msg.text("Error: " + xhr.status +  "; " + xhr.statusText + ". Response from server: " + xhr.responseText);
+                setAlertSeverity(deviceConnectStatusBox,"alert-danger");
+                deviceConnectStatusBox.text("Error: " + xhr.status +  ". " + xhr.statusText + ": " + xhr.responseText);
+                $("#pingBtn").prop("disabled", false);
             }});
         });
 
@@ -128,11 +132,22 @@
         $.ajax({url:"{{url_for('requestIntroduceClient', deviceUid=deviceUid)}}", success:function(res){
                 if (res.msg == "PONG" && res.peer != null) {
                     $("#ipLabel").text(res.peer);
+                    setAlertSeverity(deviceConnectStatusBox,"alert-success");
+                    deviceConnectStatusBox.text("Online");
                 } else {
+                    setAlertSeverity(deviceConnectStatusBox,"alert-warning");
+                    deviceConnectStatusBox.text("Unknown connectivity");
                     $("#ipLabel").text("Unknown");
                 }
             },
             error:function(xhr) {
+                setAlertSeverity(deviceConnectStatusBox,"alert-warning");
+                if (xhr.status == 404) {
+                    deviceConnectStatusBox.text("Not found/registered");
+                } else {
+                    deviceConnectStatusBox.text("Unknown connectivity");
+                }
+
                 $("#ipLabel").text("Unknown");
             }});
         // measurement form AJAX
