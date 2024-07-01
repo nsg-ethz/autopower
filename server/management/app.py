@@ -641,7 +641,7 @@ def deleteDut(dutId):
             pgConnection.commit()
         except ForeignKeyViolation:
             pgConnection.rollback()
-            return "Cannot delete DUT which is still linked to a measurement. Please delete the measurement before deleting the run.", 403
+            return "Cannot delete DUT which is still linked to a measurement/run. Please delete or unlink all measurements/runs linked to this DUT before deleting this DUT.", 403
         return str(dutId)
 
 
