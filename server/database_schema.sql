@@ -8,9 +8,7 @@ CREATE TABLE logmessages (
 
 CREATE TABLE clients (
   client_uid VARCHAR(255) PRIMARY KEY,
-  last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW(), -- last time this client connected to the server, meaning we know it is alive
-  ipv6_address INET,
-  ipv4_address INET -- automatically populated
+  last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW() -- last time this client connected to the server, meaning we know it is alive
 );
 
 CREATE TABLE devices_under_test ( -- TODO: Rename to dut
@@ -43,11 +41,7 @@ CREATE TABLE measurements (
   server_measurement_id SERIAL PRIMARY KEY, -- numeric measurement id, different to the client side!
   shared_measurement_id VARCHAR(255) UNIQUE NOT NULL, -- measurement id shared with clients created by the client.
   run_id INT DEFAULT NULL REFERENCES runs(run_id), -- reference a run
-  client_uid VARCHAR(255) NOT NULL REFERENCES clients(client_uid), -- the client this measurement came from. Should never be used as key/reference. Use client_runs relation instead
-  pp_device VARCHAR(255) DEFAULT NULL, -- the device set by this measurement
-  pp_sampling_interval INT DEFAULT NULL, -- the sampling interval of this measurement
-  upload_intervalMin INT DEFAULT NULL -- the periodicity in minutes to upload the content from the clients to the server 
-  -- has_finished_gracefully BOOLEAN DEFAULT FALSE -- saves if this measurement has been finished gracefully by the client and all data has been uploaded.
+  client_uid VARCHAR(255) NOT NULL REFERENCES clients(client_uid) -- the client this measurement came from. Should never be used as key/reference. Use client_runs relation instead
 );
 
 CREATE TABLE measurement_data (
