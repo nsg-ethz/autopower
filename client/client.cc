@@ -535,18 +535,18 @@ void AutopowerClient::doPeriodicDataUpload() {
       std::string excContent = e.what();
       std::cerr << "Error: " << excContent << std::endl;
       // also try to log error on server
-      // putStatusToServer(1, "Periodic upload got error: " + excContent); // (disabled for now as it makes re-connecting to server slower)
+      putStatusToServer(1, "Periodic upload got error: " + excContent);
     }
     measuringCv.wait_for(mm, std::chrono::minutes(this->periodicUploadMinutes));
     mm.unlock();
   }
 
-  std::cerr << "Error: Periodic upload thread exited" << std::endl;
+  std::cerr << "Error: Periodic upload thread exited." << std::endl;
+  putStatusToServer(1, "Error: Periodic upload thread exited. This points to a crash.");
 }
 
 void AutopowerClient::manageMsmt() {
-  // monitor thread creates the upload thread to do the periodic upload. This needs to be done on the same channel.
-  std::thread uploadThread(&AutopowerClient::doPeriodicDataUpload, this);
+  // monitor thread creates the upload thread to do the periodic upload.
   while (true) {
     // set uid
     class autopapi::clientUid cluid;
@@ -714,9 +714,6 @@ void AutopowerClient::manageMsmt() {
   }
   std::cerr << "manageMsmt() exited..." << std::endl;
   putStatusToServer(1, "manageMsmt() thread exited. This points to a crash.");
-  uploadThread.join();
-  std::cerr << "manageMsmt() and upload thread exited..." << std::endl;
-  putStatusToServer(1, "manageMsmt() and upload thread exited. This points to a crash.");
 }
 
 AutopowerClient::AutopowerClient(std::string _clientUid,
@@ -734,8 +731,10 @@ AutopowerClient::AutopowerClient(std::string _clientUid,
   // start client running in multiple threads
   std::thread managementThread(&AutopowerClient::manageMsmt, this); // thread to connect to server and for API
   std::thread measurementThread(&AutopowerClient::getAndSavePpData, this);
+  std::thread uploadThread(&AutopowerClient::doPeriodicDataUpload, this);
   startMeasurement();
-  measurementThread.join(); // should never get here
+  uploadThread.join(); // should never get here
+  measurementThread.join();
   managementThread.join();
 }
 
