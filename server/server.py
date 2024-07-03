@@ -28,7 +28,7 @@ logging.basicConfig(level=logging.INFO)
 # Create password context for management
 pwdCtxt = CryptContext(schemes=["sha512_crypt"], deprecated="auto")
 
-
+# shared class for communication with CMeasurementApiServicer. Represents a client
 class ExternalClient():
     def __init__(self, uid):
         # set up external Client class to manage each client in a separate thread.
@@ -128,9 +128,8 @@ class ExternalClient():
         if requestNo in self.responsedict:  # only delete if existing. May not be the case if server generated error msg (e.g. timeout)
             del self.responsedict[requestNo]
         self.responsedictlock.release()
-# shared class for communication with CMeasurementApiServicer
 
-
+# Store state of registered clients
 class ClientManager():
     loggedInClients = dict({})
 
@@ -281,8 +280,8 @@ class CLI():
         while True:
             print(pm.getNextMessageCli())
 
-
-class OutCommunicator():  # communicate to other scripts and issue requests
+# communicate to other scripts and issue requests
+class OutCommunicator(): 
 
     cliMessageQueue = qu()  # a queue saving error/status messages
     outMessageQueues = {}  # a set of queues saving error/status messages for the out communication only
@@ -322,9 +321,7 @@ class pgConnectorFactory():
     def createConnection(self):
       return postgres.connect(host=self.host,database=self.database,user=self.user,password=self.password)
 
-# Implementation of server for measurement device management
-
-
+# Implementation of gRPC methods
 class CMeasurementApiServicer():
     def __init__(self, pgfac, allowedMgmtClients):
         # each thread should have an own postgres connection cursor for concurrent writes
