@@ -442,20 +442,31 @@ bool AutopowerClient::streamMeasurementData(std::string measId) {
   pgcon.prepare( // sets all correctly uploaded datapoints to be uploaded
       "confirmMmUploaded",
       "UPDATE measurement_data SET was_uploaded = true WHERE md_id = $1");
-  std::string getMmStartSql = "SELECT md_id, measurement_value, measurement_timestamp, measurements.internal_measurement_id AS internal_measurement_id, measurements.shared_measurement_id AS shared_mm_id, measurements.client_uid FROM measurement_data, measurements WHERE measurements.internal_measurement_id = measurement_data.internal_measurement_id";
-  pgcon.prepare( // gets all datapoints of the id given as parameter to this function
-      "getAllMmtWithId",
-      getMmStartSql + " AND measurements.shared_measurement_id = $1");
+  pqxx::connection pgReadCon{this->pgConString};
+  pqxx::work readTxn(pgReadCon);
   pqxx::work txn(pgcon);
-  pqxx::result tuplesToStream; // the tuples returned from the database to be uploaded
+  std::string getMmStartSql = "SELECT md_id, measurement_value, measurement_timestamp, measurements.internal_measurement_id AS internal_measurement_id, measurements.shared_measurement_id AS shared_mm_id, measurements.client_uid FROM measurement_data, measurements WHERE measurements.internal_measurement_id = measurement_data.internal_measurement_id";
+
   if (measId.empty()) {
-    tuplesToStream = txn.exec(getMmStartSql + " AND was_uploaded = false");
+    getMmStartSql += " AND was_uploaded = false";
   } else {
-    tuplesToStream = txn.exec_prepared("getAllMmtWithId", measId);
+    // MUST escape via readTxn.esc since not found how to give parameters to cursor.
+    getMmStartSql+= " AND measurements.shared_measurement_id = '" + readTxn.esc(measId) + "'";
   }
+  
+  // https://stackoverflow.com/questions/16128142/how-to-use-pqxxstateless-cursor-class-from-libpqxx
+
+  pqxx::stateless_cursor<pqxx::cursor_base::read_only, pqxx::cursor_base::owned> tuplesToStream(readTxn, getMmStartSql, "uploadTupleCurs", false); // the tuples returned from the database to be uploaded
 
   int numTuplesNotWritten = 0;
-  for (auto const &tuple : tuplesToStream) {
+  for (size_t idx = 0; true; idx++) {
+    pqxx::result res = tuplesToStream.retrieve(idx, idx+1);
+    if (res.empty()) {
+      // on cursor end --> exit
+      break;
+    }
+
+    auto tuple = res[0];
     // build up the measurement sample for grpc based on the DB content
     autopapi::msmtSample grpcMsmtSample;
     if (tuple["client_uid"].as<std::string>() != clientUid) {
@@ -480,7 +491,6 @@ bool AutopowerClient::streamMeasurementData(std::string measId) {
 
     // finally write to server
     bool couldWrite = smpStream->Write(grpcMsmtSample);
-
     if (!couldWrite) {
       numTuplesNotWritten++;
       // exit early
