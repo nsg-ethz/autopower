@@ -536,6 +536,7 @@ class CMeasurementApiServicer():
         requestToClient.clientUid = clientId
         requestToClient.msgType = request.msgType
         requestToClient.requestBody = request.requestBody
+        # TODO: Deambiguate server-> client and server->management client ID
         requestToClient.requestNo = request.requestNo
 
         requestNo = cm.scheduleNewRequestToClient(clientId, requestToClient)
