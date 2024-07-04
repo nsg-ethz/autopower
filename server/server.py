@@ -425,7 +425,7 @@ class CMeasurementApiServicer():
                         ON CONFLICT DO NOTHING
                         """, {'mmtid': mmt.msmtId, 'cluid': mmt.clientUid, 'msmtts': mmtTime})
                         con.commit()
-                        # TODO: Request the client to submit the measurement settings to fill the DB with a newly introduced API message
+                        # TODO: Maybe request the client to submit the measurement settings to fill the DB e.g. via requesting status
                     msmtIdSoFar = mmt.msmtId
 
                     # in the normal case insert tuples just into the measurement_data table.
