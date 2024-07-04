@@ -530,14 +530,13 @@ class CMeasurementApiServicer():
             return
 
         clientId = request.clientUid
+        manageRequestNo = request.requestNo # the request number of the management client (may not be the same as the one for the external client)
         # repack management request to client request
         requestToClient = pbdef.api__pb2.srvRequest()
 
         requestToClient.clientUid = clientId
         requestToClient.msgType = request.msgType
         requestToClient.requestBody = request.requestBody
-        # TODO: Deambiguate server-> client and server->management client ID
-        requestToClient.requestNo = request.requestNo
 
         requestNo = cm.scheduleNewRequestToClient(clientId, requestToClient)
         waitSucceeded = cm.waitOnRequestCompletion(clientId, requestNo)
@@ -548,6 +547,7 @@ class CMeasurementApiServicer():
 
         response = cm.getResponseOfRequestNo(clientId, requestNo)
         cm.purgeResponseOfRequestNo(clientId, requestNo)  # clean up
+        response.requestNo = manageRequestNo
         return response
 
     def getMessages(self, request, context):

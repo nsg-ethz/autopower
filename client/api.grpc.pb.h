@@ -68,7 +68,7 @@ class CMeasurementApi final {
     std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::autopapi::msmtName>> PrepareAsyncputMeasurementList(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::autopapi::msmtName>>(PrepareAsyncputMeasurementListRaw(context, response, cq));
     }
-    // upload finished measurement to server
+    // upload measurement/measurement samples to server
     // @param msmtSample stream is the file content requested by the server initially
     std::unique_ptr< ::grpc::ClientWriterInterface< ::autopapi::msmtSample>> putMeasurement(::grpc::ClientContext* context, ::autopapi::nothing* response) {
       return std::unique_ptr< ::grpc::ClientWriterInterface< ::autopapi::msmtSample>>(putMeasurementRaw(context, response));
@@ -101,42 +101,53 @@ class CMeasurementApi final {
     //
     // gets the list of currently registered clients - they may not be currenly connected
     // @returns stream of client UIDs
-    std::unique_ptr< ::grpc::ClientReaderInterface< ::autopapi::clientUid>> getLoggedInClients(::grpc::ClientContext* context, const ::autopapi::nothing& request) {
+    std::unique_ptr< ::grpc::ClientReaderInterface< ::autopapi::clientUid>> getLoggedInClients(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request) {
       return std::unique_ptr< ::grpc::ClientReaderInterface< ::autopapi::clientUid>>(getLoggedInClientsRaw(context, request));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::autopapi::clientUid>> AsyncgetLoggedInClients(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::grpc::CompletionQueue* cq, void* tag) {
+    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::autopapi::clientUid>> AsyncgetLoggedInClients(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request, ::grpc::CompletionQueue* cq, void* tag) {
       return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::autopapi::clientUid>>(AsyncgetLoggedInClientsRaw(context, request, cq, tag));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::autopapi::clientUid>> PrepareAsyncgetLoggedInClients(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::grpc::CompletionQueue* cq) {
+    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::autopapi::clientUid>> PrepareAsyncgetLoggedInClients(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::autopapi::clientUid>>(PrepareAsyncgetLoggedInClientsRaw(context, request, cq));
+    }
+    // gets if the client is registered at the server
+    // @returns status of registration
+    virtual ::grpc::Status getRegistrationStatus(::grpc::ClientContext* context, const ::autopapi::authClientUid& request, ::autopapi::registrationStatus* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::registrationStatus>> AsyncgetRegistrationStatus(::grpc::ClientContext* context, const ::autopapi::authClientUid& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::registrationStatus>>(AsyncgetRegistrationStatusRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::registrationStatus>> PrepareAsyncgetRegistrationStatus(::grpc::ClientContext* context, const ::autopapi::authClientUid& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::registrationStatus>>(PrepareAsyncgetRegistrationStatusRaw(context, request, cq));
     }
     // sets measurement settings of a client locally on the server but does not start a measurement yet
     // @param measurement settings for a device
-    virtual ::grpc::Status setMsmtSttings(::grpc::ClientContext* context, const ::autopapi::msmtSettings& request, ::autopapi::nothing* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::nothing>> AsyncsetMsmtSttings(::grpc::ClientContext* context, const ::autopapi::msmtSettings& request, ::grpc::CompletionQueue* cq) {
+    virtual ::grpc::Status setMsmtSttings(::grpc::ClientContext* context, const ::autopapi::mgmtMsmtSettings& request, ::autopapi::nothing* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::nothing>> AsyncsetMsmtSttings(::grpc::ClientContext* context, const ::autopapi::mgmtMsmtSettings& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::nothing>>(AsyncsetMsmtSttingsRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::nothing>> PrepareAsyncsetMsmtSttings(::grpc::ClientContext* context, const ::autopapi::msmtSettings& request, ::grpc::CompletionQueue* cq) {
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::nothing>> PrepareAsyncsetMsmtSttings(::grpc::ClientContext* context, const ::autopapi::mgmtMsmtSettings& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::nothing>>(PrepareAsyncsetMsmtSttingsRaw(context, request, cq));
     }
     // request the server to relay a request to an autopower device
     // @param a request from the server to the autopower device
     // @returns a response of the client
-    virtual ::grpc::Status issueRequestToClient(::grpc::ClientContext* context, const ::autopapi::srvRequest& request, ::autopapi::clientResponse* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::clientResponse>> AsyncissueRequestToClient(::grpc::ClientContext* context, const ::autopapi::srvRequest& request, ::grpc::CompletionQueue* cq) {
+    virtual ::grpc::Status issueRequestToClient(::grpc::ClientContext* context, const ::autopapi::mgmtRequest& request, ::autopapi::clientResponse* response) = 0;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::clientResponse>> AsyncissueRequestToClient(::grpc::ClientContext* context, const ::autopapi::mgmtRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::clientResponse>>(AsyncissueRequestToClientRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::clientResponse>> PrepareAsyncissueRequestToClient(::grpc::ClientContext* context, const ::autopapi::srvRequest& request, ::grpc::CompletionQueue* cq) {
+    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::clientResponse>> PrepareAsyncissueRequestToClient(::grpc::ClientContext* context, const ::autopapi::mgmtRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::clientResponse>>(PrepareAsyncissueRequestToClientRaw(context, request, cq));
     }
     // get status and error messages from server
-    // @returns stream of error messages from any client
-    virtual ::grpc::Status getNextMessage(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::autopapi::cmMCode* response) = 0;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::cmMCode>> AsyncgetNextMessage(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::cmMCode>>(AsyncgetNextMessageRaw(context, request, cq));
+    // @returns stream of error/status messages from any client
+    std::unique_ptr< ::grpc::ClientReaderInterface< ::autopapi::cmMCode>> getMessages(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request) {
+      return std::unique_ptr< ::grpc::ClientReaderInterface< ::autopapi::cmMCode>>(getMessagesRaw(context, request));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::cmMCode>> PrepareAsyncgetNextMessage(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::cmMCode>>(PrepareAsyncgetNextMessageRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::autopapi::cmMCode>> AsyncgetMessages(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::autopapi::cmMCode>>(AsyncgetMessagesRaw(context, request, cq, tag));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::autopapi::cmMCode>> PrepareAsyncgetMessages(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderInterface< ::autopapi::cmMCode>>(PrepareAsyncgetMessagesRaw(context, request, cq));
     }
     class async_interface {
      public:
@@ -153,7 +164,7 @@ class CMeasurementApi final {
       // upload file list to server
       // @param stream of all measurement names to the server
       virtual void putMeasurementList(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::ClientWriteReactor< ::autopapi::msmtName>* reactor) = 0;
-      // upload finished measurement to server
+      // upload measurement/measurement samples to server
       // @param msmtSample stream is the file content requested by the server initially
       virtual void putMeasurement(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::ClientWriteReactor< ::autopapi::msmtSample>* reactor) = 0;
       // gets all necessary data for measurement and then immediately starts the measurement
@@ -168,20 +179,23 @@ class CMeasurementApi final {
       //
       // gets the list of currently registered clients - they may not be currenly connected
       // @returns stream of client UIDs
-      virtual void getLoggedInClients(::grpc::ClientContext* context, const ::autopapi::nothing* request, ::grpc::ClientReadReactor< ::autopapi::clientUid>* reactor) = 0;
+      virtual void getLoggedInClients(::grpc::ClientContext* context, const ::autopapi::mgmtAuth* request, ::grpc::ClientReadReactor< ::autopapi::clientUid>* reactor) = 0;
+      // gets if the client is registered at the server
+      // @returns status of registration
+      virtual void getRegistrationStatus(::grpc::ClientContext* context, const ::autopapi::authClientUid* request, ::autopapi::registrationStatus* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void getRegistrationStatus(::grpc::ClientContext* context, const ::autopapi::authClientUid* request, ::autopapi::registrationStatus* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       // sets measurement settings of a client locally on the server but does not start a measurement yet
       // @param measurement settings for a device
-      virtual void setMsmtSttings(::grpc::ClientContext* context, const ::autopapi::msmtSettings* request, ::autopapi::nothing* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void setMsmtSttings(::grpc::ClientContext* context, const ::autopapi::msmtSettings* request, ::autopapi::nothing* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void setMsmtSttings(::grpc::ClientContext* context, const ::autopapi::mgmtMsmtSettings* request, ::autopapi::nothing* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void setMsmtSttings(::grpc::ClientContext* context, const ::autopapi::mgmtMsmtSettings* request, ::autopapi::nothing* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       // request the server to relay a request to an autopower device
       // @param a request from the server to the autopower device
       // @returns a response of the client
-      virtual void issueRequestToClient(::grpc::ClientContext* context, const ::autopapi::srvRequest* request, ::autopapi::clientResponse* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void issueRequestToClient(::grpc::ClientContext* context, const ::autopapi::srvRequest* request, ::autopapi::clientResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      virtual void issueRequestToClient(::grpc::ClientContext* context, const ::autopapi::mgmtRequest* request, ::autopapi::clientResponse* response, std::function<void(::grpc::Status)>) = 0;
+      virtual void issueRequestToClient(::grpc::ClientContext* context, const ::autopapi::mgmtRequest* request, ::autopapi::clientResponse* response, ::grpc::ClientUnaryReactor* reactor) = 0;
       // get status and error messages from server
-      // @returns stream of error messages from any client
-      virtual void getNextMessage(::grpc::ClientContext* context, const ::autopapi::nothing* request, ::autopapi::cmMCode* response, std::function<void(::grpc::Status)>) = 0;
-      virtual void getNextMessage(::grpc::ClientContext* context, const ::autopapi::nothing* request, ::autopapi::cmMCode* response, ::grpc::ClientUnaryReactor* reactor) = 0;
+      // @returns stream of error/status messages from any client
+      virtual void getMessages(::grpc::ClientContext* context, const ::autopapi::mgmtAuth* request, ::grpc::ClientReadReactor< ::autopapi::cmMCode>* reactor) = 0;
     };
     typedef class async_interface experimental_async_interface;
     virtual class async_interface* async() { return nullptr; }
@@ -202,15 +216,18 @@ class CMeasurementApi final {
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::msmtSettings>* PrepareAsyncgetMsmtSttngsAndStartRaw(::grpc::ClientContext* context, const ::autopapi::clientUid& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::nothing>* AsyncputStatusMsgRaw(::grpc::ClientContext* context, const ::autopapi::cmMCode& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::nothing>* PrepareAsyncputStatusMsgRaw(::grpc::ClientContext* context, const ::autopapi::cmMCode& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientReaderInterface< ::autopapi::clientUid>* getLoggedInClientsRaw(::grpc::ClientContext* context, const ::autopapi::nothing& request) = 0;
-    virtual ::grpc::ClientAsyncReaderInterface< ::autopapi::clientUid>* AsyncgetLoggedInClientsRaw(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::grpc::CompletionQueue* cq, void* tag) = 0;
-    virtual ::grpc::ClientAsyncReaderInterface< ::autopapi::clientUid>* PrepareAsyncgetLoggedInClientsRaw(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::nothing>* AsyncsetMsmtSttingsRaw(::grpc::ClientContext* context, const ::autopapi::msmtSettings& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::nothing>* PrepareAsyncsetMsmtSttingsRaw(::grpc::ClientContext* context, const ::autopapi::msmtSettings& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::clientResponse>* AsyncissueRequestToClientRaw(::grpc::ClientContext* context, const ::autopapi::srvRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::clientResponse>* PrepareAsyncissueRequestToClientRaw(::grpc::ClientContext* context, const ::autopapi::srvRequest& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::cmMCode>* AsyncgetNextMessageRaw(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::cmMCode>* PrepareAsyncgetNextMessageRaw(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientReaderInterface< ::autopapi::clientUid>* getLoggedInClientsRaw(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request) = 0;
+    virtual ::grpc::ClientAsyncReaderInterface< ::autopapi::clientUid>* AsyncgetLoggedInClientsRaw(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request, ::grpc::CompletionQueue* cq, void* tag) = 0;
+    virtual ::grpc::ClientAsyncReaderInterface< ::autopapi::clientUid>* PrepareAsyncgetLoggedInClientsRaw(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::registrationStatus>* AsyncgetRegistrationStatusRaw(::grpc::ClientContext* context, const ::autopapi::authClientUid& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::registrationStatus>* PrepareAsyncgetRegistrationStatusRaw(::grpc::ClientContext* context, const ::autopapi::authClientUid& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::nothing>* AsyncsetMsmtSttingsRaw(::grpc::ClientContext* context, const ::autopapi::mgmtMsmtSettings& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::nothing>* PrepareAsyncsetMsmtSttingsRaw(::grpc::ClientContext* context, const ::autopapi::mgmtMsmtSettings& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::clientResponse>* AsyncissueRequestToClientRaw(::grpc::ClientContext* context, const ::autopapi::mgmtRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::clientResponse>* PrepareAsyncissueRequestToClientRaw(::grpc::ClientContext* context, const ::autopapi::mgmtRequest& request, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientReaderInterface< ::autopapi::cmMCode>* getMessagesRaw(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request) = 0;
+    virtual ::grpc::ClientAsyncReaderInterface< ::autopapi::cmMCode>* AsyncgetMessagesRaw(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request, ::grpc::CompletionQueue* cq, void* tag) = 0;
+    virtual ::grpc::ClientAsyncReaderInterface< ::autopapi::cmMCode>* PrepareAsyncgetMessagesRaw(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request, ::grpc::CompletionQueue* cq) = 0;
   };
   class Stub final : public StubInterface {
    public:
@@ -263,35 +280,44 @@ class CMeasurementApi final {
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::nothing>> PrepareAsyncputStatusMsg(::grpc::ClientContext* context, const ::autopapi::cmMCode& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::nothing>>(PrepareAsyncputStatusMsgRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientReader< ::autopapi::clientUid>> getLoggedInClients(::grpc::ClientContext* context, const ::autopapi::nothing& request) {
+    std::unique_ptr< ::grpc::ClientReader< ::autopapi::clientUid>> getLoggedInClients(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request) {
       return std::unique_ptr< ::grpc::ClientReader< ::autopapi::clientUid>>(getLoggedInClientsRaw(context, request));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReader< ::autopapi::clientUid>> AsyncgetLoggedInClients(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::grpc::CompletionQueue* cq, void* tag) {
+    std::unique_ptr< ::grpc::ClientAsyncReader< ::autopapi::clientUid>> AsyncgetLoggedInClients(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request, ::grpc::CompletionQueue* cq, void* tag) {
       return std::unique_ptr< ::grpc::ClientAsyncReader< ::autopapi::clientUid>>(AsyncgetLoggedInClientsRaw(context, request, cq, tag));
     }
-    std::unique_ptr< ::grpc::ClientAsyncReader< ::autopapi::clientUid>> PrepareAsyncgetLoggedInClients(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::grpc::CompletionQueue* cq) {
+    std::unique_ptr< ::grpc::ClientAsyncReader< ::autopapi::clientUid>> PrepareAsyncgetLoggedInClients(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncReader< ::autopapi::clientUid>>(PrepareAsyncgetLoggedInClientsRaw(context, request, cq));
     }
-    ::grpc::Status setMsmtSttings(::grpc::ClientContext* context, const ::autopapi::msmtSettings& request, ::autopapi::nothing* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::nothing>> AsyncsetMsmtSttings(::grpc::ClientContext* context, const ::autopapi::msmtSettings& request, ::grpc::CompletionQueue* cq) {
+    ::grpc::Status getRegistrationStatus(::grpc::ClientContext* context, const ::autopapi::authClientUid& request, ::autopapi::registrationStatus* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::registrationStatus>> AsyncgetRegistrationStatus(::grpc::ClientContext* context, const ::autopapi::authClientUid& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::registrationStatus>>(AsyncgetRegistrationStatusRaw(context, request, cq));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::registrationStatus>> PrepareAsyncgetRegistrationStatus(::grpc::ClientContext* context, const ::autopapi::authClientUid& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::registrationStatus>>(PrepareAsyncgetRegistrationStatusRaw(context, request, cq));
+    }
+    ::grpc::Status setMsmtSttings(::grpc::ClientContext* context, const ::autopapi::mgmtMsmtSettings& request, ::autopapi::nothing* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::nothing>> AsyncsetMsmtSttings(::grpc::ClientContext* context, const ::autopapi::mgmtMsmtSettings& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::nothing>>(AsyncsetMsmtSttingsRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::nothing>> PrepareAsyncsetMsmtSttings(::grpc::ClientContext* context, const ::autopapi::msmtSettings& request, ::grpc::CompletionQueue* cq) {
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::nothing>> PrepareAsyncsetMsmtSttings(::grpc::ClientContext* context, const ::autopapi::mgmtMsmtSettings& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::nothing>>(PrepareAsyncsetMsmtSttingsRaw(context, request, cq));
     }
-    ::grpc::Status issueRequestToClient(::grpc::ClientContext* context, const ::autopapi::srvRequest& request, ::autopapi::clientResponse* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::clientResponse>> AsyncissueRequestToClient(::grpc::ClientContext* context, const ::autopapi::srvRequest& request, ::grpc::CompletionQueue* cq) {
+    ::grpc::Status issueRequestToClient(::grpc::ClientContext* context, const ::autopapi::mgmtRequest& request, ::autopapi::clientResponse* response) override;
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::clientResponse>> AsyncissueRequestToClient(::grpc::ClientContext* context, const ::autopapi::mgmtRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::clientResponse>>(AsyncissueRequestToClientRaw(context, request, cq));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::clientResponse>> PrepareAsyncissueRequestToClient(::grpc::ClientContext* context, const ::autopapi::srvRequest& request, ::grpc::CompletionQueue* cq) {
+    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::clientResponse>> PrepareAsyncissueRequestToClient(::grpc::ClientContext* context, const ::autopapi::mgmtRequest& request, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::clientResponse>>(PrepareAsyncissueRequestToClientRaw(context, request, cq));
     }
-    ::grpc::Status getNextMessage(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::autopapi::cmMCode* response) override;
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::cmMCode>> AsyncgetNextMessage(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::cmMCode>>(AsyncgetNextMessageRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientReader< ::autopapi::cmMCode>> getMessages(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request) {
+      return std::unique_ptr< ::grpc::ClientReader< ::autopapi::cmMCode>>(getMessagesRaw(context, request));
     }
-    std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::cmMCode>> PrepareAsyncgetNextMessage(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::cmMCode>>(PrepareAsyncgetNextMessageRaw(context, request, cq));
+    std::unique_ptr< ::grpc::ClientAsyncReader< ::autopapi::cmMCode>> AsyncgetMessages(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReader< ::autopapi::cmMCode>>(AsyncgetMessagesRaw(context, request, cq, tag));
+    }
+    std::unique_ptr< ::grpc::ClientAsyncReader< ::autopapi::cmMCode>> PrepareAsyncgetMessages(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReader< ::autopapi::cmMCode>>(PrepareAsyncgetMessagesRaw(context, request, cq));
     }
     class async final :
       public StubInterface::async_interface {
@@ -305,13 +331,14 @@ class CMeasurementApi final {
       void getMsmtSttngsAndStart(::grpc::ClientContext* context, const ::autopapi::clientUid* request, ::autopapi::msmtSettings* response, ::grpc::ClientUnaryReactor* reactor) override;
       void putStatusMsg(::grpc::ClientContext* context, const ::autopapi::cmMCode* request, ::autopapi::nothing* response, std::function<void(::grpc::Status)>) override;
       void putStatusMsg(::grpc::ClientContext* context, const ::autopapi::cmMCode* request, ::autopapi::nothing* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void getLoggedInClients(::grpc::ClientContext* context, const ::autopapi::nothing* request, ::grpc::ClientReadReactor< ::autopapi::clientUid>* reactor) override;
-      void setMsmtSttings(::grpc::ClientContext* context, const ::autopapi::msmtSettings* request, ::autopapi::nothing* response, std::function<void(::grpc::Status)>) override;
-      void setMsmtSttings(::grpc::ClientContext* context, const ::autopapi::msmtSettings* request, ::autopapi::nothing* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void issueRequestToClient(::grpc::ClientContext* context, const ::autopapi::srvRequest* request, ::autopapi::clientResponse* response, std::function<void(::grpc::Status)>) override;
-      void issueRequestToClient(::grpc::ClientContext* context, const ::autopapi::srvRequest* request, ::autopapi::clientResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
-      void getNextMessage(::grpc::ClientContext* context, const ::autopapi::nothing* request, ::autopapi::cmMCode* response, std::function<void(::grpc::Status)>) override;
-      void getNextMessage(::grpc::ClientContext* context, const ::autopapi::nothing* request, ::autopapi::cmMCode* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void getLoggedInClients(::grpc::ClientContext* context, const ::autopapi::mgmtAuth* request, ::grpc::ClientReadReactor< ::autopapi::clientUid>* reactor) override;
+      void getRegistrationStatus(::grpc::ClientContext* context, const ::autopapi::authClientUid* request, ::autopapi::registrationStatus* response, std::function<void(::grpc::Status)>) override;
+      void getRegistrationStatus(::grpc::ClientContext* context, const ::autopapi::authClientUid* request, ::autopapi::registrationStatus* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void setMsmtSttings(::grpc::ClientContext* context, const ::autopapi::mgmtMsmtSettings* request, ::autopapi::nothing* response, std::function<void(::grpc::Status)>) override;
+      void setMsmtSttings(::grpc::ClientContext* context, const ::autopapi::mgmtMsmtSettings* request, ::autopapi::nothing* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void issueRequestToClient(::grpc::ClientContext* context, const ::autopapi::mgmtRequest* request, ::autopapi::clientResponse* response, std::function<void(::grpc::Status)>) override;
+      void issueRequestToClient(::grpc::ClientContext* context, const ::autopapi::mgmtRequest* request, ::autopapi::clientResponse* response, ::grpc::ClientUnaryReactor* reactor) override;
+      void getMessages(::grpc::ClientContext* context, const ::autopapi::mgmtAuth* request, ::grpc::ClientReadReactor< ::autopapi::cmMCode>* reactor) override;
      private:
       friend class Stub;
       explicit async(Stub* stub): stub_(stub) { }
@@ -338,15 +365,18 @@ class CMeasurementApi final {
     ::grpc::ClientAsyncResponseReader< ::autopapi::msmtSettings>* PrepareAsyncgetMsmtSttngsAndStartRaw(::grpc::ClientContext* context, const ::autopapi::clientUid& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::autopapi::nothing>* AsyncputStatusMsgRaw(::grpc::ClientContext* context, const ::autopapi::cmMCode& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::autopapi::nothing>* PrepareAsyncputStatusMsgRaw(::grpc::ClientContext* context, const ::autopapi::cmMCode& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientReader< ::autopapi::clientUid>* getLoggedInClientsRaw(::grpc::ClientContext* context, const ::autopapi::nothing& request) override;
-    ::grpc::ClientAsyncReader< ::autopapi::clientUid>* AsyncgetLoggedInClientsRaw(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::grpc::CompletionQueue* cq, void* tag) override;
-    ::grpc::ClientAsyncReader< ::autopapi::clientUid>* PrepareAsyncgetLoggedInClientsRaw(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::autopapi::nothing>* AsyncsetMsmtSttingsRaw(::grpc::ClientContext* context, const ::autopapi::msmtSettings& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::autopapi::nothing>* PrepareAsyncsetMsmtSttingsRaw(::grpc::ClientContext* context, const ::autopapi::msmtSettings& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::autopapi::clientResponse>* AsyncissueRequestToClientRaw(::grpc::ClientContext* context, const ::autopapi::srvRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::autopapi::clientResponse>* PrepareAsyncissueRequestToClientRaw(::grpc::ClientContext* context, const ::autopapi::srvRequest& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::autopapi::cmMCode>* AsyncgetNextMessageRaw(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientAsyncResponseReader< ::autopapi::cmMCode>* PrepareAsyncgetNextMessageRaw(::grpc::ClientContext* context, const ::autopapi::nothing& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientReader< ::autopapi::clientUid>* getLoggedInClientsRaw(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request) override;
+    ::grpc::ClientAsyncReader< ::autopapi::clientUid>* AsyncgetLoggedInClientsRaw(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request, ::grpc::CompletionQueue* cq, void* tag) override;
+    ::grpc::ClientAsyncReader< ::autopapi::clientUid>* PrepareAsyncgetLoggedInClientsRaw(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::autopapi::registrationStatus>* AsyncgetRegistrationStatusRaw(::grpc::ClientContext* context, const ::autopapi::authClientUid& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::autopapi::registrationStatus>* PrepareAsyncgetRegistrationStatusRaw(::grpc::ClientContext* context, const ::autopapi::authClientUid& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::autopapi::nothing>* AsyncsetMsmtSttingsRaw(::grpc::ClientContext* context, const ::autopapi::mgmtMsmtSettings& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::autopapi::nothing>* PrepareAsyncsetMsmtSttingsRaw(::grpc::ClientContext* context, const ::autopapi::mgmtMsmtSettings& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::autopapi::clientResponse>* AsyncissueRequestToClientRaw(::grpc::ClientContext* context, const ::autopapi::mgmtRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientAsyncResponseReader< ::autopapi::clientResponse>* PrepareAsyncissueRequestToClientRaw(::grpc::ClientContext* context, const ::autopapi::mgmtRequest& request, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientReader< ::autopapi::cmMCode>* getMessagesRaw(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request) override;
+    ::grpc::ClientAsyncReader< ::autopapi::cmMCode>* AsyncgetMessagesRaw(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request, ::grpc::CompletionQueue* cq, void* tag) override;
+    ::grpc::ClientAsyncReader< ::autopapi::cmMCode>* PrepareAsyncgetMessagesRaw(::grpc::ClientContext* context, const ::autopapi::mgmtAuth& request, ::grpc::CompletionQueue* cq) override;
     const ::grpc::internal::RpcMethod rpcmethod_registerClient_;
     const ::grpc::internal::RpcMethod rpcmethod_putClientResponse_;
     const ::grpc::internal::RpcMethod rpcmethod_putMeasurementList_;
@@ -354,9 +384,10 @@ class CMeasurementApi final {
     const ::grpc::internal::RpcMethod rpcmethod_getMsmtSttngsAndStart_;
     const ::grpc::internal::RpcMethod rpcmethod_putStatusMsg_;
     const ::grpc::internal::RpcMethod rpcmethod_getLoggedInClients_;
+    const ::grpc::internal::RpcMethod rpcmethod_getRegistrationStatus_;
     const ::grpc::internal::RpcMethod rpcmethod_setMsmtSttings_;
     const ::grpc::internal::RpcMethod rpcmethod_issueRequestToClient_;
-    const ::grpc::internal::RpcMethod rpcmethod_getNextMessage_;
+    const ::grpc::internal::RpcMethod rpcmethod_getMessages_;
   };
   static std::unique_ptr<Stub> NewStub(const std::shared_ptr< ::grpc::ChannelInterface>& channel, const ::grpc::StubOptions& options = ::grpc::StubOptions());
 
@@ -375,7 +406,7 @@ class CMeasurementApi final {
     // upload file list to server
     // @param stream of all measurement names to the server
     virtual ::grpc::Status putMeasurementList(::grpc::ServerContext* context, ::grpc::ServerReader< ::autopapi::msmtName>* reader, ::autopapi::nothing* response);
-    // upload finished measurement to server
+    // upload measurement/measurement samples to server
     // @param msmtSample stream is the file content requested by the server initially
     virtual ::grpc::Status putMeasurement(::grpc::ServerContext* context, ::grpc::ServerReader< ::autopapi::msmtSample>* reader, ::autopapi::nothing* response);
     // gets all necessary data for measurement and then immediately starts the measurement
@@ -388,17 +419,20 @@ class CMeasurementApi final {
     //
     // gets the list of currently registered clients - they may not be currenly connected
     // @returns stream of client UIDs
-    virtual ::grpc::Status getLoggedInClients(::grpc::ServerContext* context, const ::autopapi::nothing* request, ::grpc::ServerWriter< ::autopapi::clientUid>* writer);
+    virtual ::grpc::Status getLoggedInClients(::grpc::ServerContext* context, const ::autopapi::mgmtAuth* request, ::grpc::ServerWriter< ::autopapi::clientUid>* writer);
+    // gets if the client is registered at the server
+    // @returns status of registration
+    virtual ::grpc::Status getRegistrationStatus(::grpc::ServerContext* context, const ::autopapi::authClientUid* request, ::autopapi::registrationStatus* response);
     // sets measurement settings of a client locally on the server but does not start a measurement yet
     // @param measurement settings for a device
-    virtual ::grpc::Status setMsmtSttings(::grpc::ServerContext* context, const ::autopapi::msmtSettings* request, ::autopapi::nothing* response);
+    virtual ::grpc::Status setMsmtSttings(::grpc::ServerContext* context, const ::autopapi::mgmtMsmtSettings* request, ::autopapi::nothing* response);
     // request the server to relay a request to an autopower device
     // @param a request from the server to the autopower device
     // @returns a response of the client
-    virtual ::grpc::Status issueRequestToClient(::grpc::ServerContext* context, const ::autopapi::srvRequest* request, ::autopapi::clientResponse* response);
+    virtual ::grpc::Status issueRequestToClient(::grpc::ServerContext* context, const ::autopapi::mgmtRequest* request, ::autopapi::clientResponse* response);
     // get status and error messages from server
-    // @returns stream of error messages from any client
-    virtual ::grpc::Status getNextMessage(::grpc::ServerContext* context, const ::autopapi::nothing* request, ::autopapi::cmMCode* response);
+    // @returns stream of error/status messages from any client
+    virtual ::grpc::Status getMessages(::grpc::ServerContext* context, const ::autopapi::mgmtAuth* request, ::grpc::ServerWriter< ::autopapi::cmMCode>* writer);
   };
   template <class BaseClass>
   class WithAsyncMethod_registerClient : public BaseClass {
@@ -532,12 +566,32 @@ class CMeasurementApi final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status getLoggedInClients(::grpc::ServerContext* /*context*/, const ::autopapi::nothing* /*request*/, ::grpc::ServerWriter< ::autopapi::clientUid>* /*writer*/) override {
+    ::grpc::Status getLoggedInClients(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtAuth* /*request*/, ::grpc::ServerWriter< ::autopapi::clientUid>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestgetLoggedInClients(::grpc::ServerContext* context, ::autopapi::nothing* request, ::grpc::ServerAsyncWriter< ::autopapi::clientUid>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestgetLoggedInClients(::grpc::ServerContext* context, ::autopapi::mgmtAuth* request, ::grpc::ServerAsyncWriter< ::autopapi::clientUid>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncServerStreaming(6, context, request, writer, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
+  class WithAsyncMethod_getRegistrationStatus : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_getRegistrationStatus() {
+      ::grpc::Service::MarkMethodAsync(7);
+    }
+    ~WithAsyncMethod_getRegistrationStatus() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status getRegistrationStatus(::grpc::ServerContext* /*context*/, const ::autopapi::authClientUid* /*request*/, ::autopapi::registrationStatus* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestgetRegistrationStatus(::grpc::ServerContext* context, ::autopapi::authClientUid* request, ::grpc::ServerAsyncResponseWriter< ::autopapi::registrationStatus>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(7, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -546,18 +600,18 @@ class CMeasurementApi final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_setMsmtSttings() {
-      ::grpc::Service::MarkMethodAsync(7);
+      ::grpc::Service::MarkMethodAsync(8);
     }
     ~WithAsyncMethod_setMsmtSttings() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status setMsmtSttings(::grpc::ServerContext* /*context*/, const ::autopapi::msmtSettings* /*request*/, ::autopapi::nothing* /*response*/) override {
+    ::grpc::Status setMsmtSttings(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtMsmtSettings* /*request*/, ::autopapi::nothing* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestsetMsmtSttings(::grpc::ServerContext* context, ::autopapi::msmtSettings* request, ::grpc::ServerAsyncResponseWriter< ::autopapi::nothing>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(7, context, request, response, new_call_cq, notification_cq, tag);
+    void RequestsetMsmtSttings(::grpc::ServerContext* context, ::autopapi::mgmtMsmtSettings* request, ::grpc::ServerAsyncResponseWriter< ::autopapi::nothing>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(8, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -566,41 +620,41 @@ class CMeasurementApi final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithAsyncMethod_issueRequestToClient() {
-      ::grpc::Service::MarkMethodAsync(8);
+      ::grpc::Service::MarkMethodAsync(9);
     }
     ~WithAsyncMethod_issueRequestToClient() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status issueRequestToClient(::grpc::ServerContext* /*context*/, const ::autopapi::srvRequest* /*request*/, ::autopapi::clientResponse* /*response*/) override {
+    ::grpc::Status issueRequestToClient(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtRequest* /*request*/, ::autopapi::clientResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestissueRequestToClient(::grpc::ServerContext* context, ::autopapi::srvRequest* request, ::grpc::ServerAsyncResponseWriter< ::autopapi::clientResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(8, context, request, response, new_call_cq, notification_cq, tag);
-    }
-  };
-  template <class BaseClass>
-  class WithAsyncMethod_getNextMessage : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithAsyncMethod_getNextMessage() {
-      ::grpc::Service::MarkMethodAsync(9);
-    }
-    ~WithAsyncMethod_getNextMessage() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable synchronous version of this method
-    ::grpc::Status getNextMessage(::grpc::ServerContext* /*context*/, const ::autopapi::nothing* /*request*/, ::autopapi::cmMCode* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    void RequestgetNextMessage(::grpc::ServerContext* context, ::autopapi::nothing* request, ::grpc::ServerAsyncResponseWriter< ::autopapi::cmMCode>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+    void RequestissueRequestToClient(::grpc::ServerContext* context, ::autopapi::mgmtRequest* request, ::grpc::ServerAsyncResponseWriter< ::autopapi::clientResponse>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
       ::grpc::Service::RequestAsyncUnary(9, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
-  typedef WithAsyncMethod_registerClient<WithAsyncMethod_putClientResponse<WithAsyncMethod_putMeasurementList<WithAsyncMethod_putMeasurement<WithAsyncMethod_getMsmtSttngsAndStart<WithAsyncMethod_putStatusMsg<WithAsyncMethod_getLoggedInClients<WithAsyncMethod_setMsmtSttings<WithAsyncMethod_issueRequestToClient<WithAsyncMethod_getNextMessage<Service > > > > > > > > > > AsyncService;
+  template <class BaseClass>
+  class WithAsyncMethod_getMessages : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithAsyncMethod_getMessages() {
+      ::grpc::Service::MarkMethodAsync(10);
+    }
+    ~WithAsyncMethod_getMessages() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status getMessages(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtAuth* /*request*/, ::grpc::ServerWriter< ::autopapi::cmMCode>* /*writer*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestgetMessages(::grpc::ServerContext* context, ::autopapi::mgmtAuth* request, ::grpc::ServerAsyncWriter< ::autopapi::cmMCode>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncServerStreaming(10, context, request, writer, new_call_cq, notification_cq, tag);
+    }
+  };
+  typedef WithAsyncMethod_registerClient<WithAsyncMethod_putClientResponse<WithAsyncMethod_putMeasurementList<WithAsyncMethod_putMeasurement<WithAsyncMethod_getMsmtSttngsAndStart<WithAsyncMethod_putStatusMsg<WithAsyncMethod_getLoggedInClients<WithAsyncMethod_getRegistrationStatus<WithAsyncMethod_setMsmtSttings<WithAsyncMethod_issueRequestToClient<WithAsyncMethod_getMessages<Service > > > > > > > > > > > AsyncService;
   template <class BaseClass>
   class WithCallbackMethod_registerClient : public BaseClass {
    private:
@@ -755,20 +809,47 @@ class CMeasurementApi final {
    public:
     WithCallbackMethod_getLoggedInClients() {
       ::grpc::Service::MarkMethodCallback(6,
-          new ::grpc::internal::CallbackServerStreamingHandler< ::autopapi::nothing, ::autopapi::clientUid>(
+          new ::grpc::internal::CallbackServerStreamingHandler< ::autopapi::mgmtAuth, ::autopapi::clientUid>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::autopapi::nothing* request) { return this->getLoggedInClients(context, request); }));
+                   ::grpc::CallbackServerContext* context, const ::autopapi::mgmtAuth* request) { return this->getLoggedInClients(context, request); }));
     }
     ~WithCallbackMethod_getLoggedInClients() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status getLoggedInClients(::grpc::ServerContext* /*context*/, const ::autopapi::nothing* /*request*/, ::grpc::ServerWriter< ::autopapi::clientUid>* /*writer*/) override {
+    ::grpc::Status getLoggedInClients(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtAuth* /*request*/, ::grpc::ServerWriter< ::autopapi::clientUid>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     virtual ::grpc::ServerWriteReactor< ::autopapi::clientUid>* getLoggedInClients(
-      ::grpc::CallbackServerContext* /*context*/, const ::autopapi::nothing* /*request*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::autopapi::mgmtAuth* /*request*/)  { return nullptr; }
+  };
+  template <class BaseClass>
+  class WithCallbackMethod_getRegistrationStatus : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithCallbackMethod_getRegistrationStatus() {
+      ::grpc::Service::MarkMethodCallback(7,
+          new ::grpc::internal::CallbackUnaryHandler< ::autopapi::authClientUid, ::autopapi::registrationStatus>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::autopapi::authClientUid* request, ::autopapi::registrationStatus* response) { return this->getRegistrationStatus(context, request, response); }));}
+    void SetMessageAllocatorFor_getRegistrationStatus(
+        ::grpc::MessageAllocator< ::autopapi::authClientUid, ::autopapi::registrationStatus>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(7);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::autopapi::authClientUid, ::autopapi::registrationStatus>*>(handler)
+              ->SetMessageAllocator(allocator);
+    }
+    ~WithCallbackMethod_getRegistrationStatus() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status getRegistrationStatus(::grpc::ServerContext* /*context*/, const ::autopapi::authClientUid* /*request*/, ::autopapi::registrationStatus* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* getRegistrationStatus(
+      ::grpc::CallbackServerContext* /*context*/, const ::autopapi::authClientUid* /*request*/, ::autopapi::registrationStatus* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
   class WithCallbackMethod_setMsmtSttings : public BaseClass {
@@ -776,26 +857,26 @@ class CMeasurementApi final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_setMsmtSttings() {
-      ::grpc::Service::MarkMethodCallback(7,
-          new ::grpc::internal::CallbackUnaryHandler< ::autopapi::msmtSettings, ::autopapi::nothing>(
+      ::grpc::Service::MarkMethodCallback(8,
+          new ::grpc::internal::CallbackUnaryHandler< ::autopapi::mgmtMsmtSettings, ::autopapi::nothing>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::autopapi::msmtSettings* request, ::autopapi::nothing* response) { return this->setMsmtSttings(context, request, response); }));}
+                   ::grpc::CallbackServerContext* context, const ::autopapi::mgmtMsmtSettings* request, ::autopapi::nothing* response) { return this->setMsmtSttings(context, request, response); }));}
     void SetMessageAllocatorFor_setMsmtSttings(
-        ::grpc::MessageAllocator< ::autopapi::msmtSettings, ::autopapi::nothing>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(7);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::autopapi::msmtSettings, ::autopapi::nothing>*>(handler)
+        ::grpc::MessageAllocator< ::autopapi::mgmtMsmtSettings, ::autopapi::nothing>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(8);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::autopapi::mgmtMsmtSettings, ::autopapi::nothing>*>(handler)
               ->SetMessageAllocator(allocator);
     }
     ~WithCallbackMethod_setMsmtSttings() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status setMsmtSttings(::grpc::ServerContext* /*context*/, const ::autopapi::msmtSettings* /*request*/, ::autopapi::nothing* /*response*/) override {
+    ::grpc::Status setMsmtSttings(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtMsmtSettings* /*request*/, ::autopapi::nothing* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     virtual ::grpc::ServerUnaryReactor* setMsmtSttings(
-      ::grpc::CallbackServerContext* /*context*/, const ::autopapi::msmtSettings* /*request*/, ::autopapi::nothing* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::autopapi::mgmtMsmtSettings* /*request*/, ::autopapi::nothing* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
   class WithCallbackMethod_issueRequestToClient : public BaseClass {
@@ -803,55 +884,50 @@ class CMeasurementApi final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithCallbackMethod_issueRequestToClient() {
-      ::grpc::Service::MarkMethodCallback(8,
-          new ::grpc::internal::CallbackUnaryHandler< ::autopapi::srvRequest, ::autopapi::clientResponse>(
+      ::grpc::Service::MarkMethodCallback(9,
+          new ::grpc::internal::CallbackUnaryHandler< ::autopapi::mgmtRequest, ::autopapi::clientResponse>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::autopapi::srvRequest* request, ::autopapi::clientResponse* response) { return this->issueRequestToClient(context, request, response); }));}
+                   ::grpc::CallbackServerContext* context, const ::autopapi::mgmtRequest* request, ::autopapi::clientResponse* response) { return this->issueRequestToClient(context, request, response); }));}
     void SetMessageAllocatorFor_issueRequestToClient(
-        ::grpc::MessageAllocator< ::autopapi::srvRequest, ::autopapi::clientResponse>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(8);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::autopapi::srvRequest, ::autopapi::clientResponse>*>(handler)
+        ::grpc::MessageAllocator< ::autopapi::mgmtRequest, ::autopapi::clientResponse>* allocator) {
+      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(9);
+      static_cast<::grpc::internal::CallbackUnaryHandler< ::autopapi::mgmtRequest, ::autopapi::clientResponse>*>(handler)
               ->SetMessageAllocator(allocator);
     }
     ~WithCallbackMethod_issueRequestToClient() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status issueRequestToClient(::grpc::ServerContext* /*context*/, const ::autopapi::srvRequest* /*request*/, ::autopapi::clientResponse* /*response*/) override {
+    ::grpc::Status issueRequestToClient(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtRequest* /*request*/, ::autopapi::clientResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     virtual ::grpc::ServerUnaryReactor* issueRequestToClient(
-      ::grpc::CallbackServerContext* /*context*/, const ::autopapi::srvRequest* /*request*/, ::autopapi::clientResponse* /*response*/)  { return nullptr; }
+      ::grpc::CallbackServerContext* /*context*/, const ::autopapi::mgmtRequest* /*request*/, ::autopapi::clientResponse* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithCallbackMethod_getNextMessage : public BaseClass {
+  class WithCallbackMethod_getMessages : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithCallbackMethod_getNextMessage() {
-      ::grpc::Service::MarkMethodCallback(9,
-          new ::grpc::internal::CallbackUnaryHandler< ::autopapi::nothing, ::autopapi::cmMCode>(
+    WithCallbackMethod_getMessages() {
+      ::grpc::Service::MarkMethodCallback(10,
+          new ::grpc::internal::CallbackServerStreamingHandler< ::autopapi::mgmtAuth, ::autopapi::cmMCode>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::autopapi::nothing* request, ::autopapi::cmMCode* response) { return this->getNextMessage(context, request, response); }));}
-    void SetMessageAllocatorFor_getNextMessage(
-        ::grpc::MessageAllocator< ::autopapi::nothing, ::autopapi::cmMCode>* allocator) {
-      ::grpc::internal::MethodHandler* const handler = ::grpc::Service::GetHandler(9);
-      static_cast<::grpc::internal::CallbackUnaryHandler< ::autopapi::nothing, ::autopapi::cmMCode>*>(handler)
-              ->SetMessageAllocator(allocator);
+                   ::grpc::CallbackServerContext* context, const ::autopapi::mgmtAuth* request) { return this->getMessages(context, request); }));
     }
-    ~WithCallbackMethod_getNextMessage() override {
+    ~WithCallbackMethod_getMessages() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status getNextMessage(::grpc::ServerContext* /*context*/, const ::autopapi::nothing* /*request*/, ::autopapi::cmMCode* /*response*/) override {
+    ::grpc::Status getMessages(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtAuth* /*request*/, ::grpc::ServerWriter< ::autopapi::cmMCode>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* getNextMessage(
-      ::grpc::CallbackServerContext* /*context*/, const ::autopapi::nothing* /*request*/, ::autopapi::cmMCode* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerWriteReactor< ::autopapi::cmMCode>* getMessages(
+      ::grpc::CallbackServerContext* /*context*/, const ::autopapi::mgmtAuth* /*request*/)  { return nullptr; }
   };
-  typedef WithCallbackMethod_registerClient<WithCallbackMethod_putClientResponse<WithCallbackMethod_putMeasurementList<WithCallbackMethod_putMeasurement<WithCallbackMethod_getMsmtSttngsAndStart<WithCallbackMethod_putStatusMsg<WithCallbackMethod_getLoggedInClients<WithCallbackMethod_setMsmtSttings<WithCallbackMethod_issueRequestToClient<WithCallbackMethod_getNextMessage<Service > > > > > > > > > > CallbackService;
+  typedef WithCallbackMethod_registerClient<WithCallbackMethod_putClientResponse<WithCallbackMethod_putMeasurementList<WithCallbackMethod_putMeasurement<WithCallbackMethod_getMsmtSttngsAndStart<WithCallbackMethod_putStatusMsg<WithCallbackMethod_getLoggedInClients<WithCallbackMethod_getRegistrationStatus<WithCallbackMethod_setMsmtSttings<WithCallbackMethod_issueRequestToClient<WithCallbackMethod_getMessages<Service > > > > > > > > > > > CallbackService;
   typedef CallbackService ExperimentalCallbackService;
   template <class BaseClass>
   class WithGenericMethod_registerClient : public BaseClass {
@@ -967,7 +1043,24 @@ class CMeasurementApi final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status getLoggedInClients(::grpc::ServerContext* /*context*/, const ::autopapi::nothing* /*request*/, ::grpc::ServerWriter< ::autopapi::clientUid>* /*writer*/) override {
+    ::grpc::Status getLoggedInClients(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtAuth* /*request*/, ::grpc::ServerWriter< ::autopapi::clientUid>* /*writer*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+  };
+  template <class BaseClass>
+  class WithGenericMethod_getRegistrationStatus : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithGenericMethod_getRegistrationStatus() {
+      ::grpc::Service::MarkMethodGeneric(7);
+    }
+    ~WithGenericMethod_getRegistrationStatus() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status getRegistrationStatus(::grpc::ServerContext* /*context*/, const ::autopapi::authClientUid* /*request*/, ::autopapi::registrationStatus* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -978,13 +1071,13 @@ class CMeasurementApi final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_setMsmtSttings() {
-      ::grpc::Service::MarkMethodGeneric(7);
+      ::grpc::Service::MarkMethodGeneric(8);
     }
     ~WithGenericMethod_setMsmtSttings() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status setMsmtSttings(::grpc::ServerContext* /*context*/, const ::autopapi::msmtSettings* /*request*/, ::autopapi::nothing* /*response*/) override {
+    ::grpc::Status setMsmtSttings(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtMsmtSettings* /*request*/, ::autopapi::nothing* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -995,30 +1088,30 @@ class CMeasurementApi final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithGenericMethod_issueRequestToClient() {
-      ::grpc::Service::MarkMethodGeneric(8);
+      ::grpc::Service::MarkMethodGeneric(9);
     }
     ~WithGenericMethod_issueRequestToClient() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status issueRequestToClient(::grpc::ServerContext* /*context*/, const ::autopapi::srvRequest* /*request*/, ::autopapi::clientResponse* /*response*/) override {
+    ::grpc::Status issueRequestToClient(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtRequest* /*request*/, ::autopapi::clientResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
   };
   template <class BaseClass>
-  class WithGenericMethod_getNextMessage : public BaseClass {
+  class WithGenericMethod_getMessages : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithGenericMethod_getNextMessage() {
-      ::grpc::Service::MarkMethodGeneric(9);
+    WithGenericMethod_getMessages() {
+      ::grpc::Service::MarkMethodGeneric(10);
     }
-    ~WithGenericMethod_getNextMessage() override {
+    ~WithGenericMethod_getMessages() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status getNextMessage(::grpc::ServerContext* /*context*/, const ::autopapi::nothing* /*request*/, ::autopapi::cmMCode* /*response*/) override {
+    ::grpc::Status getMessages(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtAuth* /*request*/, ::grpc::ServerWriter< ::autopapi::cmMCode>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -1155,7 +1248,7 @@ class CMeasurementApi final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status getLoggedInClients(::grpc::ServerContext* /*context*/, const ::autopapi::nothing* /*request*/, ::grpc::ServerWriter< ::autopapi::clientUid>* /*writer*/) override {
+    ::grpc::Status getLoggedInClients(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtAuth* /*request*/, ::grpc::ServerWriter< ::autopapi::clientUid>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -1164,23 +1257,43 @@ class CMeasurementApi final {
     }
   };
   template <class BaseClass>
+  class WithRawMethod_getRegistrationStatus : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawMethod_getRegistrationStatus() {
+      ::grpc::Service::MarkMethodRaw(7);
+    }
+    ~WithRawMethod_getRegistrationStatus() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status getRegistrationStatus(::grpc::ServerContext* /*context*/, const ::autopapi::authClientUid* /*request*/, ::autopapi::registrationStatus* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    void RequestgetRegistrationStatus(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncUnary(7, context, request, response, new_call_cq, notification_cq, tag);
+    }
+  };
+  template <class BaseClass>
   class WithRawMethod_setMsmtSttings : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_setMsmtSttings() {
-      ::grpc::Service::MarkMethodRaw(7);
+      ::grpc::Service::MarkMethodRaw(8);
     }
     ~WithRawMethod_setMsmtSttings() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status setMsmtSttings(::grpc::ServerContext* /*context*/, const ::autopapi::msmtSettings* /*request*/, ::autopapi::nothing* /*response*/) override {
+    ::grpc::Status setMsmtSttings(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtMsmtSettings* /*request*/, ::autopapi::nothing* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestsetMsmtSttings(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(7, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(8, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -1189,38 +1302,38 @@ class CMeasurementApi final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawMethod_issueRequestToClient() {
-      ::grpc::Service::MarkMethodRaw(8);
+      ::grpc::Service::MarkMethodRaw(9);
     }
     ~WithRawMethod_issueRequestToClient() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status issueRequestToClient(::grpc::ServerContext* /*context*/, const ::autopapi::srvRequest* /*request*/, ::autopapi::clientResponse* /*response*/) override {
+    ::grpc::Status issueRequestToClient(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtRequest* /*request*/, ::autopapi::clientResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     void RequestissueRequestToClient(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(8, context, request, response, new_call_cq, notification_cq, tag);
+      ::grpc::Service::RequestAsyncUnary(9, context, request, response, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
-  class WithRawMethod_getNextMessage : public BaseClass {
+  class WithRawMethod_getMessages : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawMethod_getNextMessage() {
-      ::grpc::Service::MarkMethodRaw(9);
+    WithRawMethod_getMessages() {
+      ::grpc::Service::MarkMethodRaw(10);
     }
-    ~WithRawMethod_getNextMessage() override {
+    ~WithRawMethod_getMessages() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status getNextMessage(::grpc::ServerContext* /*context*/, const ::autopapi::nothing* /*request*/, ::autopapi::cmMCode* /*response*/) override {
+    ::grpc::Status getMessages(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtAuth* /*request*/, ::grpc::ServerWriter< ::autopapi::cmMCode>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestgetNextMessage(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncResponseWriter< ::grpc::ByteBuffer>* response, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncUnary(9, context, request, response, new_call_cq, notification_cq, tag);
+    void RequestgetMessages(::grpc::ServerContext* context, ::grpc::ByteBuffer* request, ::grpc::ServerAsyncWriter< ::grpc::ByteBuffer>* writer, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncServerStreaming(10, context, request, writer, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -1370,7 +1483,7 @@ class CMeasurementApi final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status getLoggedInClients(::grpc::ServerContext* /*context*/, const ::autopapi::nothing* /*request*/, ::grpc::ServerWriter< ::autopapi::clientUid>* /*writer*/) override {
+    ::grpc::Status getLoggedInClients(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtAuth* /*request*/, ::grpc::ServerWriter< ::autopapi::clientUid>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -1378,12 +1491,34 @@ class CMeasurementApi final {
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/)  { return nullptr; }
   };
   template <class BaseClass>
+  class WithRawCallbackMethod_getRegistrationStatus : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithRawCallbackMethod_getRegistrationStatus() {
+      ::grpc::Service::MarkMethodRawCallback(7,
+          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+            [this](
+                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->getRegistrationStatus(context, request, response); }));
+    }
+    ~WithRawCallbackMethod_getRegistrationStatus() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable synchronous version of this method
+    ::grpc::Status getRegistrationStatus(::grpc::ServerContext* /*context*/, const ::autopapi::authClientUid* /*request*/, ::autopapi::registrationStatus* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    virtual ::grpc::ServerUnaryReactor* getRegistrationStatus(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+  };
+  template <class BaseClass>
   class WithRawCallbackMethod_setMsmtSttings : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_setMsmtSttings() {
-      ::grpc::Service::MarkMethodRawCallback(7,
+      ::grpc::Service::MarkMethodRawCallback(8,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->setMsmtSttings(context, request, response); }));
@@ -1392,7 +1527,7 @@ class CMeasurementApi final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status setMsmtSttings(::grpc::ServerContext* /*context*/, const ::autopapi::msmtSettings* /*request*/, ::autopapi::nothing* /*response*/) override {
+    ::grpc::Status setMsmtSttings(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtMsmtSettings* /*request*/, ::autopapi::nothing* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -1405,7 +1540,7 @@ class CMeasurementApi final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithRawCallbackMethod_issueRequestToClient() {
-      ::grpc::Service::MarkMethodRawCallback(8,
+      ::grpc::Service::MarkMethodRawCallback(9,
           new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
                    ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->issueRequestToClient(context, request, response); }));
@@ -1414,7 +1549,7 @@ class CMeasurementApi final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status issueRequestToClient(::grpc::ServerContext* /*context*/, const ::autopapi::srvRequest* /*request*/, ::autopapi::clientResponse* /*response*/) override {
+    ::grpc::Status issueRequestToClient(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtRequest* /*request*/, ::autopapi::clientResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -1422,26 +1557,26 @@ class CMeasurementApi final {
       ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
   };
   template <class BaseClass>
-  class WithRawCallbackMethod_getNextMessage : public BaseClass {
+  class WithRawCallbackMethod_getMessages : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
-    WithRawCallbackMethod_getNextMessage() {
-      ::grpc::Service::MarkMethodRawCallback(9,
-          new ::grpc::internal::CallbackUnaryHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+    WithRawCallbackMethod_getMessages() {
+      ::grpc::Service::MarkMethodRawCallback(10,
+          new ::grpc::internal::CallbackServerStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, const ::grpc::ByteBuffer* request, ::grpc::ByteBuffer* response) { return this->getNextMessage(context, request, response); }));
+                   ::grpc::CallbackServerContext* context, const::grpc::ByteBuffer* request) { return this->getMessages(context, request); }));
     }
-    ~WithRawCallbackMethod_getNextMessage() override {
+    ~WithRawCallbackMethod_getMessages() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status getNextMessage(::grpc::ServerContext* /*context*/, const ::autopapi::nothing* /*request*/, ::autopapi::cmMCode* /*response*/) override {
+    ::grpc::Status getMessages(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtAuth* /*request*/, ::grpc::ServerWriter< ::autopapi::cmMCode>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerUnaryReactor* getNextMessage(
-      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerWriteReactor< ::grpc::ByteBuffer>* getMessages(
+      ::grpc::CallbackServerContext* /*context*/, const ::grpc::ByteBuffer* /*request*/)  { return nullptr; }
   };
   template <class BaseClass>
   class WithStreamedUnaryMethod_putClientResponse : public BaseClass {
@@ -1525,17 +1660,44 @@ class CMeasurementApi final {
     virtual ::grpc::Status StreamedputStatusMsg(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::autopapi::cmMCode,::autopapi::nothing>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
+  class WithStreamedUnaryMethod_getRegistrationStatus : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithStreamedUnaryMethod_getRegistrationStatus() {
+      ::grpc::Service::MarkMethodStreamed(7,
+        new ::grpc::internal::StreamedUnaryHandler<
+          ::autopapi::authClientUid, ::autopapi::registrationStatus>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerUnaryStreamer<
+                     ::autopapi::authClientUid, ::autopapi::registrationStatus>* streamer) {
+                       return this->StreamedgetRegistrationStatus(context,
+                         streamer);
+                  }));
+    }
+    ~WithStreamedUnaryMethod_getRegistrationStatus() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status getRegistrationStatus(::grpc::ServerContext* /*context*/, const ::autopapi::authClientUid* /*request*/, ::autopapi::registrationStatus* /*response*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with streamed unary
+    virtual ::grpc::Status StreamedgetRegistrationStatus(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::autopapi::authClientUid,::autopapi::registrationStatus>* server_unary_streamer) = 0;
+  };
+  template <class BaseClass>
   class WithStreamedUnaryMethod_setMsmtSttings : public BaseClass {
    private:
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_setMsmtSttings() {
-      ::grpc::Service::MarkMethodStreamed(7,
+      ::grpc::Service::MarkMethodStreamed(8,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::autopapi::msmtSettings, ::autopapi::nothing>(
+          ::autopapi::mgmtMsmtSettings, ::autopapi::nothing>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::autopapi::msmtSettings, ::autopapi::nothing>* streamer) {
+                     ::autopapi::mgmtMsmtSettings, ::autopapi::nothing>* streamer) {
                        return this->StreamedsetMsmtSttings(context,
                          streamer);
                   }));
@@ -1544,12 +1706,12 @@ class CMeasurementApi final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status setMsmtSttings(::grpc::ServerContext* /*context*/, const ::autopapi::msmtSettings* /*request*/, ::autopapi::nothing* /*response*/) override {
+    ::grpc::Status setMsmtSttings(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtMsmtSettings* /*request*/, ::autopapi::nothing* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedsetMsmtSttings(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::autopapi::msmtSettings,::autopapi::nothing>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedsetMsmtSttings(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::autopapi::mgmtMsmtSettings,::autopapi::nothing>* server_unary_streamer) = 0;
   };
   template <class BaseClass>
   class WithStreamedUnaryMethod_issueRequestToClient : public BaseClass {
@@ -1557,12 +1719,12 @@ class CMeasurementApi final {
     void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
    public:
     WithStreamedUnaryMethod_issueRequestToClient() {
-      ::grpc::Service::MarkMethodStreamed(8,
+      ::grpc::Service::MarkMethodStreamed(9,
         new ::grpc::internal::StreamedUnaryHandler<
-          ::autopapi::srvRequest, ::autopapi::clientResponse>(
+          ::autopapi::mgmtRequest, ::autopapi::clientResponse>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerUnaryStreamer<
-                     ::autopapi::srvRequest, ::autopapi::clientResponse>* streamer) {
+                     ::autopapi::mgmtRequest, ::autopapi::clientResponse>* streamer) {
                        return this->StreamedissueRequestToClient(context,
                          streamer);
                   }));
@@ -1571,41 +1733,14 @@ class CMeasurementApi final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status issueRequestToClient(::grpc::ServerContext* /*context*/, const ::autopapi::srvRequest* /*request*/, ::autopapi::clientResponse* /*response*/) override {
+    ::grpc::Status issueRequestToClient(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtRequest* /*request*/, ::autopapi::clientResponse* /*response*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedissueRequestToClient(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::autopapi::srvRequest,::autopapi::clientResponse>* server_unary_streamer) = 0;
+    virtual ::grpc::Status StreamedissueRequestToClient(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::autopapi::mgmtRequest,::autopapi::clientResponse>* server_unary_streamer) = 0;
   };
-  template <class BaseClass>
-  class WithStreamedUnaryMethod_getNextMessage : public BaseClass {
-   private:
-    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
-   public:
-    WithStreamedUnaryMethod_getNextMessage() {
-      ::grpc::Service::MarkMethodStreamed(9,
-        new ::grpc::internal::StreamedUnaryHandler<
-          ::autopapi::nothing, ::autopapi::cmMCode>(
-            [this](::grpc::ServerContext* context,
-                   ::grpc::ServerUnaryStreamer<
-                     ::autopapi::nothing, ::autopapi::cmMCode>* streamer) {
-                       return this->StreamedgetNextMessage(context,
-                         streamer);
-                  }));
-    }
-    ~WithStreamedUnaryMethod_getNextMessage() override {
-      BaseClassMustBeDerivedFromService(this);
-    }
-    // disable regular version of this method
-    ::grpc::Status getNextMessage(::grpc::ServerContext* /*context*/, const ::autopapi::nothing* /*request*/, ::autopapi::cmMCode* /*response*/) override {
-      abort();
-      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
-    }
-    // replace default version of method with streamed unary
-    virtual ::grpc::Status StreamedgetNextMessage(::grpc::ServerContext* context, ::grpc::ServerUnaryStreamer< ::autopapi::nothing,::autopapi::cmMCode>* server_unary_streamer) = 0;
-  };
-  typedef WithStreamedUnaryMethod_putClientResponse<WithStreamedUnaryMethod_getMsmtSttngsAndStart<WithStreamedUnaryMethod_putStatusMsg<WithStreamedUnaryMethod_setMsmtSttings<WithStreamedUnaryMethod_issueRequestToClient<WithStreamedUnaryMethod_getNextMessage<Service > > > > > > StreamedUnaryService;
+  typedef WithStreamedUnaryMethod_putClientResponse<WithStreamedUnaryMethod_getMsmtSttngsAndStart<WithStreamedUnaryMethod_putStatusMsg<WithStreamedUnaryMethod_getRegistrationStatus<WithStreamedUnaryMethod_setMsmtSttings<WithStreamedUnaryMethod_issueRequestToClient<Service > > > > > > StreamedUnaryService;
   template <class BaseClass>
   class WithSplitStreamingMethod_registerClient : public BaseClass {
    private:
@@ -1641,10 +1776,10 @@ class CMeasurementApi final {
     WithSplitStreamingMethod_getLoggedInClients() {
       ::grpc::Service::MarkMethodStreamed(6,
         new ::grpc::internal::SplitServerStreamingHandler<
-          ::autopapi::nothing, ::autopapi::clientUid>(
+          ::autopapi::mgmtAuth, ::autopapi::clientUid>(
             [this](::grpc::ServerContext* context,
                    ::grpc::ServerSplitStreamer<
-                     ::autopapi::nothing, ::autopapi::clientUid>* streamer) {
+                     ::autopapi::mgmtAuth, ::autopapi::clientUid>* streamer) {
                        return this->StreamedgetLoggedInClients(context,
                          streamer);
                   }));
@@ -1653,15 +1788,42 @@ class CMeasurementApi final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable regular version of this method
-    ::grpc::Status getLoggedInClients(::grpc::ServerContext* /*context*/, const ::autopapi::nothing* /*request*/, ::grpc::ServerWriter< ::autopapi::clientUid>* /*writer*/) override {
+    ::grpc::Status getLoggedInClients(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtAuth* /*request*/, ::grpc::ServerWriter< ::autopapi::clientUid>* /*writer*/) override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
     // replace default version of method with split streamed
-    virtual ::grpc::Status StreamedgetLoggedInClients(::grpc::ServerContext* context, ::grpc::ServerSplitStreamer< ::autopapi::nothing,::autopapi::clientUid>* server_split_streamer) = 0;
+    virtual ::grpc::Status StreamedgetLoggedInClients(::grpc::ServerContext* context, ::grpc::ServerSplitStreamer< ::autopapi::mgmtAuth,::autopapi::clientUid>* server_split_streamer) = 0;
   };
-  typedef WithSplitStreamingMethod_registerClient<WithSplitStreamingMethod_getLoggedInClients<Service > > SplitStreamedService;
-  typedef WithSplitStreamingMethod_registerClient<WithStreamedUnaryMethod_putClientResponse<WithStreamedUnaryMethod_getMsmtSttngsAndStart<WithStreamedUnaryMethod_putStatusMsg<WithSplitStreamingMethod_getLoggedInClients<WithStreamedUnaryMethod_setMsmtSttings<WithStreamedUnaryMethod_issueRequestToClient<WithStreamedUnaryMethod_getNextMessage<Service > > > > > > > > StreamedService;
+  template <class BaseClass>
+  class WithSplitStreamingMethod_getMessages : public BaseClass {
+   private:
+    void BaseClassMustBeDerivedFromService(const Service* /*service*/) {}
+   public:
+    WithSplitStreamingMethod_getMessages() {
+      ::grpc::Service::MarkMethodStreamed(10,
+        new ::grpc::internal::SplitServerStreamingHandler<
+          ::autopapi::mgmtAuth, ::autopapi::cmMCode>(
+            [this](::grpc::ServerContext* context,
+                   ::grpc::ServerSplitStreamer<
+                     ::autopapi::mgmtAuth, ::autopapi::cmMCode>* streamer) {
+                       return this->StreamedgetMessages(context,
+                         streamer);
+                  }));
+    }
+    ~WithSplitStreamingMethod_getMessages() override {
+      BaseClassMustBeDerivedFromService(this);
+    }
+    // disable regular version of this method
+    ::grpc::Status getMessages(::grpc::ServerContext* /*context*/, const ::autopapi::mgmtAuth* /*request*/, ::grpc::ServerWriter< ::autopapi::cmMCode>* /*writer*/) override {
+      abort();
+      return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
+    }
+    // replace default version of method with split streamed
+    virtual ::grpc::Status StreamedgetMessages(::grpc::ServerContext* context, ::grpc::ServerSplitStreamer< ::autopapi::mgmtAuth,::autopapi::cmMCode>* server_split_streamer) = 0;
+  };
+  typedef WithSplitStreamingMethod_registerClient<WithSplitStreamingMethod_getLoggedInClients<WithSplitStreamingMethod_getMessages<Service > > > SplitStreamedService;
+  typedef WithSplitStreamingMethod_registerClient<WithStreamedUnaryMethod_putClientResponse<WithStreamedUnaryMethod_getMsmtSttngsAndStart<WithStreamedUnaryMethod_putStatusMsg<WithSplitStreamingMethod_getLoggedInClients<WithStreamedUnaryMethod_getRegistrationStatus<WithStreamedUnaryMethod_setMsmtSttings<WithStreamedUnaryMethod_issueRequestToClient<WithSplitStreamingMethod_getMessages<Service > > > > > > > > > StreamedService;
 };
 
 }  // namespace autopapi

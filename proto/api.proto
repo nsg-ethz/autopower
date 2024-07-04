@@ -115,7 +115,7 @@ message mgmtRequest {
   string clientUid = 1; // id for the client this request gets to
   srvRequestType msgType = 2; // id for the message as header
   optional string requestBody = 3; // content
-  uint32 requestNo = 4; // id of this request. A sequence number like identifier to identify responses
+  optional uint32 requestNo = 4; // Unused. Id of this request. A sequence number like identifier to identify responses.
   string mgmtId = 5;
   string pw = 6;
 }

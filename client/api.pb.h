@@ -59,6 +59,9 @@ struct TableStruct_api_2eproto {
 extern const ::google::protobuf::internal::DescriptorTable
     descriptor_table_api_2eproto;
 namespace autopapi {
+class authClientUid;
+struct authClientUidDefaultTypeInternal;
+extern authClientUidDefaultTypeInternal _authClientUid_default_instance_;
 class clientResponse;
 struct clientResponseDefaultTypeInternal;
 extern clientResponseDefaultTypeInternal _clientResponse_default_instance_;
@@ -68,6 +71,15 @@ extern clientUidDefaultTypeInternal _clientUid_default_instance_;
 class cmMCode;
 struct cmMCodeDefaultTypeInternal;
 extern cmMCodeDefaultTypeInternal _cmMCode_default_instance_;
+class mgmtAuth;
+struct mgmtAuthDefaultTypeInternal;
+extern mgmtAuthDefaultTypeInternal _mgmtAuth_default_instance_;
+class mgmtMsmtSettings;
+struct mgmtMsmtSettingsDefaultTypeInternal;
+extern mgmtMsmtSettingsDefaultTypeInternal _mgmtMsmtSettings_default_instance_;
+class mgmtRequest;
+struct mgmtRequestDefaultTypeInternal;
+extern mgmtRequestDefaultTypeInternal _mgmtRequest_default_instance_;
 class msmtName;
 struct msmtNameDefaultTypeInternal;
 extern msmtNameDefaultTypeInternal _msmtName_default_instance_;
@@ -80,6 +92,9 @@ extern msmtSettingsDefaultTypeInternal _msmtSettings_default_instance_;
 class nothing;
 struct nothingDefaultTypeInternal;
 extern nothingDefaultTypeInternal _nothing_default_instance_;
+class registrationStatus;
+struct registrationStatusDefaultTypeInternal;
+extern registrationStatusDefaultTypeInternal _registrationStatus_default_instance_;
 class srvRequest;
 struct srvRequestDefaultTypeInternal;
 extern srvRequestDefaultTypeInternal _srvRequest_default_instance_;
@@ -395,6 +410,205 @@ class srvRequest final :
   friend struct ::TableStruct_api_2eproto;
 };// -------------------------------------------------------------------
 
+class registrationStatus final :
+    public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:autopapi.registrationStatus) */ {
+ public:
+  inline registrationStatus() : registrationStatus(nullptr) {}
+  ~registrationStatus() override;
+  template<typename = void>
+  explicit PROTOBUF_CONSTEXPR registrationStatus(::google::protobuf::internal::ConstantInitialized);
+
+  inline registrationStatus(const registrationStatus& from)
+      : registrationStatus(nullptr, from) {}
+  registrationStatus(registrationStatus&& from) noexcept
+    : registrationStatus() {
+    *this = ::std::move(from);
+  }
+
+  inline registrationStatus& operator=(const registrationStatus& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline registrationStatus& operator=(registrationStatus&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetArena() == from.GetArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const registrationStatus& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const registrationStatus* internal_default_instance() {
+    return reinterpret_cast<const registrationStatus*>(
+               &_registrationStatus_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    6;
+
+  friend void swap(registrationStatus& a, registrationStatus& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(registrationStatus* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() != nullptr &&
+        GetArena() == other->GetArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() == other->GetArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(registrationStatus* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  registrationStatus* New(::google::protobuf::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<registrationStatus>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const registrationStatus& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom( const registrationStatus& from) {
+    registrationStatus::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  ::size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::google::protobuf::internal::ParseContext* ctx) final;
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target, ::google::protobuf::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  ::google::protobuf::internal::CachedSize* AccessCachedSize() const final;
+  void SharedCtor(::google::protobuf::Arena* arena);
+  void SharedDtor();
+  void InternalSwap(registrationStatus* other);
+
+  private:
+  friend class ::google::protobuf::internal::AnyMetadata;
+  static ::absl::string_view FullMessageName() {
+    return "autopapi.registrationStatus";
+  }
+  protected:
+  explicit registrationStatus(::google::protobuf::Arena* arena);
+  registrationStatus(::google::protobuf::Arena* arena, const registrationStatus& from);
+  public:
+
+  static const ClassData _class_data_;
+  const ::google::protobuf::Message::ClassData*GetClassData() const final;
+
+  ::google::protobuf::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kClientUidFieldNumber = 1,
+    kRegStatusFieldNumber = 2,
+  };
+  // string clientUid = 1;
+  void clear_clientuid() ;
+  const std::string& clientuid() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_clientuid(Arg_&& arg, Args_... args);
+  std::string* mutable_clientuid();
+  PROTOBUF_NODISCARD std::string* release_clientuid();
+  void set_allocated_clientuid(std::string* value);
+
+  private:
+  const std::string& _internal_clientuid() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_clientuid(
+      const std::string& value);
+  std::string* _internal_mutable_clientuid();
+
+  public:
+  // string regStatus = 2;
+  void clear_regstatus() ;
+  const std::string& regstatus() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_regstatus(Arg_&& arg, Args_... args);
+  std::string* mutable_regstatus();
+  PROTOBUF_NODISCARD std::string* release_regstatus();
+  void set_allocated_regstatus(std::string* value);
+
+  private:
+  const std::string& _internal_regstatus() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_regstatus(
+      const std::string& value);
+  std::string* _internal_mutable_regstatus();
+
+  public:
+  // @@protoc_insertion_point(class_scope:autopapi.registrationStatus)
+ private:
+  class _Internal;
+
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<
+      1, 2, 0,
+      54, 2>
+      _table_;
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+
+        inline explicit constexpr Impl_(
+            ::google::protobuf::internal::ConstantInitialized) noexcept;
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena);
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena, const Impl_& from);
+    ::google::protobuf::internal::ArenaStringPtr clientuid_;
+    ::google::protobuf::internal::ArenaStringPtr regstatus_;
+    mutable ::google::protobuf::internal::CachedSize _cached_size_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_api_2eproto;
+};// -------------------------------------------------------------------
+
 class nothing final :
     public ::google::protobuf::internal::ZeroFieldsBase /* @@protoc_insertion_point(class_definition:autopapi.nothing) */ {
  public:
@@ -590,7 +804,7 @@ class msmtSettings final :
                &_msmtSettings_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    5;
+    7;
 
   friend void swap(msmtSettings& a, msmtSettings& b) {
     a.Swap(&b);
@@ -819,7 +1033,7 @@ class msmtName final :
                &_msmtName_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    7;
+    9;
 
   friend void swap(msmtName& a, msmtName& b) {
     a.Swap(&b);
@@ -952,6 +1166,732 @@ class msmtName final :
                               ::google::protobuf::Arena* arena, const Impl_& from);
     ::google::protobuf::internal::ArenaStringPtr clientuid_;
     ::google::protobuf::internal::ArenaStringPtr name_;
+    mutable ::google::protobuf::internal::CachedSize _cached_size_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_api_2eproto;
+};// -------------------------------------------------------------------
+
+class mgmtRequest final :
+    public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:autopapi.mgmtRequest) */ {
+ public:
+  inline mgmtRequest() : mgmtRequest(nullptr) {}
+  ~mgmtRequest() override;
+  template<typename = void>
+  explicit PROTOBUF_CONSTEXPR mgmtRequest(::google::protobuf::internal::ConstantInitialized);
+
+  inline mgmtRequest(const mgmtRequest& from)
+      : mgmtRequest(nullptr, from) {}
+  mgmtRequest(mgmtRequest&& from) noexcept
+    : mgmtRequest() {
+    *this = ::std::move(from);
+  }
+
+  inline mgmtRequest& operator=(const mgmtRequest& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline mgmtRequest& operator=(mgmtRequest&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetArena() == from.GetArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const mgmtRequest& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const mgmtRequest* internal_default_instance() {
+    return reinterpret_cast<const mgmtRequest*>(
+               &_mgmtRequest_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    12;
+
+  friend void swap(mgmtRequest& a, mgmtRequest& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(mgmtRequest* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() != nullptr &&
+        GetArena() == other->GetArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() == other->GetArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(mgmtRequest* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  mgmtRequest* New(::google::protobuf::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<mgmtRequest>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const mgmtRequest& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom( const mgmtRequest& from) {
+    mgmtRequest::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  ::size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::google::protobuf::internal::ParseContext* ctx) final;
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target, ::google::protobuf::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  ::google::protobuf::internal::CachedSize* AccessCachedSize() const final;
+  void SharedCtor(::google::protobuf::Arena* arena);
+  void SharedDtor();
+  void InternalSwap(mgmtRequest* other);
+
+  private:
+  friend class ::google::protobuf::internal::AnyMetadata;
+  static ::absl::string_view FullMessageName() {
+    return "autopapi.mgmtRequest";
+  }
+  protected:
+  explicit mgmtRequest(::google::protobuf::Arena* arena);
+  mgmtRequest(::google::protobuf::Arena* arena, const mgmtRequest& from);
+  public:
+
+  static const ClassData _class_data_;
+  const ::google::protobuf::Message::ClassData*GetClassData() const final;
+
+  ::google::protobuf::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kClientUidFieldNumber = 1,
+    kRequestBodyFieldNumber = 3,
+    kMgmtIdFieldNumber = 5,
+    kPwFieldNumber = 6,
+    kMsgTypeFieldNumber = 2,
+    kRequestNoFieldNumber = 4,
+  };
+  // string clientUid = 1;
+  void clear_clientuid() ;
+  const std::string& clientuid() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_clientuid(Arg_&& arg, Args_... args);
+  std::string* mutable_clientuid();
+  PROTOBUF_NODISCARD std::string* release_clientuid();
+  void set_allocated_clientuid(std::string* value);
+
+  private:
+  const std::string& _internal_clientuid() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_clientuid(
+      const std::string& value);
+  std::string* _internal_mutable_clientuid();
+
+  public:
+  // optional string requestBody = 3;
+  bool has_requestbody() const;
+  void clear_requestbody() ;
+  const std::string& requestbody() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_requestbody(Arg_&& arg, Args_... args);
+  std::string* mutable_requestbody();
+  PROTOBUF_NODISCARD std::string* release_requestbody();
+  void set_allocated_requestbody(std::string* value);
+
+  private:
+  const std::string& _internal_requestbody() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_requestbody(
+      const std::string& value);
+  std::string* _internal_mutable_requestbody();
+
+  public:
+  // string mgmtId = 5;
+  void clear_mgmtid() ;
+  const std::string& mgmtid() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_mgmtid(Arg_&& arg, Args_... args);
+  std::string* mutable_mgmtid();
+  PROTOBUF_NODISCARD std::string* release_mgmtid();
+  void set_allocated_mgmtid(std::string* value);
+
+  private:
+  const std::string& _internal_mgmtid() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_mgmtid(
+      const std::string& value);
+  std::string* _internal_mutable_mgmtid();
+
+  public:
+  // string pw = 6;
+  void clear_pw() ;
+  const std::string& pw() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_pw(Arg_&& arg, Args_... args);
+  std::string* mutable_pw();
+  PROTOBUF_NODISCARD std::string* release_pw();
+  void set_allocated_pw(std::string* value);
+
+  private:
+  const std::string& _internal_pw() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_pw(
+      const std::string& value);
+  std::string* _internal_mutable_pw();
+
+  public:
+  // .autopapi.srvRequestType msgType = 2;
+  void clear_msgtype() ;
+  ::autopapi::srvRequestType msgtype() const;
+  void set_msgtype(::autopapi::srvRequestType value);
+
+  private:
+  ::autopapi::srvRequestType _internal_msgtype() const;
+  void _internal_set_msgtype(::autopapi::srvRequestType value);
+
+  public:
+  // optional uint32 requestNo = 4;
+  bool has_requestno() const;
+  void clear_requestno() ;
+  ::uint32_t requestno() const;
+  void set_requestno(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_requestno() const;
+  void _internal_set_requestno(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:autopapi.mgmtRequest)
+ private:
+  class _Internal;
+
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<
+      3, 6, 0,
+      57, 2>
+      _table_;
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+
+        inline explicit constexpr Impl_(
+            ::google::protobuf::internal::ConstantInitialized) noexcept;
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena);
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena, const Impl_& from);
+    ::google::protobuf::internal::HasBits<1> _has_bits_;
+    mutable ::google::protobuf::internal::CachedSize _cached_size_;
+    ::google::protobuf::internal::ArenaStringPtr clientuid_;
+    ::google::protobuf::internal::ArenaStringPtr requestbody_;
+    ::google::protobuf::internal::ArenaStringPtr mgmtid_;
+    ::google::protobuf::internal::ArenaStringPtr pw_;
+    int msgtype_;
+    ::uint32_t requestno_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_api_2eproto;
+};// -------------------------------------------------------------------
+
+class mgmtMsmtSettings final :
+    public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:autopapi.mgmtMsmtSettings) */ {
+ public:
+  inline mgmtMsmtSettings() : mgmtMsmtSettings(nullptr) {}
+  ~mgmtMsmtSettings() override;
+  template<typename = void>
+  explicit PROTOBUF_CONSTEXPR mgmtMsmtSettings(::google::protobuf::internal::ConstantInitialized);
+
+  inline mgmtMsmtSettings(const mgmtMsmtSettings& from)
+      : mgmtMsmtSettings(nullptr, from) {}
+  mgmtMsmtSettings(mgmtMsmtSettings&& from) noexcept
+    : mgmtMsmtSettings() {
+    *this = ::std::move(from);
+  }
+
+  inline mgmtMsmtSettings& operator=(const mgmtMsmtSettings& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline mgmtMsmtSettings& operator=(mgmtMsmtSettings&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetArena() == from.GetArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const mgmtMsmtSettings& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const mgmtMsmtSettings* internal_default_instance() {
+    return reinterpret_cast<const mgmtMsmtSettings*>(
+               &_mgmtMsmtSettings_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    11;
+
+  friend void swap(mgmtMsmtSettings& a, mgmtMsmtSettings& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(mgmtMsmtSettings* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() != nullptr &&
+        GetArena() == other->GetArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() == other->GetArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(mgmtMsmtSettings* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  mgmtMsmtSettings* New(::google::protobuf::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<mgmtMsmtSettings>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const mgmtMsmtSettings& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom( const mgmtMsmtSettings& from) {
+    mgmtMsmtSettings::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  ::size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::google::protobuf::internal::ParseContext* ctx) final;
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target, ::google::protobuf::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  ::google::protobuf::internal::CachedSize* AccessCachedSize() const final;
+  void SharedCtor(::google::protobuf::Arena* arena);
+  void SharedDtor();
+  void InternalSwap(mgmtMsmtSettings* other);
+
+  private:
+  friend class ::google::protobuf::internal::AnyMetadata;
+  static ::absl::string_view FullMessageName() {
+    return "autopapi.mgmtMsmtSettings";
+  }
+  protected:
+  explicit mgmtMsmtSettings(::google::protobuf::Arena* arena);
+  mgmtMsmtSettings(::google::protobuf::Arena* arena, const mgmtMsmtSettings& from);
+  public:
+
+  static const ClassData _class_data_;
+  const ::google::protobuf::Message::ClassData*GetClassData() const final;
+
+  ::google::protobuf::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kClientUidFieldNumber = 1,
+    kPpDeviceFieldNumber = 3,
+    kPpSamplingIntervalFieldNumber = 4,
+    kMgmtIdFieldNumber = 6,
+    kPwFieldNumber = 7,
+    kUploadIntervalMinFieldNumber = 5,
+  };
+  // string clientUid = 1;
+  void clear_clientuid() ;
+  const std::string& clientuid() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_clientuid(Arg_&& arg, Args_... args);
+  std::string* mutable_clientuid();
+  PROTOBUF_NODISCARD std::string* release_clientuid();
+  void set_allocated_clientuid(std::string* value);
+
+  private:
+  const std::string& _internal_clientuid() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_clientuid(
+      const std::string& value);
+  std::string* _internal_mutable_clientuid();
+
+  public:
+  // string ppDevice = 3;
+  void clear_ppdevice() ;
+  const std::string& ppdevice() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_ppdevice(Arg_&& arg, Args_... args);
+  std::string* mutable_ppdevice();
+  PROTOBUF_NODISCARD std::string* release_ppdevice();
+  void set_allocated_ppdevice(std::string* value);
+
+  private:
+  const std::string& _internal_ppdevice() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_ppdevice(
+      const std::string& value);
+  std::string* _internal_mutable_ppdevice();
+
+  public:
+  // string ppSamplingInterval = 4;
+  void clear_ppsamplinginterval() ;
+  const std::string& ppsamplinginterval() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_ppsamplinginterval(Arg_&& arg, Args_... args);
+  std::string* mutable_ppsamplinginterval();
+  PROTOBUF_NODISCARD std::string* release_ppsamplinginterval();
+  void set_allocated_ppsamplinginterval(std::string* value);
+
+  private:
+  const std::string& _internal_ppsamplinginterval() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_ppsamplinginterval(
+      const std::string& value);
+  std::string* _internal_mutable_ppsamplinginterval();
+
+  public:
+  // string mgmtId = 6;
+  void clear_mgmtid() ;
+  const std::string& mgmtid() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_mgmtid(Arg_&& arg, Args_... args);
+  std::string* mutable_mgmtid();
+  PROTOBUF_NODISCARD std::string* release_mgmtid();
+  void set_allocated_mgmtid(std::string* value);
+
+  private:
+  const std::string& _internal_mgmtid() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_mgmtid(
+      const std::string& value);
+  std::string* _internal_mutable_mgmtid();
+
+  public:
+  // string pw = 7;
+  void clear_pw() ;
+  const std::string& pw() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_pw(Arg_&& arg, Args_... args);
+  std::string* mutable_pw();
+  PROTOBUF_NODISCARD std::string* release_pw();
+  void set_allocated_pw(std::string* value);
+
+  private:
+  const std::string& _internal_pw() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_pw(
+      const std::string& value);
+  std::string* _internal_mutable_pw();
+
+  public:
+  // uint32 uploadIntervalMin = 5;
+  void clear_uploadintervalmin() ;
+  ::uint32_t uploadintervalmin() const;
+  void set_uploadintervalmin(::uint32_t value);
+
+  private:
+  ::uint32_t _internal_uploadintervalmin() const;
+  void _internal_set_uploadintervalmin(::uint32_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:autopapi.mgmtMsmtSettings)
+ private:
+  class _Internal;
+
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<
+      3, 6, 0,
+      77, 2>
+      _table_;
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+
+        inline explicit constexpr Impl_(
+            ::google::protobuf::internal::ConstantInitialized) noexcept;
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena);
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena, const Impl_& from);
+    ::google::protobuf::internal::ArenaStringPtr clientuid_;
+    ::google::protobuf::internal::ArenaStringPtr ppdevice_;
+    ::google::protobuf::internal::ArenaStringPtr ppsamplinginterval_;
+    ::google::protobuf::internal::ArenaStringPtr mgmtid_;
+    ::google::protobuf::internal::ArenaStringPtr pw_;
+    ::uint32_t uploadintervalmin_;
+    mutable ::google::protobuf::internal::CachedSize _cached_size_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_api_2eproto;
+};// -------------------------------------------------------------------
+
+class mgmtAuth final :
+    public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:autopapi.mgmtAuth) */ {
+ public:
+  inline mgmtAuth() : mgmtAuth(nullptr) {}
+  ~mgmtAuth() override;
+  template<typename = void>
+  explicit PROTOBUF_CONSTEXPR mgmtAuth(::google::protobuf::internal::ConstantInitialized);
+
+  inline mgmtAuth(const mgmtAuth& from)
+      : mgmtAuth(nullptr, from) {}
+  mgmtAuth(mgmtAuth&& from) noexcept
+    : mgmtAuth() {
+    *this = ::std::move(from);
+  }
+
+  inline mgmtAuth& operator=(const mgmtAuth& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline mgmtAuth& operator=(mgmtAuth&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetArena() == from.GetArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const mgmtAuth& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const mgmtAuth* internal_default_instance() {
+    return reinterpret_cast<const mgmtAuth*>(
+               &_mgmtAuth_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    10;
+
+  friend void swap(mgmtAuth& a, mgmtAuth& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(mgmtAuth* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() != nullptr &&
+        GetArena() == other->GetArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() == other->GetArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(mgmtAuth* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  mgmtAuth* New(::google::protobuf::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<mgmtAuth>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const mgmtAuth& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom( const mgmtAuth& from) {
+    mgmtAuth::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  ::size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::google::protobuf::internal::ParseContext* ctx) final;
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target, ::google::protobuf::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  ::google::protobuf::internal::CachedSize* AccessCachedSize() const final;
+  void SharedCtor(::google::protobuf::Arena* arena);
+  void SharedDtor();
+  void InternalSwap(mgmtAuth* other);
+
+  private:
+  friend class ::google::protobuf::internal::AnyMetadata;
+  static ::absl::string_view FullMessageName() {
+    return "autopapi.mgmtAuth";
+  }
+  protected:
+  explicit mgmtAuth(::google::protobuf::Arena* arena);
+  mgmtAuth(::google::protobuf::Arena* arena, const mgmtAuth& from);
+  public:
+
+  static const ClassData _class_data_;
+  const ::google::protobuf::Message::ClassData*GetClassData() const final;
+
+  ::google::protobuf::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kMgmtIdFieldNumber = 1,
+    kPwFieldNumber = 2,
+  };
+  // string mgmtId = 1;
+  void clear_mgmtid() ;
+  const std::string& mgmtid() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_mgmtid(Arg_&& arg, Args_... args);
+  std::string* mutable_mgmtid();
+  PROTOBUF_NODISCARD std::string* release_mgmtid();
+  void set_allocated_mgmtid(std::string* value);
+
+  private:
+  const std::string& _internal_mgmtid() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_mgmtid(
+      const std::string& value);
+  std::string* _internal_mutable_mgmtid();
+
+  public:
+  // string pw = 2;
+  void clear_pw() ;
+  const std::string& pw() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_pw(Arg_&& arg, Args_... args);
+  std::string* mutable_pw();
+  PROTOBUF_NODISCARD std::string* release_pw();
+  void set_allocated_pw(std::string* value);
+
+  private:
+  const std::string& _internal_pw() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_pw(
+      const std::string& value);
+  std::string* _internal_mutable_pw();
+
+  public:
+  // @@protoc_insertion_point(class_scope:autopapi.mgmtAuth)
+ private:
+  class _Internal;
+
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<
+      1, 2, 0,
+      34, 2>
+      _table_;
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+
+        inline explicit constexpr Impl_(
+            ::google::protobuf::internal::ConstantInitialized) noexcept;
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena);
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena, const Impl_& from);
+    ::google::protobuf::internal::ArenaStringPtr mgmtid_;
+    ::google::protobuf::internal::ArenaStringPtr pw_;
     mutable ::google::protobuf::internal::CachedSize _cached_size_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -1588,6 +2528,223 @@ class clientResponse final :
   friend struct ::TableStruct_api_2eproto;
 };// -------------------------------------------------------------------
 
+class authClientUid final :
+    public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:autopapi.authClientUid) */ {
+ public:
+  inline authClientUid() : authClientUid(nullptr) {}
+  ~authClientUid() override;
+  template<typename = void>
+  explicit PROTOBUF_CONSTEXPR authClientUid(::google::protobuf::internal::ConstantInitialized);
+
+  inline authClientUid(const authClientUid& from)
+      : authClientUid(nullptr, from) {}
+  authClientUid(authClientUid&& from) noexcept
+    : authClientUid() {
+    *this = ::std::move(from);
+  }
+
+  inline authClientUid& operator=(const authClientUid& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline authClientUid& operator=(authClientUid&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetArena() == from.GetArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const authClientUid& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const authClientUid* internal_default_instance() {
+    return reinterpret_cast<const authClientUid*>(
+               &_authClientUid_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    5;
+
+  friend void swap(authClientUid& a, authClientUid& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(authClientUid* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() != nullptr &&
+        GetArena() == other->GetArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() == other->GetArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(authClientUid* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  authClientUid* New(::google::protobuf::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<authClientUid>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const authClientUid& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom( const authClientUid& from) {
+    authClientUid::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  ::size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::google::protobuf::internal::ParseContext* ctx) final;
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target, ::google::protobuf::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  ::google::protobuf::internal::CachedSize* AccessCachedSize() const final;
+  void SharedCtor(::google::protobuf::Arena* arena);
+  void SharedDtor();
+  void InternalSwap(authClientUid* other);
+
+  private:
+  friend class ::google::protobuf::internal::AnyMetadata;
+  static ::absl::string_view FullMessageName() {
+    return "autopapi.authClientUid";
+  }
+  protected:
+  explicit authClientUid(::google::protobuf::Arena* arena);
+  authClientUid(::google::protobuf::Arena* arena, const authClientUid& from);
+  public:
+
+  static const ClassData _class_data_;
+  const ::google::protobuf::Message::ClassData*GetClassData() const final;
+
+  ::google::protobuf::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kClientUidFieldNumber = 1,
+    kMgmtIdFieldNumber = 2,
+    kPwFieldNumber = 3,
+  };
+  // string clientUid = 1;
+  void clear_clientuid() ;
+  const std::string& clientuid() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_clientuid(Arg_&& arg, Args_... args);
+  std::string* mutable_clientuid();
+  PROTOBUF_NODISCARD std::string* release_clientuid();
+  void set_allocated_clientuid(std::string* value);
+
+  private:
+  const std::string& _internal_clientuid() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_clientuid(
+      const std::string& value);
+  std::string* _internal_mutable_clientuid();
+
+  public:
+  // string mgmtId = 2;
+  void clear_mgmtid() ;
+  const std::string& mgmtid() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_mgmtid(Arg_&& arg, Args_... args);
+  std::string* mutable_mgmtid();
+  PROTOBUF_NODISCARD std::string* release_mgmtid();
+  void set_allocated_mgmtid(std::string* value);
+
+  private:
+  const std::string& _internal_mgmtid() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_mgmtid(
+      const std::string& value);
+  std::string* _internal_mutable_mgmtid();
+
+  public:
+  // string pw = 3;
+  void clear_pw() ;
+  const std::string& pw() const;
+  template <typename Arg_ = const std::string&, typename... Args_>
+  void set_pw(Arg_&& arg, Args_... args);
+  std::string* mutable_pw();
+  PROTOBUF_NODISCARD std::string* release_pw();
+  void set_allocated_pw(std::string* value);
+
+  private:
+  const std::string& _internal_pw() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_pw(
+      const std::string& value);
+  std::string* _internal_mutable_pw();
+
+  public:
+  // @@protoc_insertion_point(class_scope:autopapi.authClientUid)
+ private:
+  class _Internal;
+
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<
+      2, 3, 0,
+      48, 2>
+      _table_;
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+
+        inline explicit constexpr Impl_(
+            ::google::protobuf::internal::ConstantInitialized) noexcept;
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena);
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena, const Impl_& from);
+    ::google::protobuf::internal::ArenaStringPtr clientuid_;
+    ::google::protobuf::internal::ArenaStringPtr mgmtid_;
+    ::google::protobuf::internal::ArenaStringPtr pw_;
+    mutable ::google::protobuf::internal::CachedSize _cached_size_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_api_2eproto;
+};// -------------------------------------------------------------------
+
 class msmtSample final :
     public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:autopapi.msmtSample) */ {
  public:
@@ -1647,7 +2804,7 @@ class msmtSample final :
                &_msmtSample_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    8;
 
   friend void swap(msmtSample& a, msmtSample& b) {
     a.Swap(&b);
@@ -2396,6 +3553,279 @@ inline void clientUid::set_allocated_uid(std::string* value) {
 
 // -------------------------------------------------------------------
 
+// authClientUid
+
+// string clientUid = 1;
+inline void authClientUid::clear_clientuid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.clientuid_.ClearToEmpty();
+}
+inline const std::string& authClientUid::clientuid() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:autopapi.authClientUid.clientUid)
+  return _internal_clientuid();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void authClientUid::set_clientuid(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.clientuid_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:autopapi.authClientUid.clientUid)
+}
+inline std::string* authClientUid::mutable_clientuid() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_clientuid();
+  // @@protoc_insertion_point(field_mutable:autopapi.authClientUid.clientUid)
+  return _s;
+}
+inline const std::string& authClientUid::_internal_clientuid() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.clientuid_.Get();
+}
+inline void authClientUid::_internal_set_clientuid(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.clientuid_.Set(value, GetArena());
+}
+inline std::string* authClientUid::_internal_mutable_clientuid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.clientuid_.Mutable( GetArena());
+}
+inline std::string* authClientUid::release_clientuid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:autopapi.authClientUid.clientUid)
+  return _impl_.clientuid_.Release();
+}
+inline void authClientUid::set_allocated_clientuid(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.clientuid_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.clientuid_.IsDefault()) {
+          _impl_.clientuid_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:autopapi.authClientUid.clientUid)
+}
+
+// string mgmtId = 2;
+inline void authClientUid::clear_mgmtid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.mgmtid_.ClearToEmpty();
+}
+inline const std::string& authClientUid::mgmtid() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:autopapi.authClientUid.mgmtId)
+  return _internal_mgmtid();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void authClientUid::set_mgmtid(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.mgmtid_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:autopapi.authClientUid.mgmtId)
+}
+inline std::string* authClientUid::mutable_mgmtid() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_mgmtid();
+  // @@protoc_insertion_point(field_mutable:autopapi.authClientUid.mgmtId)
+  return _s;
+}
+inline const std::string& authClientUid::_internal_mgmtid() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.mgmtid_.Get();
+}
+inline void authClientUid::_internal_set_mgmtid(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.mgmtid_.Set(value, GetArena());
+}
+inline std::string* authClientUid::_internal_mutable_mgmtid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.mgmtid_.Mutable( GetArena());
+}
+inline std::string* authClientUid::release_mgmtid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:autopapi.authClientUid.mgmtId)
+  return _impl_.mgmtid_.Release();
+}
+inline void authClientUid::set_allocated_mgmtid(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.mgmtid_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.mgmtid_.IsDefault()) {
+          _impl_.mgmtid_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:autopapi.authClientUid.mgmtId)
+}
+
+// string pw = 3;
+inline void authClientUid::clear_pw() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.pw_.ClearToEmpty();
+}
+inline const std::string& authClientUid::pw() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:autopapi.authClientUid.pw)
+  return _internal_pw();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void authClientUid::set_pw(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.pw_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:autopapi.authClientUid.pw)
+}
+inline std::string* authClientUid::mutable_pw() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_pw();
+  // @@protoc_insertion_point(field_mutable:autopapi.authClientUid.pw)
+  return _s;
+}
+inline const std::string& authClientUid::_internal_pw() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.pw_.Get();
+}
+inline void authClientUid::_internal_set_pw(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.pw_.Set(value, GetArena());
+}
+inline std::string* authClientUid::_internal_mutable_pw() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.pw_.Mutable( GetArena());
+}
+inline std::string* authClientUid::release_pw() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:autopapi.authClientUid.pw)
+  return _impl_.pw_.Release();
+}
+inline void authClientUid::set_allocated_pw(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.pw_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.pw_.IsDefault()) {
+          _impl_.pw_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:autopapi.authClientUid.pw)
+}
+
+// -------------------------------------------------------------------
+
+// registrationStatus
+
+// string clientUid = 1;
+inline void registrationStatus::clear_clientuid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.clientuid_.ClearToEmpty();
+}
+inline const std::string& registrationStatus::clientuid() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:autopapi.registrationStatus.clientUid)
+  return _internal_clientuid();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void registrationStatus::set_clientuid(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.clientuid_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:autopapi.registrationStatus.clientUid)
+}
+inline std::string* registrationStatus::mutable_clientuid() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_clientuid();
+  // @@protoc_insertion_point(field_mutable:autopapi.registrationStatus.clientUid)
+  return _s;
+}
+inline const std::string& registrationStatus::_internal_clientuid() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.clientuid_.Get();
+}
+inline void registrationStatus::_internal_set_clientuid(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.clientuid_.Set(value, GetArena());
+}
+inline std::string* registrationStatus::_internal_mutable_clientuid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.clientuid_.Mutable( GetArena());
+}
+inline std::string* registrationStatus::release_clientuid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:autopapi.registrationStatus.clientUid)
+  return _impl_.clientuid_.Release();
+}
+inline void registrationStatus::set_allocated_clientuid(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.clientuid_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.clientuid_.IsDefault()) {
+          _impl_.clientuid_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:autopapi.registrationStatus.clientUid)
+}
+
+// string regStatus = 2;
+inline void registrationStatus::clear_regstatus() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.regstatus_.ClearToEmpty();
+}
+inline const std::string& registrationStatus::regstatus() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:autopapi.registrationStatus.regStatus)
+  return _internal_regstatus();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void registrationStatus::set_regstatus(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.regstatus_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:autopapi.registrationStatus.regStatus)
+}
+inline std::string* registrationStatus::mutable_regstatus() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_regstatus();
+  // @@protoc_insertion_point(field_mutable:autopapi.registrationStatus.regStatus)
+  return _s;
+}
+inline const std::string& registrationStatus::_internal_regstatus() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.regstatus_.Get();
+}
+inline void registrationStatus::_internal_set_regstatus(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.regstatus_.Set(value, GetArena());
+}
+inline std::string* registrationStatus::_internal_mutable_regstatus() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.regstatus_.Mutable( GetArena());
+}
+inline std::string* registrationStatus::release_regstatus() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:autopapi.registrationStatus.regStatus)
+  return _impl_.regstatus_.Release();
+}
+inline void registrationStatus::set_allocated_regstatus(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.regstatus_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.regstatus_.IsDefault()) {
+          _impl_.regstatus_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:autopapi.registrationStatus.regStatus)
+}
+
+// -------------------------------------------------------------------
+
 // msmtSettings
 
 // string clientUid = 1;
@@ -2912,6 +4342,693 @@ inline void msmtName::set_allocated_name(std::string* value) {
         }
   #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   // @@protoc_insertion_point(field_set_allocated:autopapi.msmtName.name)
+}
+
+// -------------------------------------------------------------------
+
+// mgmtAuth
+
+// string mgmtId = 1;
+inline void mgmtAuth::clear_mgmtid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.mgmtid_.ClearToEmpty();
+}
+inline const std::string& mgmtAuth::mgmtid() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:autopapi.mgmtAuth.mgmtId)
+  return _internal_mgmtid();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void mgmtAuth::set_mgmtid(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.mgmtid_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:autopapi.mgmtAuth.mgmtId)
+}
+inline std::string* mgmtAuth::mutable_mgmtid() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_mgmtid();
+  // @@protoc_insertion_point(field_mutable:autopapi.mgmtAuth.mgmtId)
+  return _s;
+}
+inline const std::string& mgmtAuth::_internal_mgmtid() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.mgmtid_.Get();
+}
+inline void mgmtAuth::_internal_set_mgmtid(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.mgmtid_.Set(value, GetArena());
+}
+inline std::string* mgmtAuth::_internal_mutable_mgmtid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.mgmtid_.Mutable( GetArena());
+}
+inline std::string* mgmtAuth::release_mgmtid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:autopapi.mgmtAuth.mgmtId)
+  return _impl_.mgmtid_.Release();
+}
+inline void mgmtAuth::set_allocated_mgmtid(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.mgmtid_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.mgmtid_.IsDefault()) {
+          _impl_.mgmtid_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:autopapi.mgmtAuth.mgmtId)
+}
+
+// string pw = 2;
+inline void mgmtAuth::clear_pw() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.pw_.ClearToEmpty();
+}
+inline const std::string& mgmtAuth::pw() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:autopapi.mgmtAuth.pw)
+  return _internal_pw();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void mgmtAuth::set_pw(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.pw_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:autopapi.mgmtAuth.pw)
+}
+inline std::string* mgmtAuth::mutable_pw() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_pw();
+  // @@protoc_insertion_point(field_mutable:autopapi.mgmtAuth.pw)
+  return _s;
+}
+inline const std::string& mgmtAuth::_internal_pw() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.pw_.Get();
+}
+inline void mgmtAuth::_internal_set_pw(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.pw_.Set(value, GetArena());
+}
+inline std::string* mgmtAuth::_internal_mutable_pw() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.pw_.Mutable( GetArena());
+}
+inline std::string* mgmtAuth::release_pw() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:autopapi.mgmtAuth.pw)
+  return _impl_.pw_.Release();
+}
+inline void mgmtAuth::set_allocated_pw(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.pw_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.pw_.IsDefault()) {
+          _impl_.pw_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:autopapi.mgmtAuth.pw)
+}
+
+// -------------------------------------------------------------------
+
+// mgmtMsmtSettings
+
+// string clientUid = 1;
+inline void mgmtMsmtSettings::clear_clientuid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.clientuid_.ClearToEmpty();
+}
+inline const std::string& mgmtMsmtSettings::clientuid() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:autopapi.mgmtMsmtSettings.clientUid)
+  return _internal_clientuid();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void mgmtMsmtSettings::set_clientuid(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.clientuid_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:autopapi.mgmtMsmtSettings.clientUid)
+}
+inline std::string* mgmtMsmtSettings::mutable_clientuid() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_clientuid();
+  // @@protoc_insertion_point(field_mutable:autopapi.mgmtMsmtSettings.clientUid)
+  return _s;
+}
+inline const std::string& mgmtMsmtSettings::_internal_clientuid() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.clientuid_.Get();
+}
+inline void mgmtMsmtSettings::_internal_set_clientuid(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.clientuid_.Set(value, GetArena());
+}
+inline std::string* mgmtMsmtSettings::_internal_mutable_clientuid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.clientuid_.Mutable( GetArena());
+}
+inline std::string* mgmtMsmtSettings::release_clientuid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:autopapi.mgmtMsmtSettings.clientUid)
+  return _impl_.clientuid_.Release();
+}
+inline void mgmtMsmtSettings::set_allocated_clientuid(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.clientuid_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.clientuid_.IsDefault()) {
+          _impl_.clientuid_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:autopapi.mgmtMsmtSettings.clientUid)
+}
+
+// string ppDevice = 3;
+inline void mgmtMsmtSettings::clear_ppdevice() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.ppdevice_.ClearToEmpty();
+}
+inline const std::string& mgmtMsmtSettings::ppdevice() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:autopapi.mgmtMsmtSettings.ppDevice)
+  return _internal_ppdevice();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void mgmtMsmtSettings::set_ppdevice(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.ppdevice_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:autopapi.mgmtMsmtSettings.ppDevice)
+}
+inline std::string* mgmtMsmtSettings::mutable_ppdevice() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_ppdevice();
+  // @@protoc_insertion_point(field_mutable:autopapi.mgmtMsmtSettings.ppDevice)
+  return _s;
+}
+inline const std::string& mgmtMsmtSettings::_internal_ppdevice() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.ppdevice_.Get();
+}
+inline void mgmtMsmtSettings::_internal_set_ppdevice(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.ppdevice_.Set(value, GetArena());
+}
+inline std::string* mgmtMsmtSettings::_internal_mutable_ppdevice() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.ppdevice_.Mutable( GetArena());
+}
+inline std::string* mgmtMsmtSettings::release_ppdevice() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:autopapi.mgmtMsmtSettings.ppDevice)
+  return _impl_.ppdevice_.Release();
+}
+inline void mgmtMsmtSettings::set_allocated_ppdevice(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.ppdevice_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.ppdevice_.IsDefault()) {
+          _impl_.ppdevice_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:autopapi.mgmtMsmtSettings.ppDevice)
+}
+
+// string ppSamplingInterval = 4;
+inline void mgmtMsmtSettings::clear_ppsamplinginterval() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.ppsamplinginterval_.ClearToEmpty();
+}
+inline const std::string& mgmtMsmtSettings::ppsamplinginterval() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:autopapi.mgmtMsmtSettings.ppSamplingInterval)
+  return _internal_ppsamplinginterval();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void mgmtMsmtSettings::set_ppsamplinginterval(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.ppsamplinginterval_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:autopapi.mgmtMsmtSettings.ppSamplingInterval)
+}
+inline std::string* mgmtMsmtSettings::mutable_ppsamplinginterval() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_ppsamplinginterval();
+  // @@protoc_insertion_point(field_mutable:autopapi.mgmtMsmtSettings.ppSamplingInterval)
+  return _s;
+}
+inline const std::string& mgmtMsmtSettings::_internal_ppsamplinginterval() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.ppsamplinginterval_.Get();
+}
+inline void mgmtMsmtSettings::_internal_set_ppsamplinginterval(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.ppsamplinginterval_.Set(value, GetArena());
+}
+inline std::string* mgmtMsmtSettings::_internal_mutable_ppsamplinginterval() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.ppsamplinginterval_.Mutable( GetArena());
+}
+inline std::string* mgmtMsmtSettings::release_ppsamplinginterval() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:autopapi.mgmtMsmtSettings.ppSamplingInterval)
+  return _impl_.ppsamplinginterval_.Release();
+}
+inline void mgmtMsmtSettings::set_allocated_ppsamplinginterval(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.ppsamplinginterval_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.ppsamplinginterval_.IsDefault()) {
+          _impl_.ppsamplinginterval_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:autopapi.mgmtMsmtSettings.ppSamplingInterval)
+}
+
+// uint32 uploadIntervalMin = 5;
+inline void mgmtMsmtSettings::clear_uploadintervalmin() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.uploadintervalmin_ = 0u;
+}
+inline ::uint32_t mgmtMsmtSettings::uploadintervalmin() const {
+  // @@protoc_insertion_point(field_get:autopapi.mgmtMsmtSettings.uploadIntervalMin)
+  return _internal_uploadintervalmin();
+}
+inline void mgmtMsmtSettings::set_uploadintervalmin(::uint32_t value) {
+  _internal_set_uploadintervalmin(value);
+  // @@protoc_insertion_point(field_set:autopapi.mgmtMsmtSettings.uploadIntervalMin)
+}
+inline ::uint32_t mgmtMsmtSettings::_internal_uploadintervalmin() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.uploadintervalmin_;
+}
+inline void mgmtMsmtSettings::_internal_set_uploadintervalmin(::uint32_t value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.uploadintervalmin_ = value;
+}
+
+// string mgmtId = 6;
+inline void mgmtMsmtSettings::clear_mgmtid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.mgmtid_.ClearToEmpty();
+}
+inline const std::string& mgmtMsmtSettings::mgmtid() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:autopapi.mgmtMsmtSettings.mgmtId)
+  return _internal_mgmtid();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void mgmtMsmtSettings::set_mgmtid(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.mgmtid_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:autopapi.mgmtMsmtSettings.mgmtId)
+}
+inline std::string* mgmtMsmtSettings::mutable_mgmtid() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_mgmtid();
+  // @@protoc_insertion_point(field_mutable:autopapi.mgmtMsmtSettings.mgmtId)
+  return _s;
+}
+inline const std::string& mgmtMsmtSettings::_internal_mgmtid() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.mgmtid_.Get();
+}
+inline void mgmtMsmtSettings::_internal_set_mgmtid(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.mgmtid_.Set(value, GetArena());
+}
+inline std::string* mgmtMsmtSettings::_internal_mutable_mgmtid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.mgmtid_.Mutable( GetArena());
+}
+inline std::string* mgmtMsmtSettings::release_mgmtid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:autopapi.mgmtMsmtSettings.mgmtId)
+  return _impl_.mgmtid_.Release();
+}
+inline void mgmtMsmtSettings::set_allocated_mgmtid(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.mgmtid_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.mgmtid_.IsDefault()) {
+          _impl_.mgmtid_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:autopapi.mgmtMsmtSettings.mgmtId)
+}
+
+// string pw = 7;
+inline void mgmtMsmtSettings::clear_pw() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.pw_.ClearToEmpty();
+}
+inline const std::string& mgmtMsmtSettings::pw() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:autopapi.mgmtMsmtSettings.pw)
+  return _internal_pw();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void mgmtMsmtSettings::set_pw(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.pw_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:autopapi.mgmtMsmtSettings.pw)
+}
+inline std::string* mgmtMsmtSettings::mutable_pw() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_pw();
+  // @@protoc_insertion_point(field_mutable:autopapi.mgmtMsmtSettings.pw)
+  return _s;
+}
+inline const std::string& mgmtMsmtSettings::_internal_pw() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.pw_.Get();
+}
+inline void mgmtMsmtSettings::_internal_set_pw(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.pw_.Set(value, GetArena());
+}
+inline std::string* mgmtMsmtSettings::_internal_mutable_pw() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.pw_.Mutable( GetArena());
+}
+inline std::string* mgmtMsmtSettings::release_pw() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:autopapi.mgmtMsmtSettings.pw)
+  return _impl_.pw_.Release();
+}
+inline void mgmtMsmtSettings::set_allocated_pw(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.pw_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.pw_.IsDefault()) {
+          _impl_.pw_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:autopapi.mgmtMsmtSettings.pw)
+}
+
+// -------------------------------------------------------------------
+
+// mgmtRequest
+
+// string clientUid = 1;
+inline void mgmtRequest::clear_clientuid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.clientuid_.ClearToEmpty();
+}
+inline const std::string& mgmtRequest::clientuid() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:autopapi.mgmtRequest.clientUid)
+  return _internal_clientuid();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void mgmtRequest::set_clientuid(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.clientuid_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:autopapi.mgmtRequest.clientUid)
+}
+inline std::string* mgmtRequest::mutable_clientuid() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_clientuid();
+  // @@protoc_insertion_point(field_mutable:autopapi.mgmtRequest.clientUid)
+  return _s;
+}
+inline const std::string& mgmtRequest::_internal_clientuid() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.clientuid_.Get();
+}
+inline void mgmtRequest::_internal_set_clientuid(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.clientuid_.Set(value, GetArena());
+}
+inline std::string* mgmtRequest::_internal_mutable_clientuid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.clientuid_.Mutable( GetArena());
+}
+inline std::string* mgmtRequest::release_clientuid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:autopapi.mgmtRequest.clientUid)
+  return _impl_.clientuid_.Release();
+}
+inline void mgmtRequest::set_allocated_clientuid(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.clientuid_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.clientuid_.IsDefault()) {
+          _impl_.clientuid_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:autopapi.mgmtRequest.clientUid)
+}
+
+// .autopapi.srvRequestType msgType = 2;
+inline void mgmtRequest::clear_msgtype() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.msgtype_ = 0;
+}
+inline ::autopapi::srvRequestType mgmtRequest::msgtype() const {
+  // @@protoc_insertion_point(field_get:autopapi.mgmtRequest.msgType)
+  return _internal_msgtype();
+}
+inline void mgmtRequest::set_msgtype(::autopapi::srvRequestType value) {
+  _internal_set_msgtype(value);
+  // @@protoc_insertion_point(field_set:autopapi.mgmtRequest.msgType)
+}
+inline ::autopapi::srvRequestType mgmtRequest::_internal_msgtype() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return static_cast<::autopapi::srvRequestType>(_impl_.msgtype_);
+}
+inline void mgmtRequest::_internal_set_msgtype(::autopapi::srvRequestType value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.msgtype_ = value;
+}
+
+// optional string requestBody = 3;
+inline bool mgmtRequest::has_requestbody() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline void mgmtRequest::clear_requestbody() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.requestbody_.ClearToEmpty();
+  _impl_._has_bits_[0] &= ~0x00000001u;
+}
+inline const std::string& mgmtRequest::requestbody() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:autopapi.mgmtRequest.requestBody)
+  return _internal_requestbody();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void mgmtRequest::set_requestbody(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.requestbody_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:autopapi.mgmtRequest.requestBody)
+}
+inline std::string* mgmtRequest::mutable_requestbody() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_requestbody();
+  // @@protoc_insertion_point(field_mutable:autopapi.mgmtRequest.requestBody)
+  return _s;
+}
+inline const std::string& mgmtRequest::_internal_requestbody() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.requestbody_.Get();
+}
+inline void mgmtRequest::_internal_set_requestbody(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  _impl_.requestbody_.Set(value, GetArena());
+}
+inline std::string* mgmtRequest::_internal_mutable_requestbody() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_._has_bits_[0] |= 0x00000001u;
+  return _impl_.requestbody_.Mutable( GetArena());
+}
+inline std::string* mgmtRequest::release_requestbody() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:autopapi.mgmtRequest.requestBody)
+  if ((_impl_._has_bits_[0] & 0x00000001u) == 0) {
+    return nullptr;
+  }
+  _impl_._has_bits_[0] &= ~0x00000001u;
+  auto* released = _impl_.requestbody_.Release();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.requestbody_.Set("", GetArena());
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  return released;
+}
+inline void mgmtRequest::set_allocated_requestbody(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  if (value != nullptr) {
+    _impl_._has_bits_[0] |= 0x00000001u;
+  } else {
+    _impl_._has_bits_[0] &= ~0x00000001u;
+  }
+  _impl_.requestbody_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.requestbody_.IsDefault()) {
+          _impl_.requestbody_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:autopapi.mgmtRequest.requestBody)
+}
+
+// optional uint32 requestNo = 4;
+inline bool mgmtRequest::has_requestno() const {
+  bool value = (_impl_._has_bits_[0] & 0x00000002u) != 0;
+  return value;
+}
+inline void mgmtRequest::clear_requestno() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.requestno_ = 0u;
+  _impl_._has_bits_[0] &= ~0x00000002u;
+}
+inline ::uint32_t mgmtRequest::requestno() const {
+  // @@protoc_insertion_point(field_get:autopapi.mgmtRequest.requestNo)
+  return _internal_requestno();
+}
+inline void mgmtRequest::set_requestno(::uint32_t value) {
+  _internal_set_requestno(value);
+  // @@protoc_insertion_point(field_set:autopapi.mgmtRequest.requestNo)
+}
+inline ::uint32_t mgmtRequest::_internal_requestno() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.requestno_;
+}
+inline void mgmtRequest::_internal_set_requestno(::uint32_t value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_._has_bits_[0] |= 0x00000002u;
+  _impl_.requestno_ = value;
+}
+
+// string mgmtId = 5;
+inline void mgmtRequest::clear_mgmtid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.mgmtid_.ClearToEmpty();
+}
+inline const std::string& mgmtRequest::mgmtid() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:autopapi.mgmtRequest.mgmtId)
+  return _internal_mgmtid();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void mgmtRequest::set_mgmtid(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.mgmtid_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:autopapi.mgmtRequest.mgmtId)
+}
+inline std::string* mgmtRequest::mutable_mgmtid() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_mgmtid();
+  // @@protoc_insertion_point(field_mutable:autopapi.mgmtRequest.mgmtId)
+  return _s;
+}
+inline const std::string& mgmtRequest::_internal_mgmtid() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.mgmtid_.Get();
+}
+inline void mgmtRequest::_internal_set_mgmtid(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.mgmtid_.Set(value, GetArena());
+}
+inline std::string* mgmtRequest::_internal_mutable_mgmtid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.mgmtid_.Mutable( GetArena());
+}
+inline std::string* mgmtRequest::release_mgmtid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:autopapi.mgmtRequest.mgmtId)
+  return _impl_.mgmtid_.Release();
+}
+inline void mgmtRequest::set_allocated_mgmtid(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.mgmtid_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.mgmtid_.IsDefault()) {
+          _impl_.mgmtid_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:autopapi.mgmtRequest.mgmtId)
+}
+
+// string pw = 6;
+inline void mgmtRequest::clear_pw() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.pw_.ClearToEmpty();
+}
+inline const std::string& mgmtRequest::pw() const
+    ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  // @@protoc_insertion_point(field_get:autopapi.mgmtRequest.pw)
+  return _internal_pw();
+}
+template <typename Arg_, typename... Args_>
+inline PROTOBUF_ALWAYS_INLINE void mgmtRequest::set_pw(Arg_&& arg,
+                                                     Args_... args) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.pw_.Set(static_cast<Arg_&&>(arg), args..., GetArena());
+  // @@protoc_insertion_point(field_set:autopapi.mgmtRequest.pw)
+}
+inline std::string* mgmtRequest::mutable_pw() ABSL_ATTRIBUTE_LIFETIME_BOUND {
+  std::string* _s = _internal_mutable_pw();
+  // @@protoc_insertion_point(field_mutable:autopapi.mgmtRequest.pw)
+  return _s;
+}
+inline const std::string& mgmtRequest::_internal_pw() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.pw_.Get();
+}
+inline void mgmtRequest::_internal_set_pw(const std::string& value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.pw_.Set(value, GetArena());
+}
+inline std::string* mgmtRequest::_internal_mutable_pw() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  return _impl_.pw_.Mutable( GetArena());
+}
+inline std::string* mgmtRequest::release_pw() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  // @@protoc_insertion_point(field_release:autopapi.mgmtRequest.pw)
+  return _impl_.pw_.Release();
+}
+inline void mgmtRequest::set_allocated_pw(std::string* value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.pw_.SetAllocated(value, GetArena());
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+        if (_impl_.pw_.IsDefault()) {
+          _impl_.pw_.Set("", GetArena());
+        }
+  #endif  // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:autopapi.mgmtRequest.pw)
 }
 
 #ifdef __GNUC__
