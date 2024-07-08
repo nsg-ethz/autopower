@@ -19,11 +19,11 @@ The binary `client` can be found in the cmake/build folder. This should be done 
 **Note:** To run the mmclient locally, you also need to [install PostgreSQL](https://wiki.debian.org/PostgreSql) on your machine. For the setup see POSTGRES-SETUP.md. You may also want to look at deploy.sh
 
 ## Pinpoint
-To run the software, you also need to compile pinpoint. See [the README file from the official pinpoint repo](https://github.com/osmhpi/pinpoint/). You will need a version of Pinpoint which supports the `-n` flag to skip a workload.Currently this means you need to compile the code from this fork at `https://github.com/UsualSpec/pinpoint/tree/feature/skip-workload`.
+To run the software, you also need to compile pinpoint. See [the README file from the official pinpoint repo](https://github.com/osmhpi/pinpoint/). You will need a version of Pinpoint which supports the `-n` flag to skip a workload and redirecting measurements to stdout. Currently this means you need to compile the code from this fork at `https://github.com/nsg-ethz/pinpoint/tree/ci/addARMBuild`.
 You can clone and switch the branch as follows:
 
 ```shell
-git clone https://github.com/UsualSpec/pinpoint
-git checkout feature/skip-workload
+git clone https://github.com/nsg-ethz/pinpoint
+git checkout ci/addARMBuild
 ```
 then follow the same commands as in the official repo.
