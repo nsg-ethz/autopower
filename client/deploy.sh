@@ -94,4 +94,4 @@ ufw allow from "${REMOTEIP6}" to any port 10050 proto tcp
 ufw logging off
 ufw --force enable
 
-echo "Please copy /etc/mmclient/client_"${DEVICENAME}".csr to the server and sign the certificate request. Afterwards setup zabbix monitoring with the psk in ./zabbix_psk.psk"
+echo "Please copy /etc/mmclient/client_${DEVICENAME}.csr to the server and sign the certificate request. Afterwards setup zabbix monitoring with the psk in ./zabbix_psk.psk"
