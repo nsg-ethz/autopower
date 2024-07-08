@@ -3,6 +3,8 @@ Description=Autopower measurement client
 Wants=postgresql.service time-sync.target network-online.target
 After=postgresql.service time-sync.target network.target network-online.target
 [Service]
+User=mmclient
+Group=nogroup
 Type=simple
 ExecStart=/usr/bin/mmclient -s /etc/mmclient/secrets.json -c /etc/mmclient/client_config.json
 Restart=on-failure

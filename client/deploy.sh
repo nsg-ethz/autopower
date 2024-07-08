@@ -42,21 +42,26 @@ sudo -u postgres psql -d postgres -c "CREATE USER autopower_client WITH PASSWORD
 sudo -u postgres psql -d postgres -c "CREATE DATABASE autopower_client;"
 sudo -u postgres psql -d autopower_client -a -f client_db_schema.sql
 
-mkdir /etc/mmclient
+# create mmclient user and set up files
+adduser --system mmclient
 
+mkdir /etc/mmclient
 cp config/secrets.json.example /etc/mmclient/secrets.json
+chmod u=r,g=,o= /etc/mmclient/secrets.json
 # replace magic string ßß§$$$rplacePw$$$§ßß with actual password
 sed -i 's/ßß§$$$rplacePw$$$§ßß/'"${PGPASSWORD}"'/' /etc/mmclient/secrets.json
-echo "Create client certificates..."
+echo "Creating client certificates..."
 ./deploy/create_client_cert.sh "${REMOTEHOST}"
 mv client.key /etc/mmclient/client.key
+chmod u=r,g=,o= /etc/mmclient/secrets.json
 mv client.csr /etc/mmclient/client_"${DEVICENAME}".csr
 
 # setup config files
 cp config/client_config.json.example /etc/mmclient/client_config.json
 sed -i 's/ßß§$$$rplceremoteHost$$$§ßß/'"${REMOTEHOST}"'/' /etc/mmclient/client_config.json
 sed -i 's/ßß§$$$rplceClientUid$$$§ßß/'"${DEVICENAME}"'/' /etc/mmclient/client_config.json
-
+chmod u=rx,g=,o= /etc/mmclient
+chown -R mmclient: /etc/mmclient
 # copy autostart systemd service for powermeasurement
 cp deploy/mmclient.service /etc/systemd/system/
 systemctl enable mmclient
