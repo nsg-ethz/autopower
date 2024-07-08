@@ -44,6 +44,8 @@ sudo -u postgres psql -d autopower_client -a -f client_db_schema.sql
 
 # create mmclient user and set up files
 adduser --system mmclient
+# allow access to power meter
+adduser mmclient dialout
 
 mkdir /etc/mmclient
 cp config/secrets.json.example /etc/mmclient/secrets.json
