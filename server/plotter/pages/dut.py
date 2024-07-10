@@ -243,11 +243,9 @@ def updateStartEndSelection(mmtids):
         updateStartEndCurs.execute("""
       SELECT MAX(lower_measurement_timestamp) AS min_ts, MIN(upper_measurement_timestamp) AS max_ts FROM (
           SELECT MIN(measurement_timestamp) AS lower_measurement_timestamp, MAX(measurement_timestamp) AS upper_measurement_timestamp
-          FROM measurements, measurement_data
-          WHERE
-          measurements.server_measurement_id = measurement_data.server_measurement_id
-          AND measurements.server_measurement_id = ANY (%(mmtids)s)
-          GROUP BY measurements.server_measurement_id
+          FROM measurement_data
+          WHERE server_measurement_id = ANY (%(mmtids)s)
+          GROUP BY server_measurement_id
       ) AS idMinMaxGroups;
       """, {"mmtids": mmtids})
         res = updateStartEndCurs.fetchone()
