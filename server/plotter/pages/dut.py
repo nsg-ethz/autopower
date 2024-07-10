@@ -161,12 +161,21 @@ def layoutDutPage(dut_id=None):
         return html.Div("Got invalid dut_id. Please check the parameter of the link.")
     with createDb() as pgcon:
         layoutCurs = pgcon.cursor(cursor_factory=pgextra.RealDictCursor)  # use dict to be able to directly pass to plotly
-        layoutCurs.execute("SELECT msmts_of_this_dut.server_measurement_id, measurements.client_uid, MAX(measurement_timestamp)::timestamp AS last_ts, MIN(measurement_timestamp)::timestamp AS start_ts FROM measurementsOfThisDut(%(dutId)s) AS msmts_of_this_dut, measurement_data, measurements WHERE measurement_data.server_measurement_id = msmts_of_this_dut.server_measurement_id AND measurements.server_measurement_id = msmts_of_this_dut.server_measurement_id GROUP BY msmts_of_this_dut.server_measurement_id, measurements.client_uid", {"dutId": dut_id})
+        timingCurs = pgcon.cursor(cursor_factory=pgextra.RealDictCursor)  # cursor to get min/max timings
+
+        layoutCurs.execute("SELECT msmts_of_this_dut.server_measurement_id, measurements.client_uid, measurements.shared_measurement_id FROM measurementsOfThisDut(%(dutId)s) AS msmts_of_this_dut, measurements WHERE measurements.server_measurement_id = msmts_of_this_dut.server_measurement_id GROUP BY measurements.shared_measurement_id, msmts_of_this_dut.server_measurement_id, measurements.client_uid", {"dutId": dut_id})
         pgcon.commit()
         allMsmts = layoutCurs.fetchall()
         allMsmtIds = []
+        num = 0
         for msmt in allMsmts:
             allMsmtIds.append(msmt["server_measurement_id"])
+            timingCurs.execute("SELECT MAX(measurement_timestamp)::timestamp AS last_ts, MIN(measurement_timestamp)::timestamp AS start_ts FROM measurement_data WHERE server_measurement_id = %(srvmmid)s", {'srvmmid': msmt["server_measurement_id"]})
+            timings = timingCurs.fetchone()
+            allMsmts[num]["last_ts"] = timings["last_ts"]
+            allMsmts[num]["start_ts"] = timings["start_ts"]
+            num = num + 1
+
 
         if allMsmtIds == []:
             return html.Div("No measurements found for this dut!")
