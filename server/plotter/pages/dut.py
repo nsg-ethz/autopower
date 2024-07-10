@@ -290,8 +290,9 @@ def showMsmtPlot(binTime, startDate, endDate, msmt_ids, n_clicks):
                             msmtDf = pd.read_sql_query(sql="EXECUTE getMmtPtsBinned (%(bintime)s, %(srvmsmtid)s, %(startts)s,%(startts)s, %(endts)s)", params={"bintime": binTime, "srvmsmtid": msmt_id, "startts": startDate, "endts": endDate}, con=createDb())
                             msmtDf["measurement_value"] = msmtDf["measurement_value"].div(1000)  # convert mW to W
                             return go.Scatter(x=msmtDf["measurement_timestamp"], y=msmtDf["measurement_value"], name="Measurement id " + str(msmt_id))
-                        allMsmtsForThisId = list(map(getMsmtVals, msmt_ids))
-                        plt.add_traces(allMsmtsForThisId)
+                        with ThreadPoolExecutor(max_workers=3) as binExec:
+                          allMsmtsForThisId = list(binExec.map(getMsmtVals, msmt_ids))
+                          plt.add_traces(allMsmtsForThisId)
                     
                     # Add x axis and y axis titles
                     plt.update_layout(xaxis_title="Time", yaxis_title="Measured power [W]")
@@ -383,6 +384,7 @@ def showMsmtPlot(binTime, startDate, endDate, msmt_ids, n_clicks):
                     return dailyPlot
 
                 with ThreadPoolExecutor(max_workers=3) as executor:
+                    # Parallelize building plots to speed up
                     tsPlotFuture = executor.submit(buildTimeseriesPlot)
                     hourlyPlotFuture = executor.submit(buildHourlyPlot)
                     dailyPlotFuture = executor.submit(buildDailyPlot)
