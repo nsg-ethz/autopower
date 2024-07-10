@@ -282,6 +282,9 @@ def showMsmtPlot(binTime, startDate, endDate, msmt_ids, n_clicks):
                         return go.Scatter(x=msmtDf["measurement_timestamp"], y=msmtDf["measurement_value"], name="Measurement id " + str(msmt_id))
                     allMsmtsForThisId = list(map(getMsmtVals, msmt_ids))
                     plt.add_traces(allMsmtsForThisId)
+                
+                # Add x axis and y axis titles
+                plt.update_layout(xaxis_title="Time", yaxis_title="Measured power [W]")
 
                 # copy the dataframe
                 hourlyMsmts = pd.read_sql_query(sql="SELECT measurement_value, measurement_time FROM getMsmtsByHour (%(mmtids)s, %(bintime)s, %(startts)s, %(endts)s)", params={"bintime": binTime, "mmtids": msmt_ids, "startts": startDate, "endts": endDate}, con=pgcon)
