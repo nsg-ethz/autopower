@@ -41,6 +41,21 @@
                 data: {deviceUid:clientUid},
                 success: function(resp) {
                     if (!resp.status && resp.inMeasuringMode && !resp.ppHasExited && resp.ppHasWrittenOnce) {
+                        if (resp.lastSampleTimestamp) {
+                            // check if we wrote to the client side DB
+                            var lastSampleTsWrittenOnClient = new Date(resp.lastSampleTimestamp);
+
+                            var samplingInt = resp.measurementSettings.ppSamplingInterval;
+                            var nextSamplingDeadline = new Date();
+                            nextSamplingDeadline.setMilliseconds(nextSamplingDeadline.getMilliseconds() - 100 * samplingInt);
+                            console.log(nextSamplingDeadline);
+                            console.log(lastSampleTsWrittenOnClient);
+                            if (lastSampleTsWrittenOnClient < nextSamplingDeadline) {
+                                setAlertSeverity(statusBox,"alert-warning");
+                                statusBox.text("Trying to measure, but last client side measurement may be outdated. Check the client for hardware and timing issues.");
+                                return;
+                            }
+                        }
                         $.ajax({
                             type:"POST",
                             url:"{{ url_for('getLastMeasurementTimestampOfDevicePost') }}",
@@ -55,6 +70,7 @@
                                 } else {
                                     setAlertSeverity(statusBox,"alert-success");
                                     statusBox.text("Measuring");
+
                                 }
                             },
                             error: function(xhr) {
