@@ -1,3 +1,8 @@
+CREATE TABLE clients (
+  client_uid VARCHAR(255) PRIMARY KEY,
+  last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW() -- last time this client connected to the server, meaning we know it is alive
+);
+
 CREATE TABLE logmessages (
   log_id SERIAL PRIMARY KEY,
   client_uid VARCHAR(255) NOT NULL REFERENCES clients(client_uid),
@@ -6,10 +11,6 @@ CREATE TABLE logmessages (
   log_message TEXT
 );
 
-CREATE TABLE clients (
-  client_uid VARCHAR(255) PRIMARY KEY,
-  last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW() -- last time this client connected to the server, meaning we know it is alive
-);
 
 CREATE TABLE devices_under_test ( -- TODO: Rename to dut
   dut_id SERIAL PRIMARY KEY,
