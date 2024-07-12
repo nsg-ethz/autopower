@@ -3,7 +3,10 @@
 # Deploy an autopower device should only be run on the Raspberry Pi
 
 source serverIpConfig.sh
-read -p "Enter name of device to deploy: " DEVICENAME
+
+# > we use the hostname configured on OS install
+#read -p "Enter name of device to deploy: " DEVICENAME
+DEVICENAME=$(hostname)
 
 # install needed services (including adding zabbix)
 pushd /tmp
@@ -13,7 +16,7 @@ rm zabbix-release_6.0-5+debian12_all.deb
 popd
 apt update
 apt upgrade -y
-apt install libjsoncpp-dev libpqxx-dev fail2ban ufw postgresql unattended-upgrades zabbix-agent2 zabbix-agent2-plugin-postgresql -y
+apt install libjsoncpp-dev libpqxx-dev fail2ban ufw postgresql unattended-upgrades zabbix-agent2 zabbix-agent2-plugin-postgresql tmux -y
 
 # install mmclient and pinpoint
 cp bin/mmclient /usr/bin/mmclient
@@ -21,7 +24,7 @@ chmod +x /usr/bin/mmclient
 cp bin/pinpoint /usr/bin/pinpoint
 chmod +x /usr/bin/pinpoint
 # set hostname
-hostnamectl set-hostname "${DEVICENAME}"
+# hostnamectl set-hostname "${DEVICENAME}"
 
 # Add hostname to /etc/hosts
 echo "::1 ${DEVICENAME}" >> /etc/hosts
@@ -102,3 +105,4 @@ ufw logging off
 ufw --force enable
 
 echo "Please copy /etc/mmclient/client_${DEVICENAME}.csr to the server and sign the certificate request. Afterwards setup zabbix monitoring with the psk in ./zabbix_psk.psk"
+

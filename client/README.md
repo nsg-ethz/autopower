@@ -1,5 +1,23 @@
 # Autopower client
 
+## My deployment process
+
+- We need the IP of the PI, which means 
+  - first flashing the OS
+  - boot and plug in a monitor to get the MAC
+  - Get the MAC registered on the ETH network and get a static IP
+- Once the IP is knonw, add it to my SSH config 
+- then
+```
+scp -r -P 22 client/ autopowerX:/tmp/
+ssh autopowerX -p 22
+cd /tmp/client
+sudo chmod +x deploy.sh && sudo ./deploy.sh
+sudo chmod +x signCerts.sh && ./signCerts.sh
+```
+Currently the last step will not work the first time because the Pi won't know the fingerprint of the server and I don't know how to accept fingerprint automatically (to resolve)
+
+
 ## Folder content
 
 This folder contains files needed for the client side of the autopower project:
