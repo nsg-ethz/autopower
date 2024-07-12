@@ -42,6 +42,20 @@ class AutopowerClient {
   bool thisMeasurementHasWrittenOnce = false;
   uint32_t periodicUploadMinutes = 5; // time to periodically upload the data in minutes. If this is 0 we never upload the content and rely on manually uploading the files
 
+
+  std::time_t lastSampleTimestamp; // the last timestamp in raw string form written to the DB
+  std::shared_mutex lastSampleMtx; // sample mutex
+
+  void setLastSampleTimestamp(std::time_t lastSampleTimestamp) {
+    std::unique_lock<std::shared_mutex>wl(lastSampleMtx);
+    this->lastSampleTimestamp = lastSampleTimestamp;
+  }
+
+  std::time_t getLastSampleTimestamp() {
+    std::shared_lock<std::shared_mutex>rl(lastSampleMtx);
+    return this->lastSampleTimestamp;
+  }
+
   std::unique_ptr<autopapi::CMeasurementApi::Stub> stub; // stub for connecting to GRPC server
   bool measuring() {
     // read measuring

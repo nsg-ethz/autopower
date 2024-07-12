@@ -62,16 +62,15 @@ void AutopowerClient::putResponseToServer(uint32_t statuscode, std::string messa
 
 std::string AutopowerClient::getReadableTimestamp(std::time_t rtme) {
   struct tm *msmtStartTime;
-  time(&rtme);
   msmtStartTime = gmtime(&rtme);
-  char tbuffer[1000];
-  strftime(tbuffer, sizeof tbuffer, "%FT%T", msmtStartTime);
+  char tbuffer[std::size("yyyy-mm-ddThh:mm:ssZ")];
+  strftime(tbuffer, sizeof tbuffer, "%FT%TZ", msmtStartTime);
   return std::string(tbuffer);
 }
 std::string AutopowerClient::getCurrentReadableTimestamp() {
   // Get UTC timestamp. Unfortunately std::chrono is more complicated. Hence
   // use time_t.
-  std::time_t rtme;
+  std::time_t rtme = std::time(nullptr);
   return getReadableTimestamp(rtme);
 }
 
@@ -303,6 +302,7 @@ void AutopowerClient::getAndSavePpData() {
             txn.exec_prepared("addMsmtPoint", getInternalMsmtId(), msmtPoint.measurement, msmtPoint.rawTimestamp);
             txn.commit();
             setHasWrittenOnce(true); // specify success of writing at least once to DB
+            setLastSampleTimestamp(msmtPoint.timestamp);
           } catch (std::exception &e) {
             std::string exprContent = e.what();
             std::string errorMsg = "Error while writing measurement to database: " + exprContent;
@@ -733,6 +733,7 @@ void AutopowerClient::manageMsmt() {
         statusObject["measurementSettings"]["uploadInterval"] = periodicUploadMinutes;
         statusObject["measurementSettings"]["sharedMsmtId"] = getSharedMsmtId();
         statusObject["ppIsRunning"] = false;
+        statusObject["lastSampleTimestamp"] = getReadableTimestamp(getLastSampleTimestamp());
         if (measuring() && getHasWrittenOnce() && !getHasExited()) {
           // we assume that pinpoint should now be running. Check with kill() via getPpIsCurrentlyRunning()
           statusObject["ppIsRunning"] = getPpIsCurrentlyRunning();
