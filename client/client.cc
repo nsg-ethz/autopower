@@ -476,91 +476,104 @@ bool AutopowerClient::uploadMeasurementList() {
 // measId is default empty (""), see client.h
 bool AutopowerClient::streamMeasurementData(std::string measId) {
   // stream content of measId content to server starting at line startlinenr. uint64_t should be long enough.
+
   // setup bool to tell successful streaming upload of all datapoints (this method may also throw an exception on failure)
   bool uploadWasSuccessful = true;
   // setup grpc stream
   grpc::ClientContext sFmCtxt;
-  class autopapi::nothing nth;
-  std::unique_ptr<grpc::ClientWriter<autopapi::msmtSample>> smpStream(stub->putMeasurement(&sFmCtxt, &nth));
-  std::string msmtLine;
+  std::unique_ptr<grpc::ClientReaderWriter<autopapi::msmtSample, autopapi::sampleAck>> smpStream(stub->putMeasurement(&sFmCtxt));
 
-  pqxx::connection pgcon{this->pgConString};
-  pgcon.prepare( // sets all correctly uploaded datapoints to be uploaded
-      "confirmMmUploaded",
-      "UPDATE measurement_data SET was_uploaded = true WHERE md_id = $1");
-  pqxx::connection pgReadCon{this->pgConString};
-  pqxx::work readTxn(pgReadCon);
-  pqxx::work txn(pgcon);
-  std::string getMmStartSql = "SELECT md_id, measurement_value, measurement_timestamp, measurements.internal_measurement_id AS internal_measurement_id, measurements.shared_measurement_id AS shared_mm_id, measurements.client_uid FROM measurement_data, measurements WHERE measurements.internal_measurement_id = measurement_data.internal_measurement_id";
+  std::thread streamWriterThread([&] {
+    // upload measurement samples
+    pqxx::connection pgReadCon{this->pgConString};
+    pqxx::work readTxn(pgReadCon);
+    std::string getMmStartSql = "SELECT md_id, measurement_value, measurement_timestamp, measurements.internal_measurement_id AS internal_measurement_id, measurements.shared_measurement_id AS shared_mm_id, measurements.client_uid FROM measurement_data, measurements WHERE measurements.internal_measurement_id = measurement_data.internal_measurement_id";
 
-  if (measId.empty()) {
-    getMmStartSql += " AND was_uploaded = false";
-  } else {
-    // MUST escape via readTxn.esc since not found how to give parameters to cursor.
-    getMmStartSql += " AND measurements.shared_measurement_id = '" + readTxn.esc(measId) + "'";
-  }
-
-  // https://stackoverflow.com/questions/16128142/how-to-use-pqxxstateless-cursor-class-from-libpqxx
-
-  pqxx::stateless_cursor<pqxx::cursor_base::read_only, pqxx::cursor_base::owned> tuplesToStream(readTxn, getMmStartSql, "uploadTupleCurs", false); // the tuples returned from the database to be uploaded
-
-  int numTuplesNotWritten = 0;
-  for (size_t idx = 0; true; idx++) {
-    pqxx::result res = tuplesToStream.retrieve(idx, idx + 1);
-    if (res.empty()) {
-      // on cursor end --> exit
-      break;
-    }
-
-    auto tuple = res[0];
-    // build up the measurement sample for grpc based on the DB content
-    autopapi::msmtSample grpcMsmtSample;
-    if (tuple["client_uid"].as<std::string>() != clientUid) {
-      std::cout << "Warning: Uploading measurement from different clientUid then currently set." << std::endl;
-    }
-    grpcMsmtSample.set_clientuid(tuple["client_uid"].as<std::string>());
-    grpcMsmtSample.set_msmtcontent(tuple["measurement_value"].as<uint32_t>());
-    grpcMsmtSample.set_msmtid(tuple["shared_mm_id"].as<std::string>());
-    // we must create a new object/timestamp ptr to pass it to the sample. It will be automatically freed by grpc
-    google::protobuf::Timestamp *gTimestamp = new google::protobuf::Timestamp();
-    std::string ts = tuple["measurement_timestamp"].as<std::string>();
-    std::replace(ts.begin(), ts.end(), ' ', 'T');
-    bool couldParseTs = google::protobuf::util::TimeUtil::FromString(ts, gTimestamp);
-
-    if (!couldParseTs) {
-      delete gTimestamp;
-      uploadWasSuccessful = false;
-      throw std::runtime_error("Could not parse timestamp: " + ts);
-    }
-
-    grpcMsmtSample.set_allocated_msmttime(gTimestamp); // grpc will free the object itself, so NO need to call free!
-
-    // finally write to server
-    bool couldWrite = smpStream->Write(grpcMsmtSample);
-    if (!couldWrite) {
-      numTuplesNotWritten++;
-      // exit early
-      break;
+    if (measId.empty()) {
+      getMmStartSql += " AND was_uploaded = false";
     } else {
-      txn.exec_prepared("confirmMmUploaded", tuple["md_id"].as<std::string>());
+      // MUST escape via readTxn.esc since not found how to give parameters to cursor.
+      getMmStartSql += " AND measurements.shared_measurement_id = '" + readTxn.esc(measId) + "'";
+    }
+
+    // https://stackoverflow.com/questions/16128142/how-to-use-pqxxstateless-cursor-class-from-libpqxx
+
+    pqxx::stateless_cursor<pqxx::cursor_base::read_only, pqxx::cursor_base::owned> tuplesToStream(readTxn, getMmStartSql, "uploadTupleCurs", false); // the tuples returned from the database to be uploaded
+
+    int numTuplesNotWritten = 0;
+    for (size_t idx = 0; true; idx++) {
+      pqxx::result res = tuplesToStream.retrieve(idx, idx + 1);
+      if (res.empty()) {
+        // on cursor end --> exit
+        break;
+      }
+
+      auto tuple = res[0];
+      // build up the measurement sample for grpc based on the DB content
+      autopapi::msmtSample grpcMsmtSample;
+      if (tuple["client_uid"].as<std::string>() != clientUid) {
+        std::cout << "Warning: Uploading measurement from different clientUid then currently set." << std::endl;
+      }
+      grpcMsmtSample.set_clientuid(tuple["client_uid"].as<std::string>());
+      grpcMsmtSample.set_msmtcontent(tuple["measurement_value"].as<uint32_t>());
+      grpcMsmtSample.set_msmtid(tuple["shared_mm_id"].as<std::string>());
+      grpcMsmtSample.set_sampleid(tuple["md_id"].as<uint64_t>());
+      // we must create a new object/timestamp ptr to pass it to the sample. It will be automatically freed by grpc
+      google::protobuf::Timestamp *gTimestamp = new google::protobuf::Timestamp();
+      std::string ts = tuple["measurement_timestamp"].as<std::string>();
+      std::replace(ts.begin(), ts.end(), ' ', 'T');
+      bool couldParseTs = google::protobuf::util::TimeUtil::FromString(ts, gTimestamp);
+
+      if (!couldParseTs) {
+        delete gTimestamp;
+        uploadWasSuccessful = false;
+        throw std::runtime_error("Could not parse timestamp: " + ts);
+      }
+
+      grpcMsmtSample.set_allocated_msmttime(gTimestamp); // grpc will free the object itself, so NO need to call free!
+
+      // finally write to server
+      bool couldWrite = smpStream->Write(grpcMsmtSample);
+      if (!couldWrite) {
+        numTuplesNotWritten++;
+        // exit early
+        break;
+      }
+    }
+
+    if (numTuplesNotWritten > 0) {
+      uploadWasSuccessful = false;
+      std::cerr << "Could not write tuples to the server. Maybe the connection failed?" << std::endl;
+    }
+
+    smpStream->WritesDone(); // completed writes
+  });
+
+  std::thread streamAckThread([&] {
+    // collect the ACKs for uploaded measurements
+    pqxx::connection pgcon{this->pgConString};
+    pqxx::work txn(pgcon);
+    pgcon.prepare( // sets all correctly uploaded datapoints to be uploaded
+        "confirmMmUploaded",
+        "UPDATE measurement_data SET was_uploaded = true WHERE md_id = $1");
+    grpc::ClientContext cc;
+    autopapi::sampleAck smpAck;
+    while (smpStream->Read(&smpAck)) {
+      txn.exec_prepared("confirmMmUploaded", smpAck.sampleid());
       txn.commit();
     }
-  }
+  });
 
-  if (numTuplesNotWritten > 0) {
-    uploadWasSuccessful = false;
-    std::cerr << "Could not write tuples to the server. Maybe the connection failed?" << std::endl;
-  }
+  streamWriterThread.join();
+  streamAckThread.join();
 
-  smpStream->WritesDone(); // completed writes
   grpc::Status wStatus = smpStream->Finish();
   if (!wStatus.ok()) {
     uploadWasSuccessful = false;
-    std::string errorMsg = "Writing samples to server failed:" + wStatus.error_message() + "; " + wStatus.error_details();
+    std::string errorMsg = "Writing samples to server failed: " + wStatus.error_message() + "; " + wStatus.error_details();
     // write failed. Since we only set the was_uploaded field to true if Write() returned true, we know the server at least received the tuples.
     // thus no need to revert the transaction.
     std::cerr << errorMsg << std::endl;
-    uploadWasSuccessful = false;
     sFmCtxt.TryCancel(); // cancel this context
     throw std::runtime_error(errorMsg);
   }

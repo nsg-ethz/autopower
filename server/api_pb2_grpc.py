@@ -54,10 +54,10 @@ class CMeasurementApiStub(object):
                 request_serializer=api__pb2.msmtName.SerializeToString,
                 response_deserializer=api__pb2.nothing.FromString,
                 _registered_method=True)
-        self.putMeasurement = channel.stream_unary(
+        self.putMeasurement = channel.stream_stream(
                 '/autopapi.CMeasurementApi/putMeasurement',
                 request_serializer=api__pb2.msmtSample.SerializeToString,
-                response_deserializer=api__pb2.nothing.FromString,
+                response_deserializer=api__pb2.sampleAck.FromString,
                 _registered_method=True)
         self.getMsmtSttngsAndStart = channel.unary_unary(
                 '/autopapi.CMeasurementApi/getMsmtSttngsAndStart',
@@ -210,10 +210,10 @@ def add_CMeasurementApiServicer_to_server(servicer, server):
                     request_deserializer=api__pb2.msmtName.FromString,
                     response_serializer=api__pb2.nothing.SerializeToString,
             ),
-            'putMeasurement': grpc.stream_unary_rpc_method_handler(
+            'putMeasurement': grpc.stream_stream_rpc_method_handler(
                     servicer.putMeasurement,
                     request_deserializer=api__pb2.msmtSample.FromString,
-                    response_serializer=api__pb2.nothing.SerializeToString,
+                    response_serializer=api__pb2.sampleAck.SerializeToString,
             ),
             'getMsmtSttngsAndStart': grpc.unary_unary_rpc_method_handler(
                     servicer.getMsmtSttngsAndStart,
@@ -353,12 +353,12 @@ class CMeasurementApi(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.stream_unary(
+        return grpc.experimental.stream_stream(
             request_iterator,
             target,
             '/autopapi.CMeasurementApi/putMeasurement',
             api__pb2.msmtSample.SerializeToString,
-            api__pb2.nothing.FromString,
+            api__pb2.sampleAck.FromString,
             options,
             channel_credentials,
             insecure,

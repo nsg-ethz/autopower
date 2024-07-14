@@ -113,16 +113,24 @@ class msmtSettings(_message.Message):
     def __init__(self, clientUid: _Optional[str] = ..., ppDevice: _Optional[str] = ..., ppSamplingInterval: _Optional[str] = ..., uploadIntervalMin: _Optional[int] = ...) -> None: ...
 
 class msmtSample(_message.Message):
-    __slots__ = ("clientUid", "msmtId", "msmtTime", "msmtContent")
+    __slots__ = ("clientUid", "msmtId", "msmtTime", "msmtContent", "sampleId")
     CLIENTUID_FIELD_NUMBER: _ClassVar[int]
     MSMTID_FIELD_NUMBER: _ClassVar[int]
     MSMTTIME_FIELD_NUMBER: _ClassVar[int]
     MSMTCONTENT_FIELD_NUMBER: _ClassVar[int]
+    SAMPLEID_FIELD_NUMBER: _ClassVar[int]
     clientUid: str
     msmtId: str
     msmtTime: _timestamp_pb2.Timestamp
     msmtContent: int
-    def __init__(self, clientUid: _Optional[str] = ..., msmtId: _Optional[str] = ..., msmtTime: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., msmtContent: _Optional[int] = ...) -> None: ...
+    sampleId: int
+    def __init__(self, clientUid: _Optional[str] = ..., msmtId: _Optional[str] = ..., msmtTime: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., msmtContent: _Optional[int] = ..., sampleId: _Optional[int] = ...) -> None: ...
+
+class sampleAck(_message.Message):
+    __slots__ = ("sampleId",)
+    SAMPLEID_FIELD_NUMBER: _ClassVar[int]
+    sampleId: int
+    def __init__(self, sampleId: _Optional[int] = ...) -> None: ...
 
 class msmtName(_message.Message):
     __slots__ = ("clientUid", "name")

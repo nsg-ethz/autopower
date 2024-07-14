@@ -88,6 +88,11 @@ message msmtSample {
   string msmtId = 2; // id of measurement this sample belongs to
   google.protobuf.Timestamp msmtTime = 3;
   uint32 msmtContent = 4;
+  uint64 sampleId = 5; // sample ID to ack
+}
+
+message sampleAck {
+  uint64 sampleId = 1; // the sample to acknowledge correct receival
 }
 
 message msmtName {
@@ -135,7 +140,7 @@ service CMeasurementApi {
   rpc putMeasurementList(stream msmtName) returns (nothing) {}
   // upload measurement/measurement samples to server
   // @param msmtSample stream is the file content requested by the server initially
-  rpc putMeasurement(stream msmtSample) returns (nothing) {}
+  rpc putMeasurement(stream msmtSample) returns (stream sampleAck) {}
   // gets all necessary data for measurement and then immediately starts the measurement
   // @returns measurement settings
   rpc getMsmtSttngsAndStart(clientUid) returns (msmtSettings) {}

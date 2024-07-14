@@ -95,6 +95,9 @@ extern nothingDefaultTypeInternal _nothing_default_instance_;
 class registrationStatus;
 struct registrationStatusDefaultTypeInternal;
 extern registrationStatusDefaultTypeInternal _registrationStatus_default_instance_;
+class sampleAck;
+struct sampleAckDefaultTypeInternal;
+extern sampleAckDefaultTypeInternal _sampleAck_default_instance_;
 class srvRequest;
 struct srvRequestDefaultTypeInternal;
 extern srvRequestDefaultTypeInternal _srvRequest_default_instance_;
@@ -404,6 +407,181 @@ class srvRequest final :
     ::google::protobuf::internal::ArenaStringPtr requestbody_;
     int msgtype_;
     ::uint32_t requestno_;
+    PROTOBUF_TSAN_DECLARE_MEMBER
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_api_2eproto;
+};// -------------------------------------------------------------------
+
+class sampleAck final :
+    public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:autopapi.sampleAck) */ {
+ public:
+  inline sampleAck() : sampleAck(nullptr) {}
+  ~sampleAck() override;
+  template<typename = void>
+  explicit PROTOBUF_CONSTEXPR sampleAck(::google::protobuf::internal::ConstantInitialized);
+
+  inline sampleAck(const sampleAck& from)
+      : sampleAck(nullptr, from) {}
+  sampleAck(sampleAck&& from) noexcept
+    : sampleAck() {
+    *this = ::std::move(from);
+  }
+
+  inline sampleAck& operator=(const sampleAck& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline sampleAck& operator=(sampleAck&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetArena() == from.GetArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  inline const ::google::protobuf::UnknownFieldSet& unknown_fields() const
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance);
+  }
+  inline ::google::protobuf::UnknownFieldSet* mutable_unknown_fields()
+      ABSL_ATTRIBUTE_LIFETIME_BOUND {
+    return _internal_metadata_.mutable_unknown_fields<::google::protobuf::UnknownFieldSet>();
+  }
+
+  static const ::google::protobuf::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::google::protobuf::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::google::protobuf::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const sampleAck& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const sampleAck* internal_default_instance() {
+    return reinterpret_cast<const sampleAck*>(
+               &_sampleAck_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    9;
+
+  friend void swap(sampleAck& a, sampleAck& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(sampleAck* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() != nullptr &&
+        GetArena() == other->GetArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetArena() == other->GetArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::google::protobuf::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(sampleAck* other) {
+    if (other == this) return;
+    ABSL_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  sampleAck* New(::google::protobuf::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<sampleAck>(arena);
+  }
+  using ::google::protobuf::Message::CopyFrom;
+  void CopyFrom(const sampleAck& from);
+  using ::google::protobuf::Message::MergeFrom;
+  void MergeFrom( const sampleAck& from) {
+    sampleAck::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  ::size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::google::protobuf::internal::ParseContext* ctx) final;
+  ::uint8_t* _InternalSerialize(
+      ::uint8_t* target, ::google::protobuf::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const { return _impl_._cached_size_.Get(); }
+
+  private:
+  ::google::protobuf::internal::CachedSize* AccessCachedSize() const final;
+  void SharedCtor(::google::protobuf::Arena* arena);
+  void SharedDtor();
+  void InternalSwap(sampleAck* other);
+
+  private:
+  friend class ::google::protobuf::internal::AnyMetadata;
+  static ::absl::string_view FullMessageName() {
+    return "autopapi.sampleAck";
+  }
+  protected:
+  explicit sampleAck(::google::protobuf::Arena* arena);
+  sampleAck(::google::protobuf::Arena* arena, const sampleAck& from);
+  public:
+
+  static const ClassData _class_data_;
+  const ::google::protobuf::Message::ClassData*GetClassData() const final;
+
+  ::google::protobuf::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kSampleIdFieldNumber = 1,
+  };
+  // uint64 sampleId = 1;
+  void clear_sampleid() ;
+  ::uint64_t sampleid() const;
+  void set_sampleid(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_sampleid() const;
+  void _internal_set_sampleid(::uint64_t value);
+
+  public:
+  // @@protoc_insertion_point(class_scope:autopapi.sampleAck)
+ private:
+  class _Internal;
+
+  friend class ::google::protobuf::internal::TcParser;
+  static const ::google::protobuf::internal::TcParseTable<
+      0, 1, 0,
+      0, 2>
+      _table_;
+  friend class ::google::protobuf::MessageLite;
+  friend class ::google::protobuf::Arena;
+  template <typename T>
+  friend class ::google::protobuf::Arena::InternalHelper;
+  using InternalArenaConstructable_ = void;
+  using DestructorSkippable_ = void;
+  struct Impl_ {
+
+        inline explicit constexpr Impl_(
+            ::google::protobuf::internal::ConstantInitialized) noexcept;
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena);
+        inline explicit Impl_(::google::protobuf::internal::InternalVisibility visibility,
+                              ::google::protobuf::Arena* arena, const Impl_& from);
+    ::uint64_t sampleid_;
+    mutable ::google::protobuf::internal::CachedSize _cached_size_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
   union { Impl_ _impl_; };
@@ -1033,7 +1211,7 @@ class msmtName final :
                &_msmtName_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    9;
+    10;
 
   friend void swap(msmtName& a, msmtName& b) {
     a.Swap(&b);
@@ -1232,7 +1410,7 @@ class mgmtRequest final :
                &_mgmtRequest_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    12;
+    13;
 
   friend void swap(mgmtRequest& a, mgmtRequest& b) {
     a.Swap(&b);
@@ -1494,7 +1672,7 @@ class mgmtMsmtSettings final :
                &_mgmtMsmtSettings_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    11;
+    12;
 
   friend void swap(mgmtMsmtSettings& a, mgmtMsmtSettings& b) {
     a.Swap(&b);
@@ -1759,7 +1937,7 @@ class mgmtAuth final :
                &_mgmtAuth_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    10;
+    11;
 
   friend void swap(mgmtAuth& a, mgmtAuth& b) {
     a.Swap(&b);
@@ -2880,6 +3058,7 @@ class msmtSample final :
     kClientUidFieldNumber = 1,
     kMsmtIdFieldNumber = 2,
     kMsmtTimeFieldNumber = 3,
+    kSampleIdFieldNumber = 5,
     kMsmtContentFieldNumber = 4,
   };
   // string clientUid = 1;
@@ -2929,6 +3108,16 @@ class msmtSample final :
   ::google::protobuf::Timestamp* _internal_mutable_msmttime();
 
   public:
+  // uint64 sampleId = 5;
+  void clear_sampleid() ;
+  ::uint64_t sampleid() const;
+  void set_sampleid(::uint64_t value);
+
+  private:
+  ::uint64_t _internal_sampleid() const;
+  void _internal_set_sampleid(::uint64_t value);
+
+  public:
   // uint32 msmtContent = 4;
   void clear_msmtcontent() ;
   ::uint32_t msmtcontent() const;
@@ -2945,7 +3134,7 @@ class msmtSample final :
 
   friend class ::google::protobuf::internal::TcParser;
   static const ::google::protobuf::internal::TcParseTable<
-      2, 4, 1,
+      3, 5, 1,
       43, 2>
       _table_;
   friend class ::google::protobuf::MessageLite;
@@ -2967,6 +3156,7 @@ class msmtSample final :
     ::google::protobuf::internal::ArenaStringPtr clientuid_;
     ::google::protobuf::internal::ArenaStringPtr msmtid_;
     ::google::protobuf::Timestamp* msmttime_;
+    ::uint64_t sampleid_;
     ::uint32_t msmtcontent_;
     PROTOBUF_TSAN_DECLARE_MEMBER
   };
@@ -4232,6 +4422,56 @@ inline void msmtSample::_internal_set_msmtcontent(::uint32_t value) {
   PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
   ;
   _impl_.msmtcontent_ = value;
+}
+
+// uint64 sampleId = 5;
+inline void msmtSample::clear_sampleid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.sampleid_ = ::uint64_t{0u};
+}
+inline ::uint64_t msmtSample::sampleid() const {
+  // @@protoc_insertion_point(field_get:autopapi.msmtSample.sampleId)
+  return _internal_sampleid();
+}
+inline void msmtSample::set_sampleid(::uint64_t value) {
+  _internal_set_sampleid(value);
+  // @@protoc_insertion_point(field_set:autopapi.msmtSample.sampleId)
+}
+inline ::uint64_t msmtSample::_internal_sampleid() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.sampleid_;
+}
+inline void msmtSample::_internal_set_sampleid(::uint64_t value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.sampleid_ = value;
+}
+
+// -------------------------------------------------------------------
+
+// sampleAck
+
+// uint64 sampleId = 1;
+inline void sampleAck::clear_sampleid() {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  _impl_.sampleid_ = ::uint64_t{0u};
+}
+inline ::uint64_t sampleAck::sampleid() const {
+  // @@protoc_insertion_point(field_get:autopapi.sampleAck.sampleId)
+  return _internal_sampleid();
+}
+inline void sampleAck::set_sampleid(::uint64_t value) {
+  _internal_set_sampleid(value);
+  // @@protoc_insertion_point(field_set:autopapi.sampleAck.sampleId)
+}
+inline ::uint64_t sampleAck::_internal_sampleid() const {
+  PROTOBUF_TSAN_READ(&_impl_._tsan_detect_race);
+  return _impl_.sampleid_;
+}
+inline void sampleAck::_internal_set_sampleid(::uint64_t value) {
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ;
+  _impl_.sampleid_ = value;
 }
 
 // -------------------------------------------------------------------

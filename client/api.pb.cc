@@ -48,6 +48,25 @@ struct srvRequestDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 srvRequestDefaultTypeInternal _srvRequest_default_instance_;
 
+inline constexpr sampleAck::Impl_::Impl_(
+    ::_pbi::ConstantInitialized) noexcept
+      : sampleid_{::uint64_t{0u}},
+        _cached_size_{0} {}
+
+template <typename>
+PROTOBUF_CONSTEXPR sampleAck::sampleAck(::_pbi::ConstantInitialized)
+    : _impl_(::_pbi::ConstantInitialized()) {}
+struct sampleAckDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR sampleAckDefaultTypeInternal() : _instance(::_pbi::ConstantInitialized{}) {}
+  ~sampleAckDefaultTypeInternal() {}
+  union {
+    sampleAck _instance;
+  };
+};
+
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
+    PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 sampleAckDefaultTypeInternal _sampleAck_default_instance_;
+
 inline constexpr registrationStatus::Impl_::Impl_(
     ::_pbi::ConstantInitialized) noexcept
       : clientuid_(
@@ -336,6 +355,7 @@ inline constexpr msmtSample::Impl_::Impl_(
             &::google::protobuf::internal::fixed_address_empty_string,
             ::_pbi::ConstantInitialized()),
         msmttime_{nullptr},
+        sampleid_{::uint64_t{0u}},
         msmtcontent_{0u} {}
 
 template <typename>
@@ -352,7 +372,7 @@ struct msmtSampleDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT
     PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 msmtSampleDefaultTypeInternal _msmtSample_default_instance_;
 }  // namespace autopapi
-static ::_pb::Metadata file_level_metadata_api_2eproto[13];
+static ::_pb::Metadata file_level_metadata_api_2eproto[14];
 static const ::_pb::EnumDescriptor* file_level_enum_descriptors_api_2eproto[2];
 static constexpr const ::_pb::ServiceDescriptor**
     file_level_service_descriptors_api_2eproto = nullptr;
@@ -465,10 +485,21 @@ const ::uint32_t TableStruct_api_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(
     PROTOBUF_FIELD_OFFSET(::autopapi::msmtSample, _impl_.msmtid_),
     PROTOBUF_FIELD_OFFSET(::autopapi::msmtSample, _impl_.msmttime_),
     PROTOBUF_FIELD_OFFSET(::autopapi::msmtSample, _impl_.msmtcontent_),
+    PROTOBUF_FIELD_OFFSET(::autopapi::msmtSample, _impl_.sampleid_),
     ~0u,
     ~0u,
     0,
     ~0u,
+    ~0u,
+    ~0u,  // no _has_bits_
+    PROTOBUF_FIELD_OFFSET(::autopapi::sampleAck, _internal_metadata_),
+    ~0u,  // no _extensions_
+    ~0u,  // no _oneof_case_
+    ~0u,  // no _weak_field_map_
+    ~0u,  // no _inlined_string_donated_
+    ~0u,  // no _split_
+    ~0u,  // no sizeof(Split)
+    PROTOBUF_FIELD_OFFSET(::autopapi::sampleAck, _impl_.sampleid_),
     ~0u,  // no _has_bits_
     PROTOBUF_FIELD_OFFSET(::autopapi::msmtName, _internal_metadata_),
     ~0u,  // no _extensions_
@@ -535,11 +566,12 @@ static const ::_pbi::MigrationSchema
         {62, -1, -1, sizeof(::autopapi::authClientUid)},
         {73, -1, -1, sizeof(::autopapi::registrationStatus)},
         {83, -1, -1, sizeof(::autopapi::msmtSettings)},
-        {95, 107, -1, sizeof(::autopapi::msmtSample)},
-        {111, -1, -1, sizeof(::autopapi::msmtName)},
-        {121, -1, -1, sizeof(::autopapi::mgmtAuth)},
-        {131, -1, -1, sizeof(::autopapi::mgmtMsmtSettings)},
-        {145, 159, -1, sizeof(::autopapi::mgmtRequest)},
+        {95, 108, -1, sizeof(::autopapi::msmtSample)},
+        {113, -1, -1, sizeof(::autopapi::sampleAck)},
+        {122, -1, -1, sizeof(::autopapi::msmtName)},
+        {132, -1, -1, sizeof(::autopapi::mgmtAuth)},
+        {142, -1, -1, sizeof(::autopapi::mgmtMsmtSettings)},
+        {156, 170, -1, sizeof(::autopapi::mgmtRequest)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
@@ -552,6 +584,7 @@ static const ::_pb::Message* const file_default_instances[] = {
     &::autopapi::_registrationStatus_default_instance_._instance,
     &::autopapi::_msmtSettings_default_instance_._instance,
     &::autopapi::_msmtSample_default_instance_._instance,
+    &::autopapi::_sampleAck_default_instance_._instance,
     &::autopapi::_msmtName_default_instance_._instance,
     &::autopapi::_mgmtAuth_default_instance_._instance,
     &::autopapi::_mgmtMsmtSettings_default_instance_._instance,
@@ -574,49 +607,51 @@ const char descriptor_table_protodef_api_2eproto[] PROTOBUF_SECTION_VARIABLE(pro
     "onStatus\022\021\n\tclientUid\030\001 \001(\t\022\021\n\tregStatus"
     "\030\002 \001(\t\"j\n\014msmtSettings\022\021\n\tclientUid\030\001 \001("
     "\t\022\020\n\010ppDevice\030\003 \001(\t\022\032\n\022ppSamplingInterva"
-    "l\030\004 \001(\t\022\031\n\021uploadIntervalMin\030\005 \001(\r\"r\n\nms"
-    "mtSample\022\021\n\tclientUid\030\001 \001(\t\022\016\n\006msmtId\030\002 "
-    "\001(\t\022,\n\010msmtTime\030\003 \001(\0132\032.google.protobuf."
-    "Timestamp\022\023\n\013msmtContent\030\004 \001(\r\"+\n\010msmtNa"
-    "me\022\021\n\tclientUid\030\001 \001(\t\022\014\n\004name\030\002 \001(\t\"&\n\010m"
-    "gmtAuth\022\016\n\006mgmtId\030\001 \001(\t\022\n\n\002pw\030\002 \001(\t\"\212\001\n\020"
-    "mgmtMsmtSettings\022\021\n\tclientUid\030\001 \001(\t\022\020\n\010p"
-    "pDevice\030\003 \001(\t\022\032\n\022ppSamplingInterval\030\004 \001("
-    "\t\022\031\n\021uploadIntervalMin\030\005 \001(\r\022\016\n\006mgmtId\030\006"
-    " \001(\t\022\n\n\002pw\030\007 \001(\t\"\267\001\n\013mgmtRequest\022\021\n\tclie"
-    "ntUid\030\001 \001(\t\022)\n\007msgType\030\002 \001(\0162\030.autopapi."
-    "srvRequestType\022\030\n\013requestBody\030\003 \001(\tH\000\210\001\001"
-    "\022\026\n\trequestNo\030\004 \001(\rH\001\210\001\001\022\016\n\006mgmtId\030\005 \001(\t"
-    "\022\n\n\002pw\030\006 \001(\tB\016\n\014_requestBodyB\014\n\n_request"
-    "No*\257\001\n\016srvRequestType\022\024\n\020INTRODUCE_SERVE"
-    "R\020\000\022\025\n\021START_MEASUREMENT\020\001\022\024\n\020STOP_MEASU"
-    "REMENT\020\002\022\034\n\030REQUEST_MEASUREMENT_LIST\020\003\022\034"
-    "\n\030REQUEST_MEASUREMENT_DATA\020\004\022\036\n\032REQUEST_"
-    "MEASUREMENT_STATUS\020\005*\315\001\n\022clientResponseT"
-    "ype\022\024\n\020INTRODUCE_CLIENT\020\000\022 \n\034STARTED_MEA"
-    "SUREMENT_RESPONSE\020\001\022 \n\034STOPPED_MEASUREME"
-    "NT_RESPONSE\020\002\022\035\n\031MEASUREMENT_LIST_RESPON"
-    "SE\020\003\022\035\n\031MEASUREMENT_DATA_RESPONSE\020\004\022\037\n\033M"
-    "EASUREMENT_STATUS_RESPONSE\020\0052\363\005\n\017CMeasur"
-    "ementApi\022\?\n\016registerClient\022\023.autopapi.cl"
-    "ientUid\032\024.autopapi.srvRequest\"\0000\001\022B\n\021put"
-    "ClientResponse\022\030.autopapi.clientResponse"
-    "\032\021.autopapi.nothing\"\000\022\?\n\022putMeasurementL"
-    "ist\022\022.autopapi.msmtName\032\021.autopapi.nothi"
-    "ng\"\000(\001\022=\n\016putMeasurement\022\024.autopapi.msmt"
-    "Sample\032\021.autopapi.nothing\"\000(\001\022F\n\025getMsmt"
-    "SttngsAndStart\022\023.autopapi.clientUid\032\026.au"
-    "topapi.msmtSettings\"\000\0226\n\014putStatusMsg\022\021."
-    "autopapi.cmMCode\032\021.autopapi.nothing\"\000\022A\n"
-    "\022getLoggedInClients\022\022.autopapi.mgmtAuth\032"
-    "\023.autopapi.clientUid\"\0000\001\022P\n\025getRegistrat"
-    "ionStatus\022\027.autopapi.authClientUid\032\034.aut"
-    "opapi.registrationStatus\"\000\022A\n\016setMsmtStt"
-    "ings\022\032.autopapi.mgmtMsmtSettings\032\021.autop"
-    "api.nothing\"\000\022I\n\024issueRequestToClient\022\025."
-    "autopapi.mgmtRequest\032\030.autopapi.clientRe"
-    "sponse\"\000\0228\n\013getMessages\022\022.autopapi.mgmtA"
-    "uth\032\021.autopapi.cmMCode\"\0000\001b\006proto3"
+    "l\030\004 \001(\t\022\031\n\021uploadIntervalMin\030\005 \001(\r\"\204\001\n\nm"
+    "smtSample\022\021\n\tclientUid\030\001 \001(\t\022\016\n\006msmtId\030\002"
+    " \001(\t\022,\n\010msmtTime\030\003 \001(\0132\032.google.protobuf"
+    ".Timestamp\022\023\n\013msmtContent\030\004 \001(\r\022\020\n\010sampl"
+    "eId\030\005 \001(\004\"\035\n\tsampleAck\022\020\n\010sampleId\030\001 \001(\004"
+    "\"+\n\010msmtName\022\021\n\tclientUid\030\001 \001(\t\022\014\n\004name\030"
+    "\002 \001(\t\"&\n\010mgmtAuth\022\016\n\006mgmtId\030\001 \001(\t\022\n\n\002pw\030"
+    "\002 \001(\t\"\212\001\n\020mgmtMsmtSettings\022\021\n\tclientUid\030"
+    "\001 \001(\t\022\020\n\010ppDevice\030\003 \001(\t\022\032\n\022ppSamplingInt"
+    "erval\030\004 \001(\t\022\031\n\021uploadIntervalMin\030\005 \001(\r\022\016"
+    "\n\006mgmtId\030\006 \001(\t\022\n\n\002pw\030\007 \001(\t\"\267\001\n\013mgmtReque"
+    "st\022\021\n\tclientUid\030\001 \001(\t\022)\n\007msgType\030\002 \001(\0162\030"
+    ".autopapi.srvRequestType\022\030\n\013requestBody\030"
+    "\003 \001(\tH\000\210\001\001\022\026\n\trequestNo\030\004 \001(\rH\001\210\001\001\022\016\n\006mg"
+    "mtId\030\005 \001(\t\022\n\n\002pw\030\006 \001(\tB\016\n\014_requestBodyB\014"
+    "\n\n_requestNo*\257\001\n\016srvRequestType\022\024\n\020INTRO"
+    "DUCE_SERVER\020\000\022\025\n\021START_MEASUREMENT\020\001\022\024\n\020"
+    "STOP_MEASUREMENT\020\002\022\034\n\030REQUEST_MEASUREMEN"
+    "T_LIST\020\003\022\034\n\030REQUEST_MEASUREMENT_DATA\020\004\022\036"
+    "\n\032REQUEST_MEASUREMENT_STATUS\020\005*\315\001\n\022clien"
+    "tResponseType\022\024\n\020INTRODUCE_CLIENT\020\000\022 \n\034S"
+    "TARTED_MEASUREMENT_RESPONSE\020\001\022 \n\034STOPPED"
+    "_MEASUREMENT_RESPONSE\020\002\022\035\n\031MEASUREMENT_L"
+    "IST_RESPONSE\020\003\022\035\n\031MEASUREMENT_DATA_RESPO"
+    "NSE\020\004\022\037\n\033MEASUREMENT_STATUS_RESPONSE\020\0052\367"
+    "\005\n\017CMeasurementApi\022\?\n\016registerClient\022\023.a"
+    "utopapi.clientUid\032\024.autopapi.srvRequest\""
+    "\0000\001\022B\n\021putClientResponse\022\030.autopapi.clie"
+    "ntResponse\032\021.autopapi.nothing\"\000\022\?\n\022putMe"
+    "asurementList\022\022.autopapi.msmtName\032\021.auto"
+    "papi.nothing\"\000(\001\022A\n\016putMeasurement\022\024.aut"
+    "opapi.msmtSample\032\023.autopapi.sampleAck\"\000("
+    "\0010\001\022F\n\025getMsmtSttngsAndStart\022\023.autopapi."
+    "clientUid\032\026.autopapi.msmtSettings\"\000\0226\n\014p"
+    "utStatusMsg\022\021.autopapi.cmMCode\032\021.autopap"
+    "i.nothing\"\000\022A\n\022getLoggedInClients\022\022.auto"
+    "papi.mgmtAuth\032\023.autopapi.clientUid\"\0000\001\022P"
+    "\n\025getRegistrationStatus\022\027.autopapi.authC"
+    "lientUid\032\034.autopapi.registrationStatus\"\000"
+    "\022A\n\016setMsmtSttings\022\032.autopapi.mgmtMsmtSe"
+    "ttings\032\021.autopapi.nothing\"\000\022I\n\024issueRequ"
+    "estToClient\022\025.autopapi.mgmtRequest\032\030.aut"
+    "opapi.clientResponse\"\000\0228\n\013getMessages\022\022."
+    "autopapi.mgmtAuth\032\021.autopapi.cmMCode\"\0000\001"
+    "b\006proto3"
 };
 static const ::_pbi::DescriptorTable* const descriptor_table_api_2eproto_deps[1] =
     {
@@ -626,13 +661,13 @@ static ::absl::once_flag descriptor_table_api_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_api_2eproto = {
     false,
     false,
-    2354,
+    2408,
     descriptor_table_protodef_api_2eproto,
     "api.proto",
     &descriptor_table_api_2eproto_once,
     descriptor_table_api_2eproto_deps,
     1,
-    13,
+    14,
     schemas,
     file_default_instances,
     TableStruct_api_2eproto::offsets,
@@ -2564,7 +2599,13 @@ msmtSample::msmtSample(
   _impl_.msmttime_ = (cached_has_bits & 0x00000001u)
                 ? CreateMaybeMessage<::google::protobuf::Timestamp>(arena, *from._impl_.msmttime_)
                 : nullptr;
-  _impl_.msmtcontent_ = from._impl_.msmtcontent_;
+  ::memcpy(reinterpret_cast<char *>(&_impl_) +
+               offsetof(Impl_, sampleid_),
+           reinterpret_cast<const char *>(&from._impl_) +
+               offsetof(Impl_, sampleid_),
+           offsetof(Impl_, msmtcontent_) -
+               offsetof(Impl_, sampleid_) +
+               sizeof(Impl_::msmtcontent_));
 
   // @@protoc_insertion_point(copy_constructor:autopapi.msmtSample)
 }
@@ -2611,7 +2652,9 @@ PROTOBUF_NOINLINE void msmtSample::Clear() {
     ABSL_DCHECK(_impl_.msmttime_ != nullptr);
     _impl_.msmttime_->Clear();
   }
-  _impl_.msmtcontent_ = 0u;
+  ::memset(&_impl_.sampleid_, 0, static_cast<::size_t>(
+      reinterpret_cast<char*>(&_impl_.msmtcontent_) -
+      reinterpret_cast<char*>(&_impl_.sampleid_)) + sizeof(_impl_.msmtcontent_));
   _impl_._has_bits_.Clear();
   _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
 }
@@ -2624,23 +2667,21 @@ const char* msmtSample::_InternalParse(
 
 
 PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
-const ::_pbi::TcParseTable<2, 4, 1, 43, 2> msmtSample::_table_ = {
+const ::_pbi::TcParseTable<3, 5, 1, 43, 2> msmtSample::_table_ = {
   {
     PROTOBUF_FIELD_OFFSET(msmtSample, _impl_._has_bits_),
     0, // no _extensions_
-    4, 24,  // max_field_number, fast_idx_mask
+    5, 56,  // max_field_number, fast_idx_mask
     offsetof(decltype(_table_), field_lookup_table),
-    4294967280,  // skipmap
+    4294967264,  // skipmap
     offsetof(decltype(_table_), field_entries),
-    4,  // num_field_entries
+    5,  // num_field_entries
     1,  // num_aux_entries
     offsetof(decltype(_table_), aux_entries),
     &_msmtSample_default_instance_._instance,
     ::_pbi::TcParser::GenericFallback,  // fallback
   }, {{
-    // uint32 msmtContent = 4;
-    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(msmtSample, _impl_.msmtcontent_), 63>(),
-     {32, 63, 0, PROTOBUF_FIELD_OFFSET(msmtSample, _impl_.msmtcontent_)}},
+    {::_pbi::TcParser::MiniParse, {}},
     // string clientUid = 1;
     {::_pbi::TcParser::FastUS1,
      {10, 63, 0, PROTOBUF_FIELD_OFFSET(msmtSample, _impl_.clientuid_)}},
@@ -2650,6 +2691,14 @@ const ::_pbi::TcParseTable<2, 4, 1, 43, 2> msmtSample::_table_ = {
     // .google.protobuf.Timestamp msmtTime = 3;
     {::_pbi::TcParser::FastMtS1,
      {26, 0, 0, PROTOBUF_FIELD_OFFSET(msmtSample, _impl_.msmttime_)}},
+    // uint32 msmtContent = 4;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint32_t, offsetof(msmtSample, _impl_.msmtcontent_), 63>(),
+     {32, 63, 0, PROTOBUF_FIELD_OFFSET(msmtSample, _impl_.msmtcontent_)}},
+    // uint64 sampleId = 5;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(msmtSample, _impl_.sampleid_), 63>(),
+     {40, 63, 0, PROTOBUF_FIELD_OFFSET(msmtSample, _impl_.sampleid_)}},
+    {::_pbi::TcParser::MiniParse, {}},
+    {::_pbi::TcParser::MiniParse, {}},
   }}, {{
     65535, 65535
   }}, {{
@@ -2665,6 +2714,9 @@ const ::_pbi::TcParseTable<2, 4, 1, 43, 2> msmtSample::_table_ = {
     // uint32 msmtContent = 4;
     {PROTOBUF_FIELD_OFFSET(msmtSample, _impl_.msmtcontent_), -1, 0,
     (0 | ::_fl::kFcSingular | ::_fl::kUInt32)},
+    // uint64 sampleId = 5;
+    {PROTOBUF_FIELD_OFFSET(msmtSample, _impl_.sampleid_), -1, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUInt64)},
   }}, {{
     {::_pbi::TcParser::GetTable<::google::protobuf::Timestamp>()},
   }}, {{
@@ -2713,6 +2765,13 @@ const ::_pbi::TcParseTable<2, 4, 1, 43, 2> msmtSample::_table_ = {
         4, this->_internal_msmtcontent(), target);
   }
 
+  // uint64 sampleId = 5;
+  if (this->_internal_sampleid() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
+        5, this->_internal_sampleid(), target);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target =
         ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
@@ -2749,6 +2808,12 @@ const ::_pbi::TcParseTable<2, 4, 1, 43, 2> msmtSample::_table_ = {
         1 + ::google::protobuf::internal::WireFormatLite::MessageSize(*_impl_.msmttime_);
   }
 
+  // uint64 sampleId = 5;
+  if (this->_internal_sampleid() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
+        this->_internal_sampleid());
+  }
+
   // uint32 msmtContent = 4;
   if (this->_internal_msmtcontent() != 0) {
     total_size += ::_pbi::WireFormatLite::UInt32SizePlusOne(
@@ -2783,6 +2848,9 @@ void msmtSample::MergeImpl(::google::protobuf::Message& to_msg, const ::google::
   if ((from._impl_._has_bits_[0] & 0x00000001u) != 0) {
     _this->_internal_mutable_msmttime()->::google::protobuf::Timestamp::MergeFrom(
         from._internal_msmttime());
+  }
+  if (from._internal_sampleid() != 0) {
+    _this->_internal_set_sampleid(from._internal_sampleid());
   }
   if (from._internal_msmtcontent() != 0) {
     _this->_internal_set_msmtcontent(from._internal_msmtcontent());
@@ -2824,6 +2892,176 @@ void msmtSample::InternalSwap(msmtSample* PROTOBUF_RESTRICT other) {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_api_2eproto_getter, &descriptor_table_api_2eproto_once,
       file_level_metadata_api_2eproto[8]);
+}
+// ===================================================================
+
+class sampleAck::_Internal {
+ public:
+};
+
+sampleAck::sampleAck(::google::protobuf::Arena* arena)
+    : ::google::protobuf::Message(arena) {
+  SharedCtor(arena);
+  // @@protoc_insertion_point(arena_constructor:autopapi.sampleAck)
+}
+sampleAck::sampleAck(
+    ::google::protobuf::Arena* arena, const sampleAck& from)
+    : sampleAck(arena) {
+  MergeFrom(from);
+}
+inline PROTOBUF_NDEBUG_INLINE sampleAck::Impl_::Impl_(
+    ::google::protobuf::internal::InternalVisibility visibility,
+    ::google::protobuf::Arena* arena)
+      : _cached_size_{0} {}
+
+inline void sampleAck::SharedCtor(::_pb::Arena* arena) {
+  new (&_impl_) Impl_(internal_visibility(), arena);
+  _impl_.sampleid_ = {};
+}
+sampleAck::~sampleAck() {
+  // @@protoc_insertion_point(destructor:autopapi.sampleAck)
+  _internal_metadata_.Delete<::google::protobuf::UnknownFieldSet>();
+  SharedDtor();
+}
+inline void sampleAck::SharedDtor() {
+  ABSL_DCHECK(GetArena() == nullptr);
+  _impl_.~Impl_();
+}
+
+PROTOBUF_NOINLINE void sampleAck::Clear() {
+// @@protoc_insertion_point(message_clear_start:autopapi.sampleAck)
+  PROTOBUF_TSAN_WRITE(&_impl_._tsan_detect_race);
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.sampleid_ = ::uint64_t{0u};
+  _internal_metadata_.Clear<::google::protobuf::UnknownFieldSet>();
+}
+
+const char* sampleAck::_InternalParse(
+    const char* ptr, ::_pbi::ParseContext* ctx) {
+  ptr = ::_pbi::TcParser::ParseLoop(this, ptr, ctx, &_table_.header);
+  return ptr;
+}
+
+
+PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1
+const ::_pbi::TcParseTable<0, 1, 0, 0, 2> sampleAck::_table_ = {
+  {
+    0,  // no _has_bits_
+    0, // no _extensions_
+    1, 0,  // max_field_number, fast_idx_mask
+    offsetof(decltype(_table_), field_lookup_table),
+    4294967294,  // skipmap
+    offsetof(decltype(_table_), field_entries),
+    1,  // num_field_entries
+    0,  // num_aux_entries
+    offsetof(decltype(_table_), field_names),  // no aux_entries
+    &_sampleAck_default_instance_._instance,
+    ::_pbi::TcParser::GenericFallback,  // fallback
+  }, {{
+    // uint64 sampleId = 1;
+    {::_pbi::TcParser::SingularVarintNoZag1<::uint64_t, offsetof(sampleAck, _impl_.sampleid_), 63>(),
+     {8, 63, 0, PROTOBUF_FIELD_OFFSET(sampleAck, _impl_.sampleid_)}},
+  }}, {{
+    65535, 65535
+  }}, {{
+    // uint64 sampleId = 1;
+    {PROTOBUF_FIELD_OFFSET(sampleAck, _impl_.sampleid_), 0, 0,
+    (0 | ::_fl::kFcSingular | ::_fl::kUInt64)},
+  }},
+  // no aux_entries
+  {{
+  }},
+};
+
+::uint8_t* sampleAck::_InternalSerialize(
+    ::uint8_t* target,
+    ::google::protobuf::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:autopapi.sampleAck)
+  ::uint32_t cached_has_bits = 0;
+  (void)cached_has_bits;
+
+  // uint64 sampleId = 1;
+  if (this->_internal_sampleid() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(
+        1, this->_internal_sampleid(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target =
+        ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+            _internal_metadata_.unknown_fields<::google::protobuf::UnknownFieldSet>(::google::protobuf::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:autopapi.sampleAck)
+  return target;
+}
+
+::size_t sampleAck::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:autopapi.sampleAck)
+  ::size_t total_size = 0;
+
+  ::uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // uint64 sampleId = 1;
+  if (this->_internal_sampleid() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(
+        this->_internal_sampleid());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::google::protobuf::Message::ClassData sampleAck::_class_data_ = {
+    sampleAck::MergeImpl,
+    nullptr,  // OnDemandRegisterArenaDtor
+};
+const ::google::protobuf::Message::ClassData* sampleAck::GetClassData() const {
+  return &_class_data_;
+}
+
+void sampleAck::MergeImpl(::google::protobuf::Message& to_msg, const ::google::protobuf::Message& from_msg) {
+  auto* const _this = static_cast<sampleAck*>(&to_msg);
+  auto& from = static_cast<const sampleAck&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:autopapi.sampleAck)
+  ABSL_DCHECK_NE(&from, _this);
+  ::uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_sampleid() != 0) {
+    _this->_internal_set_sampleid(from._internal_sampleid());
+  }
+  _this->_internal_metadata_.MergeFrom<::google::protobuf::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void sampleAck::CopyFrom(const sampleAck& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:autopapi.sampleAck)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+PROTOBUF_NOINLINE bool sampleAck::IsInitialized() const {
+  return true;
+}
+
+::_pbi::CachedSize* sampleAck::AccessCachedSize() const {
+  return &_impl_._cached_size_;
+}
+void sampleAck::InternalSwap(sampleAck* PROTOBUF_RESTRICT other) {
+  using std::swap;
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+        swap(_impl_.sampleid_, other->_impl_.sampleid_);
+}
+
+::google::protobuf::Metadata sampleAck::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_api_2eproto_getter, &descriptor_table_api_2eproto_once,
+      file_level_metadata_api_2eproto[9]);
 }
 // ===================================================================
 
@@ -3042,7 +3280,7 @@ void msmtName::InternalSwap(msmtName* PROTOBUF_RESTRICT other) {
 ::google::protobuf::Metadata msmtName::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_api_2eproto_getter, &descriptor_table_api_2eproto_once,
-      file_level_metadata_api_2eproto[9]);
+      file_level_metadata_api_2eproto[10]);
 }
 // ===================================================================
 
@@ -3261,7 +3499,7 @@ void mgmtAuth::InternalSwap(mgmtAuth* PROTOBUF_RESTRICT other) {
 ::google::protobuf::Metadata mgmtAuth::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_api_2eproto_getter, &descriptor_table_api_2eproto_once,
-      file_level_metadata_api_2eproto[10]);
+      file_level_metadata_api_2eproto[11]);
 }
 // ===================================================================
 
@@ -3595,7 +3833,7 @@ void mgmtMsmtSettings::InternalSwap(mgmtMsmtSettings* PROTOBUF_RESTRICT other) {
 ::google::protobuf::Metadata mgmtMsmtSettings::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_api_2eproto_getter, &descriptor_table_api_2eproto_once,
-      file_level_metadata_api_2eproto[11]);
+      file_level_metadata_api_2eproto[12]);
 }
 // ===================================================================
 
@@ -3956,7 +4194,7 @@ void mgmtRequest::InternalSwap(mgmtRequest* PROTOBUF_RESTRICT other) {
 ::google::protobuf::Metadata mgmtRequest::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_api_2eproto_getter, &descriptor_table_api_2eproto_once,
-      file_level_metadata_api_2eproto[12]);
+      file_level_metadata_api_2eproto[13]);
 }
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace autopapi

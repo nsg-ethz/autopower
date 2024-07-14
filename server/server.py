@@ -432,8 +432,10 @@ class CMeasurementApiServicer():
                     curs.execute("EXECUTE insMsmtData (%(msmtid)s, %(msmtvalue)s, %(msmtts)s)", {'msmtid': mmt.msmtId, 'msmtvalue': mmt.msmtContent, 'msmtts': mmtTime})
                     self.logClientWasSeenNow(mmt.clientUid)
                     con.commit()
-
-        return pbdef.api__pb2.nothing()
+                    # acknowledge writing to DB successfully
+                    ack = pbde.api__pb2.sampleAck()
+                    ack.sampleId = mmt.sampleId
+                    yield ack
 
     def getMsmtSttngsAndStart(self, request, context):
         cm = ClientManager()

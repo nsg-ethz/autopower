@@ -45,7 +45,7 @@ CMeasurementApi::Stub::Stub(const std::shared_ptr< ::grpc::ChannelInterface>& ch
   : channel_(channel), rpcmethod_registerClient_(CMeasurementApi_method_names[0], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
   , rpcmethod_putClientResponse_(CMeasurementApi_method_names[1], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_putMeasurementList_(CMeasurementApi_method_names[2], options.suffix_for_stats(),::grpc::internal::RpcMethod::CLIENT_STREAMING, channel)
-  , rpcmethod_putMeasurement_(CMeasurementApi_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::CLIENT_STREAMING, channel)
+  , rpcmethod_putMeasurement_(CMeasurementApi_method_names[3], options.suffix_for_stats(),::grpc::internal::RpcMethod::BIDI_STREAMING, channel)
   , rpcmethod_getMsmtSttngsAndStart_(CMeasurementApi_method_names[4], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_putStatusMsg_(CMeasurementApi_method_names[5], options.suffix_for_stats(),::grpc::internal::RpcMethod::NORMAL_RPC, channel)
   , rpcmethod_getLoggedInClients_(CMeasurementApi_method_names[6], options.suffix_for_stats(),::grpc::internal::RpcMethod::SERVER_STREAMING, channel)
@@ -110,20 +110,20 @@ void CMeasurementApi::Stub::async::putMeasurementList(::grpc::ClientContext* con
   return ::grpc::internal::ClientAsyncWriterFactory< ::autopapi::msmtName>::Create(channel_.get(), cq, rpcmethod_putMeasurementList_, context, response, false, nullptr);
 }
 
-::grpc::ClientWriter< ::autopapi::msmtSample>* CMeasurementApi::Stub::putMeasurementRaw(::grpc::ClientContext* context, ::autopapi::nothing* response) {
-  return ::grpc::internal::ClientWriterFactory< ::autopapi::msmtSample>::Create(channel_.get(), rpcmethod_putMeasurement_, context, response);
+::grpc::ClientReaderWriter< ::autopapi::msmtSample, ::autopapi::sampleAck>* CMeasurementApi::Stub::putMeasurementRaw(::grpc::ClientContext* context) {
+  return ::grpc::internal::ClientReaderWriterFactory< ::autopapi::msmtSample, ::autopapi::sampleAck>::Create(channel_.get(), rpcmethod_putMeasurement_, context);
 }
 
-void CMeasurementApi::Stub::async::putMeasurement(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::ClientWriteReactor< ::autopapi::msmtSample>* reactor) {
-  ::grpc::internal::ClientCallbackWriterFactory< ::autopapi::msmtSample>::Create(stub_->channel_.get(), stub_->rpcmethod_putMeasurement_, context, response, reactor);
+void CMeasurementApi::Stub::async::putMeasurement(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::autopapi::msmtSample,::autopapi::sampleAck>* reactor) {
+  ::grpc::internal::ClientCallbackReaderWriterFactory< ::autopapi::msmtSample,::autopapi::sampleAck>::Create(stub_->channel_.get(), stub_->rpcmethod_putMeasurement_, context, reactor);
 }
 
-::grpc::ClientAsyncWriter< ::autopapi::msmtSample>* CMeasurementApi::Stub::AsyncputMeasurementRaw(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::CompletionQueue* cq, void* tag) {
-  return ::grpc::internal::ClientAsyncWriterFactory< ::autopapi::msmtSample>::Create(channel_.get(), cq, rpcmethod_putMeasurement_, context, response, true, tag);
+::grpc::ClientAsyncReaderWriter< ::autopapi::msmtSample, ::autopapi::sampleAck>* CMeasurementApi::Stub::AsyncputMeasurementRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
+  return ::grpc::internal::ClientAsyncReaderWriterFactory< ::autopapi::msmtSample, ::autopapi::sampleAck>::Create(channel_.get(), cq, rpcmethod_putMeasurement_, context, true, tag);
 }
 
-::grpc::ClientAsyncWriter< ::autopapi::msmtSample>* CMeasurementApi::Stub::PrepareAsyncputMeasurementRaw(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::CompletionQueue* cq) {
-  return ::grpc::internal::ClientAsyncWriterFactory< ::autopapi::msmtSample>::Create(channel_.get(), cq, rpcmethod_putMeasurement_, context, response, false, nullptr);
+::grpc::ClientAsyncReaderWriter< ::autopapi::msmtSample, ::autopapi::sampleAck>* CMeasurementApi::Stub::PrepareAsyncputMeasurementRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
+  return ::grpc::internal::ClientAsyncReaderWriterFactory< ::autopapi::msmtSample, ::autopapi::sampleAck>::Create(channel_.get(), cq, rpcmethod_putMeasurement_, context, false, nullptr);
 }
 
 ::grpc::Status CMeasurementApi::Stub::getMsmtSttngsAndStart(::grpc::ClientContext* context, const ::autopapi::clientUid& request, ::autopapi::msmtSettings* response) {
@@ -306,13 +306,13 @@ CMeasurementApi::Service::Service() {
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       CMeasurementApi_method_names[3],
-      ::grpc::internal::RpcMethod::CLIENT_STREAMING,
-      new ::grpc::internal::ClientStreamingHandler< CMeasurementApi::Service, ::autopapi::msmtSample, ::autopapi::nothing>(
+      ::grpc::internal::RpcMethod::BIDI_STREAMING,
+      new ::grpc::internal::BidiStreamingHandler< CMeasurementApi::Service, ::autopapi::msmtSample, ::autopapi::sampleAck>(
           [](CMeasurementApi::Service* service,
              ::grpc::ServerContext* ctx,
-             ::grpc::ServerReader<::autopapi::msmtSample>* reader,
-             ::autopapi::nothing* resp) {
-               return service->putMeasurement(ctx, reader, resp);
+             ::grpc::ServerReaderWriter<::autopapi::sampleAck,
+             ::autopapi::msmtSample>* stream) {
+               return service->putMeasurement(ctx, stream);
              }, this)));
   AddMethod(new ::grpc::internal::RpcServiceMethod(
       CMeasurementApi_method_names[4],
@@ -410,10 +410,9 @@ CMeasurementApi::Service::~Service() {
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 
-::grpc::Status CMeasurementApi::Service::putMeasurement(::grpc::ServerContext* context, ::grpc::ServerReader< ::autopapi::msmtSample>* reader, ::autopapi::nothing* response) {
+::grpc::Status CMeasurementApi::Service::putMeasurement(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::autopapi::sampleAck, ::autopapi::msmtSample>* stream) {
   (void) context;
-  (void) reader;
-  (void) response;
+  (void) stream;
   return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
 }
 

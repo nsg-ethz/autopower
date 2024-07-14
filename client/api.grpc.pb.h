@@ -70,14 +70,14 @@ class CMeasurementApi final {
     }
     // upload measurement/measurement samples to server
     // @param msmtSample stream is the file content requested by the server initially
-    std::unique_ptr< ::grpc::ClientWriterInterface< ::autopapi::msmtSample>> putMeasurement(::grpc::ClientContext* context, ::autopapi::nothing* response) {
-      return std::unique_ptr< ::grpc::ClientWriterInterface< ::autopapi::msmtSample>>(putMeasurementRaw(context, response));
+    std::unique_ptr< ::grpc::ClientReaderWriterInterface< ::autopapi::msmtSample, ::autopapi::sampleAck>> putMeasurement(::grpc::ClientContext* context) {
+      return std::unique_ptr< ::grpc::ClientReaderWriterInterface< ::autopapi::msmtSample, ::autopapi::sampleAck>>(putMeasurementRaw(context));
     }
-    std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::autopapi::msmtSample>> AsyncputMeasurement(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::CompletionQueue* cq, void* tag) {
-      return std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::autopapi::msmtSample>>(AsyncputMeasurementRaw(context, response, cq, tag));
+    std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::autopapi::msmtSample, ::autopapi::sampleAck>> AsyncputMeasurement(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::autopapi::msmtSample, ::autopapi::sampleAck>>(AsyncputMeasurementRaw(context, cq, tag));
     }
-    std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::autopapi::msmtSample>> PrepareAsyncputMeasurement(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncWriterInterface< ::autopapi::msmtSample>>(PrepareAsyncputMeasurementRaw(context, response, cq));
+    std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::autopapi::msmtSample, ::autopapi::sampleAck>> PrepareAsyncputMeasurement(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriterInterface< ::autopapi::msmtSample, ::autopapi::sampleAck>>(PrepareAsyncputMeasurementRaw(context, cq));
     }
     // gets all necessary data for measurement and then immediately starts the measurement
     // @returns measurement settings
@@ -166,7 +166,7 @@ class CMeasurementApi final {
       virtual void putMeasurementList(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::ClientWriteReactor< ::autopapi::msmtName>* reactor) = 0;
       // upload measurement/measurement samples to server
       // @param msmtSample stream is the file content requested by the server initially
-      virtual void putMeasurement(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::ClientWriteReactor< ::autopapi::msmtSample>* reactor) = 0;
+      virtual void putMeasurement(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::autopapi::msmtSample,::autopapi::sampleAck>* reactor) = 0;
       // gets all necessary data for measurement and then immediately starts the measurement
       // @returns measurement settings
       virtual void getMsmtSttngsAndStart(::grpc::ClientContext* context, const ::autopapi::clientUid* request, ::autopapi::msmtSettings* response, std::function<void(::grpc::Status)>) = 0;
@@ -209,9 +209,9 @@ class CMeasurementApi final {
     virtual ::grpc::ClientWriterInterface< ::autopapi::msmtName>* putMeasurementListRaw(::grpc::ClientContext* context, ::autopapi::nothing* response) = 0;
     virtual ::grpc::ClientAsyncWriterInterface< ::autopapi::msmtName>* AsyncputMeasurementListRaw(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::CompletionQueue* cq, void* tag) = 0;
     virtual ::grpc::ClientAsyncWriterInterface< ::autopapi::msmtName>* PrepareAsyncputMeasurementListRaw(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::CompletionQueue* cq) = 0;
-    virtual ::grpc::ClientWriterInterface< ::autopapi::msmtSample>* putMeasurementRaw(::grpc::ClientContext* context, ::autopapi::nothing* response) = 0;
-    virtual ::grpc::ClientAsyncWriterInterface< ::autopapi::msmtSample>* AsyncputMeasurementRaw(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::CompletionQueue* cq, void* tag) = 0;
-    virtual ::grpc::ClientAsyncWriterInterface< ::autopapi::msmtSample>* PrepareAsyncputMeasurementRaw(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::CompletionQueue* cq) = 0;
+    virtual ::grpc::ClientReaderWriterInterface< ::autopapi::msmtSample, ::autopapi::sampleAck>* putMeasurementRaw(::grpc::ClientContext* context) = 0;
+    virtual ::grpc::ClientAsyncReaderWriterInterface< ::autopapi::msmtSample, ::autopapi::sampleAck>* AsyncputMeasurementRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) = 0;
+    virtual ::grpc::ClientAsyncReaderWriterInterface< ::autopapi::msmtSample, ::autopapi::sampleAck>* PrepareAsyncputMeasurementRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::msmtSettings>* AsyncgetMsmtSttngsAndStartRaw(::grpc::ClientContext* context, const ::autopapi::clientUid& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::msmtSettings>* PrepareAsyncgetMsmtSttngsAndStartRaw(::grpc::ClientContext* context, const ::autopapi::clientUid& request, ::grpc::CompletionQueue* cq) = 0;
     virtual ::grpc::ClientAsyncResponseReaderInterface< ::autopapi::nothing>* AsyncputStatusMsgRaw(::grpc::ClientContext* context, const ::autopapi::cmMCode& request, ::grpc::CompletionQueue* cq) = 0;
@@ -257,14 +257,14 @@ class CMeasurementApi final {
     std::unique_ptr< ::grpc::ClientAsyncWriter< ::autopapi::msmtName>> PrepareAsyncputMeasurementList(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::CompletionQueue* cq) {
       return std::unique_ptr< ::grpc::ClientAsyncWriter< ::autopapi::msmtName>>(PrepareAsyncputMeasurementListRaw(context, response, cq));
     }
-    std::unique_ptr< ::grpc::ClientWriter< ::autopapi::msmtSample>> putMeasurement(::grpc::ClientContext* context, ::autopapi::nothing* response) {
-      return std::unique_ptr< ::grpc::ClientWriter< ::autopapi::msmtSample>>(putMeasurementRaw(context, response));
+    std::unique_ptr< ::grpc::ClientReaderWriter< ::autopapi::msmtSample, ::autopapi::sampleAck>> putMeasurement(::grpc::ClientContext* context) {
+      return std::unique_ptr< ::grpc::ClientReaderWriter< ::autopapi::msmtSample, ::autopapi::sampleAck>>(putMeasurementRaw(context));
     }
-    std::unique_ptr< ::grpc::ClientAsyncWriter< ::autopapi::msmtSample>> AsyncputMeasurement(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::CompletionQueue* cq, void* tag) {
-      return std::unique_ptr< ::grpc::ClientAsyncWriter< ::autopapi::msmtSample>>(AsyncputMeasurementRaw(context, response, cq, tag));
+    std::unique_ptr<  ::grpc::ClientAsyncReaderWriter< ::autopapi::msmtSample, ::autopapi::sampleAck>> AsyncputMeasurement(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriter< ::autopapi::msmtSample, ::autopapi::sampleAck>>(AsyncputMeasurementRaw(context, cq, tag));
     }
-    std::unique_ptr< ::grpc::ClientAsyncWriter< ::autopapi::msmtSample>> PrepareAsyncputMeasurement(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::CompletionQueue* cq) {
-      return std::unique_ptr< ::grpc::ClientAsyncWriter< ::autopapi::msmtSample>>(PrepareAsyncputMeasurementRaw(context, response, cq));
+    std::unique_ptr<  ::grpc::ClientAsyncReaderWriter< ::autopapi::msmtSample, ::autopapi::sampleAck>> PrepareAsyncputMeasurement(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) {
+      return std::unique_ptr< ::grpc::ClientAsyncReaderWriter< ::autopapi::msmtSample, ::autopapi::sampleAck>>(PrepareAsyncputMeasurementRaw(context, cq));
     }
     ::grpc::Status getMsmtSttngsAndStart(::grpc::ClientContext* context, const ::autopapi::clientUid& request, ::autopapi::msmtSettings* response) override;
     std::unique_ptr< ::grpc::ClientAsyncResponseReader< ::autopapi::msmtSettings>> AsyncgetMsmtSttngsAndStart(::grpc::ClientContext* context, const ::autopapi::clientUid& request, ::grpc::CompletionQueue* cq) {
@@ -326,7 +326,7 @@ class CMeasurementApi final {
       void putClientResponse(::grpc::ClientContext* context, const ::autopapi::clientResponse* request, ::autopapi::nothing* response, std::function<void(::grpc::Status)>) override;
       void putClientResponse(::grpc::ClientContext* context, const ::autopapi::clientResponse* request, ::autopapi::nothing* response, ::grpc::ClientUnaryReactor* reactor) override;
       void putMeasurementList(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::ClientWriteReactor< ::autopapi::msmtName>* reactor) override;
-      void putMeasurement(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::ClientWriteReactor< ::autopapi::msmtSample>* reactor) override;
+      void putMeasurement(::grpc::ClientContext* context, ::grpc::ClientBidiReactor< ::autopapi::msmtSample,::autopapi::sampleAck>* reactor) override;
       void getMsmtSttngsAndStart(::grpc::ClientContext* context, const ::autopapi::clientUid* request, ::autopapi::msmtSettings* response, std::function<void(::grpc::Status)>) override;
       void getMsmtSttngsAndStart(::grpc::ClientContext* context, const ::autopapi::clientUid* request, ::autopapi::msmtSettings* response, ::grpc::ClientUnaryReactor* reactor) override;
       void putStatusMsg(::grpc::ClientContext* context, const ::autopapi::cmMCode* request, ::autopapi::nothing* response, std::function<void(::grpc::Status)>) override;
@@ -358,9 +358,9 @@ class CMeasurementApi final {
     ::grpc::ClientWriter< ::autopapi::msmtName>* putMeasurementListRaw(::grpc::ClientContext* context, ::autopapi::nothing* response) override;
     ::grpc::ClientAsyncWriter< ::autopapi::msmtName>* AsyncputMeasurementListRaw(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::CompletionQueue* cq, void* tag) override;
     ::grpc::ClientAsyncWriter< ::autopapi::msmtName>* PrepareAsyncputMeasurementListRaw(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::CompletionQueue* cq) override;
-    ::grpc::ClientWriter< ::autopapi::msmtSample>* putMeasurementRaw(::grpc::ClientContext* context, ::autopapi::nothing* response) override;
-    ::grpc::ClientAsyncWriter< ::autopapi::msmtSample>* AsyncputMeasurementRaw(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::CompletionQueue* cq, void* tag) override;
-    ::grpc::ClientAsyncWriter< ::autopapi::msmtSample>* PrepareAsyncputMeasurementRaw(::grpc::ClientContext* context, ::autopapi::nothing* response, ::grpc::CompletionQueue* cq) override;
+    ::grpc::ClientReaderWriter< ::autopapi::msmtSample, ::autopapi::sampleAck>* putMeasurementRaw(::grpc::ClientContext* context) override;
+    ::grpc::ClientAsyncReaderWriter< ::autopapi::msmtSample, ::autopapi::sampleAck>* AsyncputMeasurementRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq, void* tag) override;
+    ::grpc::ClientAsyncReaderWriter< ::autopapi::msmtSample, ::autopapi::sampleAck>* PrepareAsyncputMeasurementRaw(::grpc::ClientContext* context, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::autopapi::msmtSettings>* AsyncgetMsmtSttngsAndStartRaw(::grpc::ClientContext* context, const ::autopapi::clientUid& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::autopapi::msmtSettings>* PrepareAsyncgetMsmtSttngsAndStartRaw(::grpc::ClientContext* context, const ::autopapi::clientUid& request, ::grpc::CompletionQueue* cq) override;
     ::grpc::ClientAsyncResponseReader< ::autopapi::nothing>* AsyncputStatusMsgRaw(::grpc::ClientContext* context, const ::autopapi::cmMCode& request, ::grpc::CompletionQueue* cq) override;
@@ -408,7 +408,7 @@ class CMeasurementApi final {
     virtual ::grpc::Status putMeasurementList(::grpc::ServerContext* context, ::grpc::ServerReader< ::autopapi::msmtName>* reader, ::autopapi::nothing* response);
     // upload measurement/measurement samples to server
     // @param msmtSample stream is the file content requested by the server initially
-    virtual ::grpc::Status putMeasurement(::grpc::ServerContext* context, ::grpc::ServerReader< ::autopapi::msmtSample>* reader, ::autopapi::nothing* response);
+    virtual ::grpc::Status putMeasurement(::grpc::ServerContext* context, ::grpc::ServerReaderWriter< ::autopapi::sampleAck, ::autopapi::msmtSample>* stream);
     // gets all necessary data for measurement and then immediately starts the measurement
     // @returns measurement settings
     virtual ::grpc::Status getMsmtSttngsAndStart(::grpc::ServerContext* context, const ::autopapi::clientUid* request, ::autopapi::msmtSettings* response);
@@ -506,12 +506,12 @@ class CMeasurementApi final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status putMeasurement(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::autopapi::msmtSample>* /*reader*/, ::autopapi::nothing* /*response*/) override {
+    ::grpc::Status putMeasurement(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::autopapi::sampleAck, ::autopapi::msmtSample>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestputMeasurement(::grpc::ServerContext* context, ::grpc::ServerAsyncReader< ::autopapi::nothing, ::autopapi::msmtSample>* reader, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncClientStreaming(3, context, reader, new_call_cq, notification_cq, tag);
+    void RequestputMeasurement(::grpc::ServerContext* context, ::grpc::ServerAsyncReaderWriter< ::autopapi::sampleAck, ::autopapi::msmtSample>* stream, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncBidiStreaming(3, context, stream, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -733,20 +733,21 @@ class CMeasurementApi final {
    public:
     WithCallbackMethod_putMeasurement() {
       ::grpc::Service::MarkMethodCallback(3,
-          new ::grpc::internal::CallbackClientStreamingHandler< ::autopapi::msmtSample, ::autopapi::nothing>(
+          new ::grpc::internal::CallbackBidiHandler< ::autopapi::msmtSample, ::autopapi::sampleAck>(
             [this](
-                   ::grpc::CallbackServerContext* context, ::autopapi::nothing* response) { return this->putMeasurement(context, response); }));
+                   ::grpc::CallbackServerContext* context) { return this->putMeasurement(context); }));
     }
     ~WithCallbackMethod_putMeasurement() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status putMeasurement(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::autopapi::msmtSample>* /*reader*/, ::autopapi::nothing* /*response*/) override {
+    ::grpc::Status putMeasurement(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::autopapi::sampleAck, ::autopapi::msmtSample>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerReadReactor< ::autopapi::msmtSample>* putMeasurement(
-      ::grpc::CallbackServerContext* /*context*/, ::autopapi::nothing* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerBidiReactor< ::autopapi::msmtSample, ::autopapi::sampleAck>* putMeasurement(
+      ::grpc::CallbackServerContext* /*context*/)
+      { return nullptr; }
   };
   template <class BaseClass>
   class WithCallbackMethod_getMsmtSttngsAndStart : public BaseClass {
@@ -992,7 +993,7 @@ class CMeasurementApi final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status putMeasurement(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::autopapi::msmtSample>* /*reader*/, ::autopapi::nothing* /*response*/) override {
+    ::grpc::Status putMeasurement(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::autopapi::sampleAck, ::autopapi::msmtSample>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
@@ -1188,12 +1189,12 @@ class CMeasurementApi final {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status putMeasurement(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::autopapi::msmtSample>* /*reader*/, ::autopapi::nothing* /*response*/) override {
+    ::grpc::Status putMeasurement(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::autopapi::sampleAck, ::autopapi::msmtSample>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    void RequestputMeasurement(::grpc::ServerContext* context, ::grpc::ServerAsyncReader< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* reader, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
-      ::grpc::Service::RequestAsyncClientStreaming(3, context, reader, new_call_cq, notification_cq, tag);
+    void RequestputMeasurement(::grpc::ServerContext* context, ::grpc::ServerAsyncReaderWriter< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* stream, ::grpc::CompletionQueue* new_call_cq, ::grpc::ServerCompletionQueue* notification_cq, void *tag) {
+      ::grpc::Service::RequestAsyncBidiStreaming(3, context, stream, new_call_cq, notification_cq, tag);
     }
   };
   template <class BaseClass>
@@ -1409,20 +1410,21 @@ class CMeasurementApi final {
    public:
     WithRawCallbackMethod_putMeasurement() {
       ::grpc::Service::MarkMethodRawCallback(3,
-          new ::grpc::internal::CallbackClientStreamingHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
+          new ::grpc::internal::CallbackBidiHandler< ::grpc::ByteBuffer, ::grpc::ByteBuffer>(
             [this](
-                   ::grpc::CallbackServerContext* context, ::grpc::ByteBuffer* response) { return this->putMeasurement(context, response); }));
+                   ::grpc::CallbackServerContext* context) { return this->putMeasurement(context); }));
     }
     ~WithRawCallbackMethod_putMeasurement() override {
       BaseClassMustBeDerivedFromService(this);
     }
     // disable synchronous version of this method
-    ::grpc::Status putMeasurement(::grpc::ServerContext* /*context*/, ::grpc::ServerReader< ::autopapi::msmtSample>* /*reader*/, ::autopapi::nothing* /*response*/) override {
+    ::grpc::Status putMeasurement(::grpc::ServerContext* /*context*/, ::grpc::ServerReaderWriter< ::autopapi::sampleAck, ::autopapi::msmtSample>* /*stream*/)  override {
       abort();
       return ::grpc::Status(::grpc::StatusCode::UNIMPLEMENTED, "");
     }
-    virtual ::grpc::ServerReadReactor< ::grpc::ByteBuffer>* putMeasurement(
-      ::grpc::CallbackServerContext* /*context*/, ::grpc::ByteBuffer* /*response*/)  { return nullptr; }
+    virtual ::grpc::ServerBidiReactor< ::grpc::ByteBuffer, ::grpc::ByteBuffer>* putMeasurement(
+      ::grpc::CallbackServerContext* /*context*/)
+      { return nullptr; }
   };
   template <class BaseClass>
   class WithRawCallbackMethod_getMsmtSttngsAndStart : public BaseClass {
