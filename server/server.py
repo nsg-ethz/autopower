@@ -433,7 +433,7 @@ class CMeasurementApiServicer():
                     self.logClientWasSeenNow(mmt.clientUid)
                     con.commit()
                     # acknowledge writing to DB successfully
-                    ack = pbde.api__pb2.sampleAck()
+                    ack = pbdef.api__pb2.sampleAck()
                     ack.sampleId = mmt.sampleId
                     yield ack
 
