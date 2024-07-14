@@ -527,7 +527,8 @@ bool AutopowerClient::streamMeasurementData(std::string measId) {
       if (!couldParseTs) {
         delete gTimestamp;
         uploadWasSuccessful = false;
-        throw std::runtime_error("Could not parse timestamp: " + ts);
+        // throw std::runtime_error("Could not parse timestamp: " + ts);
+        break;
       }
 
       grpcMsmtSample.set_allocated_msmttime(gTimestamp); // grpc will free the object itself, so NO need to call free!
