@@ -179,7 +179,7 @@ def deviceManagementPage(deviceUid):
 def getDeviceStatus(deviceUid):
     # Request measurement status of this device
     if not deviceIsRegistered(deviceUid):
-        return {"status": "Not registered"}, 422  # only if client is not even on the server side --> say not registered
+        return json.dumps({"status": "Not registered"}), 422  # only if client is not even on the server side --> say not registered
 
     statusRq = pbdef.api__pb2.mgmtRequest()
     statusRq.msgType = pbdef.api__pb2.srvRequestType.REQUEST_MEASUREMENT_STATUS
@@ -191,7 +191,17 @@ def getDeviceStatusPost():
     devUid = request.form.get("deviceUid")
     return getDeviceStatus(devUid)
 
-
+@app.route("/getAllDeviceStatus")
+def getAllDeviceStatus():
+    with createPgConnection() as pgConnection:
+        pgcurs = pgConnection.cursor()
+        pgcurs.execute("SELECT client_uid FROM clients")
+        pgConnection.commit()
+        res = {}
+        for client in pgcurs:
+            res[client[0]] = getDeviceStatus(client[0])
+        
+        return json.dumps(res)
 @app.route("/getLastMeasurementTimestampOfDevicePost", methods=["POST"])
 def getLastMeasurementTimestampOfDevicePost():
     # Get the last timestamp from device
