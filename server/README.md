@@ -83,3 +83,9 @@ To deploy the server:
 * Set permissions to only make the cli_secrets file readable by the autopower user: `chown root:autopower /etc/autopower/cli_secrets.json`, `chmod u=r,g=r,o= /etc/autopower/cli_secrets.json`
 * Enter the virtual environment `source venv/bin/activate` and connect to the server via `python3 cli.py`. You can now issue commands to the server.
 
+## Zabbix monitoring
+
+If you set up [ODBC monitoring via Zabbix](https://www.zabbix.com/documentation/6.4/en/manual/config/items/itemtypes/odbc_checks/) of the server database, create a new user e.g. called `zbxapmonitor` and grant SELECT privileges on all tables e.g. via:
+```sql
+GRANT SELECT ON clients,logmessages,devices_under_test,runs,client_runs,measurements,measurement_data TO zbxapmonitor;
+```
