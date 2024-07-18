@@ -14,6 +14,7 @@ import ipaddress
 from datetime import datetime
 import hashlib
 from werkzeug.middleware.proxy_fix import ProxyFix
+import concurrent.futures
 
 allowedPpDevList = ["MCP1", "MCP2", "CPU"]
 
@@ -197,11 +198,11 @@ def getAllDeviceStatus():
         pgcurs = pgConnection.cursor()
         pgcurs.execute("SELECT client_uid FROM clients")
         pgConnection.commit()
-        res = {}
-        for client in pgcurs:
-            # TODO: Speed this up e.g. by implementing a gRPC call directly to get all status messages from each device. This can wait a long time on timeouts
-            res[client[0]] = getDeviceStatus(client[0])
+        clients = pgcurs.fetchall()
         
+        # TODO: Speed this up e.g. by implementing a gRPC call directly to get all status messages from each device. This can wait a long time on timeouts
+        with concurrent.futures.ThreadPoolExecutor(max_workers=5) as tpe:
+            res = list(tpe.map(lambda client: {"name": client[0], "response": getDeviceStatus(client[0])}, clients))
         return res
 
 @app.route("/getLastMeasurementTimestampOfDevicePost", methods=["POST"])
