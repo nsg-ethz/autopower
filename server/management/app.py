@@ -179,7 +179,7 @@ def deviceManagementPage(deviceUid):
 def getDeviceStatus(deviceUid):
     # Request measurement status of this device
     if not deviceIsRegistered(deviceUid):
-        return json.dumps({"status": "Not registered"}), 422  # only if client is not even on the server side --> say not registered
+        return {"status": "Not registered"}, 422  # only if client is not even on the server side --> say not registered
 
     statusRq = pbdef.api__pb2.mgmtRequest()
     statusRq.msgType = pbdef.api__pb2.srvRequestType.REQUEST_MEASUREMENT_STATUS
@@ -199,9 +199,11 @@ def getAllDeviceStatus():
         pgConnection.commit()
         res = {}
         for client in pgcurs:
+            # TODO: Speed this up e.g. by implementing a gRPC call directly to get all status messages from each device. This can wait a long time on timeouts
             res[client[0]] = getDeviceStatus(client[0])
         
-        return json.dumps(res)
+        return res
+
 @app.route("/getLastMeasurementTimestampOfDevicePost", methods=["POST"])
 def getLastMeasurementTimestampOfDevicePost():
     # Get the last timestamp from device
