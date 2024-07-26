@@ -11,9 +11,7 @@ DEVICENAME=$(hostname)
 tmux kill-session -t certs      # clean up if session already exists
 tmux new-session -d -s certs    # create a tmux session
 tmux send-keys -t certs '' C-m  # wait a bit
-tmux send-keys -t certs '' C-m
-tmux send-keys -t certs '' C-m
-tmux send-keys -t certs "ssh autopower@${REMOTEHOST}" C-m
+tmux send-keys -t certs "ssh -o 'StrictHostKeyChecking no' autopower@${REMOTEHOST}" C-m
 
 # clean existing read-only files
 echo "cleaning existing files on the server..."

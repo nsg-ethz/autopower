@@ -9,13 +9,13 @@
 - Once the IP is knonw, add it to my SSH config 
 - then
 ```
-scp -r -P 22 client/ autopowerX:/tmp/
+scp -r -P 22 -o "StrictHostKeyChecking no" client/ autopowerX:/tmp/
 ssh autopowerX -p 22
 cd /tmp/client
 sudo chmod +x deploy.sh && sudo ./deploy.sh
 sudo chmod +x signCerts.sh && ./signCerts.sh
+sudo shutdown now
 ```
-Currently the last step will not work the first time because the Pi won't know the fingerprint of the server and I don't know how to accept fingerprint automatically (to resolve)
 
 
 ## Folder content
