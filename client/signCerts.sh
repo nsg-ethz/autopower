@@ -11,7 +11,7 @@ DEVICENAME=$(hostname)
 tmux kill-session -t certs      # clean up if session already exists
 tmux new-session -d -s certs    # create a tmux session
 tmux send-keys -t certs '' C-m  # wait a bit
-tmux send-keys -t certs "ssh -o 'StrictHostKeyChecking no' autopower@${REMOTEHOST}" C-m
+tmux send-keys -t certs "ssh ${NOKEYCHECK} ${JUMPHOST} autopower@${REMOTEHOST}" C-m
 
 # clean existing read-only files
 echo "cleaning existing files on the server..."
@@ -25,9 +25,9 @@ sleep 2 # wait a bit to give time to the tmux command to run
 # copy the certificate to the server with scp
 echo "copying the new files..."
 sudo cp /etc/mmclient/client_${DEVICENAME}.csr .
-scp client_${DEVICENAME}.csr autopower@${REMOTEHOST}:/usr/autopower/certs/client_${DEVICENAME}.csr
+scp ${NOKEYCHECK} ${JUMPHOST} client_${DEVICENAME}.csr autopower@${REMOTEHOST}:/usr/autopower/certs/client_${DEVICENAME}.csr
 # copy the psk to wherever (probably the server as well, I should make a directory for that)
-scp zabbix_psk.psk autopower@${REMOTEHOST}:/usr/autopower/zabbix/zabbix_client_${DEVICENAME}.psk
+scp ${NOKEYCHECK} ${JUMPHOST} zabbix_psk.psk autopower@${REMOTEHOST}:/usr/autopower/zabbix/zabbix_client_${DEVICENAME}.psk
 
 # sign the certificate on the server  
 echo "signing the new certificate..."
@@ -38,8 +38,8 @@ sleep 2 # wait a bit to give time to the tmux command to run
 # copy back client.cer and ca.cer (can be done via scp from the PI)
 # > scp-ing directly would require to make the mmclient directory globally writable
 echo "copying the signed certificate back on the client..."
-scp autopower@${REMOTEHOST}:/usr/autopower/certs/client_${DEVICENAME}.cer ~/client.cer
-scp autopower@${REMOTEHOST}:/usr/autopower/certs/ca.cer ~/ca.cer
+scp ${NOKEYCHECK} ${JUMPHOST} autopower@${REMOTEHOST}:/usr/autopower/certs/client_${DEVICENAME}.cer ~/client.cer
+scp ${NOKEYCHECK} ${JUMPHOST} autopower@${REMOTEHOST}:/usr/autopower/certs/ca.cer ~/ca.cer
 sudo mv ~/*.cer /etc/mmclient/
 sudo chown mmclient: /etc/mmclient/client.cer
 sudo chown mmclient: /etc/mmclient/ca.cer
