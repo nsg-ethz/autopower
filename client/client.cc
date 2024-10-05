@@ -807,10 +807,18 @@ void AutopowerClient::manageMsmt() {
     std::cout << "Registering at server..." << std::endl;
     std::unique_ptr<grpc::ClientReader<autopapi::srvRequest>> serverApiStream(stub->registerClient(&cc, cluid));
 
+    // create a executor to allow multiple concurrently running sRequests
+    // follows boosts thread_pool as described in https://stackoverflow.com/a/54436167
+    boost::asio::thread_pool srvRequestPool(4); // only allow 4 concurrent requests. There should not be too many anyway
     while (serverApiStream->Read(&sRequest)) {
+      boost::asio::post(srvRequestPool, [this, sRequest, cluid] {
+        handleSrvRequest(sRequest, cluid);
+      });
       // wait for requests from server.
-      handleSrvRequest(sRequest, cluid);
+      //handleSrvRequest(sRequest, cluid);
     }
+
+    srvRequestPool.join();
 
     grpc::Status sf = serverApiStream->Finish();
     std::cerr << sf.error_code() << ": " << sf.error_message() << ": " << sf.error_details() << std::endl;

@@ -8,6 +8,8 @@
 #include <shared_mutex>
 #include <string>
 #include <vector>
+#include <boost/asio/thread_pool.hpp>
+#include <boost/asio/post.hpp>
 
 // describes a measurement sample
 struct CMsmtSample {
