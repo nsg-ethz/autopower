@@ -124,7 +124,15 @@ class AutopowerClient {
   bool uploadMeasurementList();
   bool streamMeasurementData(std::string measId = "");
   void doPeriodicDataUpload();
-  void handleSrvRequest(autopapi::srvRequest sRequest, autopapi::clientUid);
+
+  void handleMeasurementStart(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
+  void handleMeasurementStop(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
+  void handleIntroduceServer(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
+  void handleMeasurementList(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
+  void handleMeasurementStatus(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
+  void handleMeasurementData(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
+
+  void handleSrvRequest(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
   void manageMsmt();
 
 public:
