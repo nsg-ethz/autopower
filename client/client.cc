@@ -614,6 +614,155 @@ void AutopowerClient::doPeriodicDataUpload() {
   putStatusToServer(1, "Error: Periodic upload thread exited. This points to a crash.");
 }
 
+// handle get request from server and issue commands
+void AutopowerClient::handleSrvRequest(autopapi::srvRequest sRequest, autopapi::clientUid cluid) {
+  if (sRequest.msgtype() == autopapi::srvRequestType::START_MEASUREMENT) {
+    if (measuring()) {
+      std::string errorDescription = "Warning: Received START_MEASUREMENT, even though already measuring. Ignoring request.";
+      std::cerr << errorDescription << std::endl;
+      // put warning to server
+      putResponseToServer(1, errorDescription, autopapi::clientResponseType::STARTED_MEASUREMENT_RESPONSE, sRequest.requestno());
+      return;
+    }
+
+    autopapi::msmtSettings mset;
+    grpc::ClientContext mCtxt;
+
+    stub->getMsmtSttngsAndStart(&mCtxt, cluid, &mset);
+    if (mset.clientuid() != cluid.uid()) {
+      std::string errorDescription = "Warning: Received measurement start for wrong client. Ignoring.";
+      std::cerr << errorDescription << std::endl;
+
+      // put warning to server
+      putResponseToServer(1, errorDescription, autopapi::clientResponseType::STARTED_MEASUREMENT_RESPONSE, sRequest.requestno());
+      return;
+    }
+
+    // verify data
+    std::string newPpdev = mset.ppdevice();
+    if (!isValidPpDevice(newPpdev)) {
+      std::string errorDescription = "Error: Received invalid device for pinpoint. Only ";
+
+      for (std::string dev : this->supportedDevices) {
+        errorDescription += dev + ", ";
+      }
+
+      // fencepost solving:
+      errorDescription.pop_back();
+      errorDescription.pop_back();
+
+      errorDescription += " allowed. Ignoring request.";
+      std::cerr << errorDescription << std::endl;
+
+      // put warning to server
+      putResponseToServer(1, errorDescription, autopapi::clientResponseType::STARTED_MEASUREMENT_RESPONSE, sRequest.requestno());
+      return;
+    }
+
+    std::string newSamplingInt = mset.ppsamplinginterval();
+    if (newSamplingInt == "") { // TODO: Add more validity checking
+      std::string errorDescription = "Sampling interval has invalid content. Not starting measurement.";
+      std::cerr << errorDescription << std::endl;
+
+      // put warning to server
+      putResponseToServer(1, errorDescription, autopapi::clientResponseType::STARTED_MEASUREMENT_RESPONSE, sRequest.requestno());
+      return;
+    }
+    uint32_t uploadIntMin = mset.uploadintervalmin(); // the interval to upload the content to the server
+    // Set data. ensure that we have measurement access --> lock the measurement and then data lock. ATTENTION: ensure correct ordering for deadlock prevention
+    std::unique_lock mm(measuringMtx);
+    ppSamplingInterval = newSamplingInt.c_str();
+    ppDevice = newPpdev.c_str();
+    this->periodicUploadMinutes = uploadIntMin;
+    mm.unlock();
+
+    // as the data is set, we can now start the measurement
+
+    std::pair startMsmtStatus = startMeasurement();
+
+    // log success/failure of starting measurement to server
+
+    uint32_t statusCode = 0;
+    std::string statusMsg = startMsmtStatus.second;
+    if (!startMsmtStatus.first) {
+      // measurement start failed
+      statusCode = 1;
+      statusMsg = "Could not start measurement successfully. Please check the client for error messages from pinpoint.";
+    }
+
+    putResponseToServer(statusCode, statusMsg, autopapi::clientResponseType::STARTED_MEASUREMENT_RESPONSE, sRequest.requestno());
+
+  } else if (sRequest.msgtype() == autopapi::srvRequestType::STOP_MEASUREMENT) {
+    uint32_t statusCode = 0;
+    std::string statusMsg = "Measurement stopped successfully";
+    if (!stopMeasurement()) {
+      statusCode = 1;
+      statusMsg = "Measurement didn't stop successfully. Please check for errors on the client.";
+    }
+
+    putResponseToServer(statusCode, statusMsg, autopapi::clientResponseType::STOPPED_MEASUREMENT_RESPONSE, sRequest.requestno());
+
+  } else if (sRequest.msgtype() == autopapi::srvRequestType::INTRODUCE_SERVER) {
+    std::cout << "Received INTRODUCE_SERVER" << std::endl;
+    // put pong response to server
+    putResponseToServer(0, "PONG", autopapi::clientResponseType::INTRODUCE_CLIENT, sRequest.requestno());
+  } else if (sRequest.msgtype() == autopapi::srvRequestType::REQUEST_MEASUREMENT_LIST) {
+    // server requested us to upload the current file list
+    std::cout << "Received REQUEST_MEASUREMENT_LIST" << std::endl;
+
+    uint32_t statusCode = 0;
+    std::string statusMsg = "Sent list successfully";
+    if (!uploadMeasurementList()) {
+      statusCode = 1;
+      statusMsg = "Could not send measurement list. Please check client for errors.";
+    }
+
+    putResponseToServer(statusCode, statusMsg, autopapi::clientResponseType::MEASUREMENT_LIST_RESPONSE, sRequest.requestno());
+  } else if (sRequest.msgtype() == autopapi::srvRequestType::REQUEST_MEASUREMENT_STATUS) {
+    // get measuring
+    std::cout << "Received REQUEST_MEASUREMENT_STATUS" << std::endl;
+    Json::Value statusObject;
+    statusObject["inMeasuringMode"] = measuring(); // say if we are currently in measuring mode. Doesn't mean pinpoint runs
+    statusObject["ppHasWrittenOnce"] = getHasWrittenOnce();
+    statusObject["ppHasExited"] = getHasExited();
+    // get data related to current measurement
+    std::shared_lock msmtLock(measuringMtx);
+    statusObject["measurementSettings"]["ppDevice"] = this->ppDevice;
+    statusObject["measurementSettings"]["ppSamplingInterval"] = this->ppSamplingInterval;
+    statusObject["measurementSettings"]["uploadInterval"] = periodicUploadMinutes;
+    statusObject["measurementSettings"]["sharedMsmtId"] = getSharedMsmtId();
+    statusObject["ppIsRunning"] = false;
+    statusObject["lastSampleTimestamp"] = getReadableTimestamp(getLastSampleTimestamp());
+    if (measuring() && getHasWrittenOnce() && !getHasExited()) {
+      // we assume that pinpoint should now be running. Check with kill() via getPpIsCurrentlyRunning()
+      statusObject["ppIsRunning"] = getPpIsCurrentlyRunning();
+    }
+    msmtLock.unlock();
+    Json::StreamWriterBuilder builder;
+    builder["indentation"] = ""; // to save space, do not have any indentation
+    std::string statusString = Json::writeString(builder, statusObject);
+    putResponseToServer(0, statusString, autopapi::clientResponseType::MEASUREMENT_STATUS_RESPONSE, sRequest.requestno());
+  } else if (sRequest.msgtype() == autopapi::srvRequestType::REQUEST_MEASUREMENT_DATA) {
+    std::cout << "Received REQUEST_MEASUREMENT_DATA" << std::endl;
+    uint32_t statusCode = 0;
+    std::string statusMsg = "";
+    try {
+      if (!streamMeasurementData(sRequest.requestbody())) {
+        throw std::runtime_error("streamMeasurementData raised an exception while requesting measurement data.");
+      }
+    } catch (std::exception &e) {
+      std::cerr << e.what() << std::endl;
+      statusCode = 1;
+      statusMsg = e.what();
+    }
+
+    putResponseToServer(statusCode, statusMsg, autopapi::clientResponseType::MEASUREMENT_DATA_RESPONSE, sRequest.requestno());
+
+  } else {
+    std::cerr << "Received unknown message type: " << sRequest.msgtype() << std::endl;
+  }
+}
+
 void AutopowerClient::manageMsmt() {
   // monitor thread creates the upload thread to do the periodic upload.
   while (true) {
@@ -630,151 +779,7 @@ void AutopowerClient::manageMsmt() {
     std::unique_ptr<grpc::ClientReader<autopapi::srvRequest>> serverApiStream(stub->registerClient(&cc, cluid));
     while (serverApiStream->Read(&sRequest)) {
       // wait for requests from server.
-      if (sRequest.msgtype() == autopapi::srvRequestType::START_MEASUREMENT) {
-        if (measuring()) {
-          std::string errorDescription = "Warning: Received START_MEASUREMENT, even though already measuring. Ignoring request.";
-          std::cerr << errorDescription << std::endl;
-          // put warning to server
-          putResponseToServer(1, errorDescription, autopapi::clientResponseType::STARTED_MEASUREMENT_RESPONSE, sRequest.requestno());
-          continue;
-        }
-
-        autopapi::msmtSettings mset;
-        grpc::ClientContext mCtxt;
-
-        stub->getMsmtSttngsAndStart(&mCtxt, cluid, &mset);
-        if (mset.clientuid() != cluid.uid()) {
-          std::string errorDescription = "Warning: Received measurement start for wrong client. Ignoring.";
-          std::cerr << errorDescription << std::endl;
-
-          // put warning to server
-          putResponseToServer(1, errorDescription, autopapi::clientResponseType::STARTED_MEASUREMENT_RESPONSE, sRequest.requestno());
-          continue;
-        }
-
-        // verify data
-        std::string newPpdev = mset.ppdevice();
-        if (!isValidPpDevice(newPpdev)) {
-          std::string errorDescription = "Error: Received invalid device for pinpoint. Only ";
-
-          for (std::string dev : this->supportedDevices) {
-            errorDescription += dev + ", ";
-          }
-
-          // fencepost solving:
-          errorDescription.pop_back();
-          errorDescription.pop_back();
-
-          errorDescription += " allowed. Ignoring request.";
-          std::cerr << errorDescription << std::endl;
-
-          // put warning to server
-          putResponseToServer(1, errorDescription, autopapi::clientResponseType::STARTED_MEASUREMENT_RESPONSE, sRequest.requestno());
-          continue;
-        }
-
-        std::string newSamplingInt = mset.ppsamplinginterval();
-        if (newSamplingInt == "") { // TODO: Add more validity checking
-          std::string errorDescription = "Sampling interval has invalid content. Not starting measurement.";
-          std::cerr << errorDescription << std::endl;
-
-          // put warning to server
-          putResponseToServer(1, errorDescription, autopapi::clientResponseType::STARTED_MEASUREMENT_RESPONSE, sRequest.requestno());
-          continue;
-        }
-        uint32_t uploadIntMin = mset.uploadintervalmin(); // the interval to upload the content to the server
-        // Set data. ensure that we have measurement access --> lock the measurement and then data lock. ATTENTION: ensure correct ordering for deadlock prevention
-        std::unique_lock mm(measuringMtx);
-        ppSamplingInterval = newSamplingInt.c_str();
-        ppDevice = newPpdev.c_str();
-        this->periodicUploadMinutes = uploadIntMin;
-        mm.unlock();
-
-        // as the data is set, we can now start the measurement
-
-        std::pair startMsmtStatus = startMeasurement();
-
-        // log success/failure of starting measurement to server
-
-        uint32_t statusCode = 0;
-        std::string statusMsg = startMsmtStatus.second;
-        if (!startMsmtStatus.first) {
-          // measurement start failed
-          statusCode = 1;
-          statusMsg = "Could not start measurement successfully. Please check the client for error messages from pinpoint.";
-        }
-
-        putResponseToServer(statusCode, statusMsg, autopapi::clientResponseType::STARTED_MEASUREMENT_RESPONSE, sRequest.requestno());
-
-      } else if (sRequest.msgtype() == autopapi::srvRequestType::STOP_MEASUREMENT) {
-        uint32_t statusCode = 0;
-        std::string statusMsg = "Measurement stopped successfully";
-        if (!stopMeasurement()) {
-          statusCode = 1;
-          statusMsg = "Measurement didn't stop successfully. Please check for errors on the client.";
-        }
-
-        putResponseToServer(statusCode, statusMsg, autopapi::clientResponseType::STOPPED_MEASUREMENT_RESPONSE, sRequest.requestno());
-
-      } else if (sRequest.msgtype() == autopapi::srvRequestType::INTRODUCE_SERVER) {
-        std::cout << "Received INTRODUCE_SERVER" << std::endl;
-        // put pong response to server
-        putResponseToServer(0, "PONG", autopapi::clientResponseType::INTRODUCE_CLIENT, sRequest.requestno());
-      } else if (sRequest.msgtype() == autopapi::srvRequestType::REQUEST_MEASUREMENT_LIST) {
-        // server requested us to upload the current file list
-        std::cout << "Received REQUEST_MEASUREMENT_LIST" << std::endl;
-
-        uint32_t statusCode = 0;
-        std::string statusMsg = "Sent list successfully";
-        if (!uploadMeasurementList()) {
-          statusCode = 1;
-          statusMsg = "Could not send measurement list. Please check client for errors.";
-        }
-
-        putResponseToServer(statusCode, statusMsg, autopapi::clientResponseType::MEASUREMENT_LIST_RESPONSE, sRequest.requestno());
-      } else if (sRequest.msgtype() == autopapi::srvRequestType::REQUEST_MEASUREMENT_STATUS) {
-        // get measuring
-        std::cout << "Received REQUEST_MEASUREMENT_STATUS" << std::endl;
-        Json::Value statusObject;
-        statusObject["inMeasuringMode"] = measuring(); // say if we are currently in measuring mode. Doesn't mean pinpoint runs
-        statusObject["ppHasWrittenOnce"] = getHasWrittenOnce();
-        statusObject["ppHasExited"] = getHasExited();
-        // get data related to current measurement
-        std::shared_lock msmtLock(measuringMtx);
-        statusObject["measurementSettings"]["ppDevice"] = this->ppDevice;
-        statusObject["measurementSettings"]["ppSamplingInterval"] = this->ppSamplingInterval;
-        statusObject["measurementSettings"]["uploadInterval"] = periodicUploadMinutes;
-        statusObject["measurementSettings"]["sharedMsmtId"] = getSharedMsmtId();
-        statusObject["ppIsRunning"] = false;
-        statusObject["lastSampleTimestamp"] = getReadableTimestamp(getLastSampleTimestamp());
-        if (measuring() && getHasWrittenOnce() && !getHasExited()) {
-          // we assume that pinpoint should now be running. Check with kill() via getPpIsCurrentlyRunning()
-          statusObject["ppIsRunning"] = getPpIsCurrentlyRunning();
-        }
-        msmtLock.unlock();
-        Json::StreamWriterBuilder builder;
-        builder["indentation"] = ""; // to save space, do not have any indentation
-        std::string statusString = Json::writeString(builder, statusObject);
-        putResponseToServer(0, statusString, autopapi::clientResponseType::MEASUREMENT_STATUS_RESPONSE, sRequest.requestno());
-      } else if (sRequest.msgtype() == autopapi::srvRequestType::REQUEST_MEASUREMENT_DATA) {
-        std::cout << "Received REQUEST_MEASUREMENT_DATA" << std::endl;
-        uint32_t statusCode = 0;
-        std::string statusMsg = "";
-        try {
-          if (!streamMeasurementData(sRequest.requestbody())) {
-            throw std::runtime_error("streamMeasurementData raised an exception while requesting measurement data.");
-          }
-        } catch (std::exception &e) {
-          std::cerr << e.what() << std::endl;
-          statusCode = 1;
-          statusMsg = e.what();
-        }
-
-        putResponseToServer(statusCode, statusMsg, autopapi::clientResponseType::MEASUREMENT_DATA_RESPONSE, sRequest.requestno());
-
-      } else {
-        std::cerr << "Received unknown message type: " << sRequest.msgtype() << std::endl;
-      }
+      handleSrvRequest(sRequest, cluid);
     }
     grpc::Status sf = serverApiStream->Finish();
     std::cerr << sf.error_code() << ": " << sf.error_message() << ": " << sf.error_details() << std::endl;
