@@ -392,11 +392,11 @@ class CMeasurementApiServicer():
             # own connection for a measurement upload to not conflict in any way with others.
             with con.cursor() as curs:
                 curs.execute("""
-                    PREPARE insMsmtData (VARCHAR(255), INT, TIMESTAMP) AS
+                    PREPARE insMsmtData (VARCHAR(255), INT, TIMESTAMP, INT) AS
                         INSERT INTO measurement_data (server_measurement_id, measurement_value, measurement_timestamp)
                         VALUES(
                             (SELECT server_measurement_id FROM measurements WHERE shared_measurement_id = $1 LIMIT 1) -- handles only the server id
-                        ,$2,$3);
+                        ,$2,$3) RETURNING $4 AS sampleid;
                 """)
 
                 for mmt in msmts:
@@ -429,12 +429,13 @@ class CMeasurementApiServicer():
                     msmtIdSoFar = mmt.msmtId
 
                     # in the normal case insert tuples just into the measurement_data table.
-                    curs.execute("EXECUTE insMsmtData (%(msmtid)s, %(msmtvalue)s, %(msmtts)s)", {'msmtid': mmt.msmtId, 'msmtvalue': mmt.msmtContent, 'msmtts': mmtTime})
+                    curs.execute("EXECUTE insMsmtData (%(msmtid)s, %(msmtvalue)s, %(msmtts)s, %(sampleid)s)", {'msmtid': mmt.msmtId, 'msmtvalue': mmt.msmtContent, 'msmtts': mmtTime, 'sampleid': mmt.sampleId})
                     self.logClientWasSeenNow(mmt.clientUid)
                     con.commit()
                     # acknowledge writing to DB successfully
                     ack = pbdef.api__pb2.sampleAck()
-                    ack.sampleId = mmt.sampleId
+                    sampleid = curs.fetchone()[0]
+                    ack.sampleId = sampleid
                     yield ack
 
     def getMsmtSttngsAndStart(self, request, context):
