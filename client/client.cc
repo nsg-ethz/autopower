@@ -438,22 +438,22 @@ bool AutopowerClient::uploadMeasurementList() {
   pqxx::connection pgcon{this->pgConString};
   pqxx::work txn(pgcon);
   pqxx::result allMsmts = txn.exec("SELECT shared_measurement_id, internal_measurement_id FROM measurements");
-  // write every file name to server
-  std::unique_ptr<grpc::ClientWriter<autopapi::msmtName>> fileStream(stub->putMeasurementList(&ufCtxt, &nth));
+  // write every measurement name to server
+  std::unique_ptr<grpc::ClientWriter<autopapi::msmtName>> measurementNameStream(stub->putMeasurementList(&ufCtxt, &nth));
 
   for (auto const &tuple : allMsmts) {
     autopapi::msmtName msmt;
     msmt.set_clientuid(clientUid);
     msmt.set_name(tuple["internal_measurement_id"].as<std::string>() + " AKA " + tuple["shared_measurement_id"].as<std::string>());
-    if (!fileStream->Write(msmt)) {
-      std::cerr << "Writing file names to server failed. Maybe the connetion failed?" << std::endl;
+    if (!measurementNameStream->Write(msmt)) {
+      std::cerr << "Writing measurement names to server failed. Maybe the connetion failed?" << std::endl;
       break;
     }
     // docs (https://grpc.io/docs/languages/cpp/basics/) include a sleep here.
   }
 
-  fileStream->WritesDone(); // completed writes
-  grpc::Status wStatus = fileStream->Finish();
+  measurementNameStream->WritesDone(); // completed writes
+  grpc::Status wStatus = measurementNameStream->Finish();
   if (!wStatus.ok()) {
     std::cerr << "Writing measurement names to server failed with error code " << wStatus.error_code() << ": " << wStatus.error_message() << std::endl
               << wStatus.error_details() << std::endl;
