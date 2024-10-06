@@ -9,6 +9,7 @@ import datetime
 
 import ipaddress
 import psycopg2 as postgres
+import psycopg2.extras as pgextras
 import api_pb2_grpc as pbdef
 import concurrent.futures as futures
 
@@ -399,6 +400,7 @@ class CMeasurementApiServicer():
                         ,$2,$3) RETURNING $4 AS sampleid;
                 """)
 
+                mmlist = []
                 for mmt in msmts:
                     # We need to tell the python Datetime that this is in UTC (see https://github.com/protocolbuffers/protobuf/issues/5910)
                     mmtTime = mmt.msmtTime.ToDatetime(tzinfo=timezone.utc)
@@ -424,19 +426,26 @@ class CMeasurementApiServicer():
                         )
                         ON CONFLICT DO NOTHING
                         """, {'mmtid': mmt.msmtId, 'cluid': mmt.clientUid, 'msmtts': mmtTime})
+                        curs.execute("SELECT server_measurement_id FROM measurements WHERE shared_measurement_id = %(sharedid)s LIMIT 1", {'sharedid': mmt.msmtId})
+                        internalId = curs.fetchone()[0]
                         con.commit()
                         # TODO: Maybe request the client to submit the measurement settings to fill the DB e.g. via requesting status
                     msmtIdSoFar = mmt.msmtId
 
-                    # in the normal case insert tuples just into the measurement_data table.
-                    curs.execute("EXECUTE insMsmtData (%(msmtid)s, %(msmtvalue)s, %(msmtts)s, %(sampleid)s)", {'msmtid': mmt.msmtId, 'msmtvalue': mmt.msmtContent, 'msmtts': mmtTime, 'sampleid': mmt.sampleId})
-                    self.logClientWasSeenNow(mmt.clientUid)
-                    con.commit()
-                    # acknowledge writing to DB successfully
+                    mmlist.append((internalId, mmt.msmtContent,mmtTime, mmt.sampleId))
+                # in the normal case insert tuples just into the measurement_data table.
+
+                ackdIds = pgextras.execute_values(curs,"""
+                    INSERT INTO measurement_data (server_measurement_id, measurement_value, measurement_timestamp, ack_id)
+                        VALUES %s RETURNING ack_id;
+                        """, mmlist, fetch=True)
+                con.commit()
+                # acknowledge writing to DB successfully
+                for id in ackdIds:
                     ack = pbdef.api__pb2.sampleAck()
-                    sampleid = curs.fetchone()[0]
-                    ack.sampleId = sampleid
+                    ack.sampleId = id[0]
                     yield ack
+                
 
     def getMsmtSttngsAndStart(self, request, context):
         cm = ClientManager()

@@ -47,6 +47,7 @@ CREATE TABLE measurements (
 
 CREATE TABLE measurement_data (
   md_id SERIAL PRIMARY KEY,
+  ack_id INT NOT NULL,
   server_measurement_id INT NOT NULL REFERENCES measurements(server_measurement_id),
   measurement_value INT NOT NULL,
   measurement_timestamp TIMESTAMP WITH TIME ZONE NOT NULL
