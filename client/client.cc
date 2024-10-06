@@ -405,18 +405,9 @@ bool AutopowerClient::stopMeasurement() {
   std::unique_lock mm(measuringMtx);
   bool stoppedMsmtSuccessfully = true;
   if (this->periodicUploadMinutes != 0) {
-    // upload ramaining data and reset
-    try {
-      if (!streamMeasurementData()) {
-        std::string errorMsg = "Could not upload final datapoints while stopping measurement.";
-        std::cerr << errorMsg << std::endl;
-        throw std::runtime_error(errorMsg);
-      }
-    } catch (std::exception &e) {
-      stoppedMsmtSuccessfully = false;
-      std::cerr << "Error: Could not stop measurement successfully: " << e.what() << std::endl;
-      putStatusToServer(1, e.what());
-    }
+    // request upload of remaining data
+    // the measuringCv will notify the thread later on
+    this->setDoLastUpload(true);
   }
 
   setMeasuring(false);
@@ -587,10 +578,10 @@ void AutopowerClient::doPeriodicDataUpload() {
   while (true) {
     // ensure we are actually measuring
     std::shared_lock mm(measuringMtx);
-    // only continue if we actually want to upload and are measuring
-    measuringCv.wait(mm, [this]() { return this->measuring(); });
+    // only continue if we actually want to upload and are measuring or requested a final upload (requested in stopMeasurement())
+    measuringCv.wait(mm, [this]() { return (this->measuring() || this->getDoLastUpload()); });
     // check if we actually want to transmit
-    if (this->periodicUploadMinutes == 0) {
+    if (this->periodicUploadMinutes == 0 && !this->getDoLastUpload()) {
       measuringCv.wait(mm, [this]() { return !this->measuring(); });
       // wait until no longer measuring
       continue; // since the periodic upload minutes is set to zero, by definition we do not transmit --> wait on next wake up of measurement. Will also wake up if the measurement is set to finish, but this doesn't matter
@@ -598,14 +589,17 @@ void AutopowerClient::doPeriodicDataUpload() {
     // actually transmit the data to the server
     try {
       if (!streamMeasurementData()) {
-        throw std::runtime_error("Periodic upload failed!");
+        throw std::runtime_error("Data upload failed!");
       }
     } catch (std::exception &e) {
       std::string excContent = e.what();
       std::cerr << "Error: " << excContent << std::endl;
       // also try to log error on server
-      putStatusToServer(1, "Periodic upload got error: " + excContent);
+      putStatusToServer(1, "Data upload got error: " + excContent);
     }
+
+    // Reset DoLastUpload since we uploaded successfully.
+    this->setDoLastUpload(false);
     measuringCv.wait_for(mm, std::chrono::minutes(this->periodicUploadMinutes));
     mm.unlock();
   }
@@ -754,6 +748,7 @@ void AutopowerClient::handleMeasurementData(autopapi::srvRequest sRequest, autop
   uint32_t statusCode = 0;
   std::string statusMsg = "";
   try {
+    // TODO: Maybe make this async with a condition variable
     if (!streamMeasurementData(sRequest.requestbody())) {
       throw std::runtime_error("streamMeasurementData raised an exception while requesting measurement data.");
     }

@@ -32,6 +32,8 @@ class AutopowerClient {
 
   bool ppHasExited = true;
   bool isMeasuring = false;
+  bool doLastUpload = false; // boolean to allow forcing one upload via upload thread
+
   std::shared_mutex measuringMtx;
   std::condition_variable_any measuringCv;
 
@@ -94,6 +96,14 @@ class AutopowerClient {
     }
   }
 
+  void setDoLastUpload(bool doUpload) {
+    this->doLastUpload = doUpload;
+  }
+
+  bool getDoLastUpload() {
+    return this->doLastUpload;
+  }
+  
   void setCurrentlyRunningPid(pid_t pid) {
     std::unique_lock<std::shared_mutex> rlck(ppIsRunningMtx);
     this->lastKnownPpPid = pid;
