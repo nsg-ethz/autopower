@@ -59,7 +59,7 @@ adduser mmclient dialout
 adduser --disabled-password --gecos "" reversessh
 # Create key for reversessh user
 sudo -u reversessh mkdir /home/reversessh/.ssh/
-sudo -u reversessh ssh-keygen /home/reversessh/.ssh/id_ed25519 -t ed25519
+sudo -u reversessh ssh-keygen -f /home/reversessh/.ssh/id_ed25519 -t ed25519 -N ""
 
 # Copy config files
 mkdir /etc/mmclient
