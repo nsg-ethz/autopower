@@ -7,6 +7,12 @@ source serverIpConfig.sh
 # > we use the hostname configured on OS install
 #read -p "Enter name of device to deploy: " DEVICENAME
 DEVICENAME=$(hostname)
+# Split out autopower number
+AUTOPOWERNUMBER=$(sed 's/autopower//g' <<< "${DEVICENAME}")
+if ! [[ "${AUTOPOWERNUMBER}" ~ '^[0-9]+$']]; then
+  echo "Got invalid hostname. The hostname must be of the form: autopower<number>. E.g: autopower1"
+  exit 1
+fi
 
 # install needed services (including adding zabbix)
 pushd /tmp
@@ -49,10 +55,17 @@ sudo -u postgres psql -d autopower_client -a -f client_db_schema.sql
 adduser --system mmclient
 # allow access to power meter
 adduser mmclient dialout
+# Setup reverse SSH user
+adduser --disabled-password --gecos "" reversessh
+# Create key for reversessh user
+sudo -u reversessh mkdir /home/reversessh/.ssh/
+sudo -u reversessh ssh-keygen /home/reversessh/.ssh/id_ed25519 -t ed25519
 
+# Copy config files
 mkdir /etc/mmclient
 cp config/secrets.json.example /etc/mmclient/secrets.json
 chmod u=r,g=,o= /etc/mmclient/secrets.json
+
 # replace magic string ßß§$$$rplacePw$$$§ßß with actual password
 sed -i 's/ßß§$$$rplacePw$$$§ßß/'"${PGPASSWORD}"'/' /etc/mmclient/secrets.json
 echo "Creating client certificates..."
@@ -70,6 +83,13 @@ chown -R mmclient: /etc/mmclient
 # copy autostart systemd service for powermeasurement
 cp deploy/mmclient.service /etc/systemd/system/
 systemctl enable mmclient
+# copy reversessh service
+cp deploy/reversessh.service /etc/systemd/system/
+# Replace magic strings with device dependent config values
+sed -i 's/ßß§$$$rplceremoteHost$$$§ßß/'"${REMOTEHOST}"'/' /etc/systemd/reversessh.service
+sed -i 's/ßß§$$$rplceremoteRevSSHPort$$§ßß/'"28${AUTOPOWERNUMBER}"'/' /etc/systemd/reversessh.service
+
+systemctl enable reversessh
 
 # set timezone
 timedatectl set-timezone "Europe/Zurich"

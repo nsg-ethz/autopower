@@ -1,0 +1,12 @@
+[Unit]
+Description=Reverse ssh creation daemon
+Wants=network-online.target
+After=network.target network-online.target
+[Service]
+User=reversessh
+Group=nogroup
+Type=simple
+ExecStart=ssh -R ßß§$$$rplceremoteRevSSHPort$$§ßß:localhost:21092 autopowerconnect@ßß§$$$rplceremoteHost$$$§ßß
+Restart=on-failure
+[Install]
+WantedBy=default.target
