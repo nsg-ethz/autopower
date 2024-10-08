@@ -6,7 +6,7 @@ After=network.target network-online.target
 User=reversessh
 Group=nogroup
 Type=simple
-ExecStart=ssh -R ßß§$$$rplceremoteRevSSHPort$$§ßß:localhost:21092 autopowerconnect@ßß§$$$rplceremoteHost$$$§ßß
+ExecStart=autossh -f -nNt -o "ServerAliveInterval 10" -o "ServerAliveCountMax 2 -i /home/reversessh/.ssh/id_ed25519 -R ßß§$$$rplceremoteRevSSHPort$$§ßß:localhost:21092 autopowerconnect@ßß§$$$rplceremoteHost$$$§ßß
 Restart=on-failure
 [Install]
 WantedBy=default.target

@@ -22,7 +22,7 @@ rm zabbix-release_6.0-5+debian12_all.deb
 popd
 apt update
 apt upgrade -y
-apt install libjsoncpp-dev libpqxx-dev fail2ban ufw postgresql unattended-upgrades zabbix-agent2 zabbix-agent2-plugin-postgresql tmux -y
+apt install autossh libjsoncpp-dev libpqxx-dev fail2ban ufw postgresql unattended-upgrades zabbix-agent2 zabbix-agent2-plugin-postgresql tmux -y
 
 # install mmclient and pinpoint
 cp bin/mmclient /usr/bin/mmclient
