@@ -9,7 +9,7 @@ source serverIpConfig.sh
 DEVICENAME=$(hostname)
 # Split out autopower number
 AUTOPOWERNUMBER="${DEVICENAME/autopower/''}"
-if ! [[ "${AUTOPOWERNUMBER}" =~ '^[0-9]+$' ]]; then
+if ! [[ "${AUTOPOWERNUMBER}" =~ ^[0-9]+$ ]]; then
   echo "Got invalid hostname. The hostname must be of the form: autopower<number>. E.g: autopower1"
   exit 1
 fi
