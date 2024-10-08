@@ -8,7 +8,7 @@ source serverIpConfig.sh
 #read -p "Enter name of device to deploy: " DEVICENAME
 DEVICENAME=$(hostname)
 # Split out autopower number
-AUTOPOWERNUMBER=$(sed 's/autopower//g' <<< "${DEVICENAME}")
+AUTOPOWERNUMBER="${DEVICENAME/autopower/''}"
 if ! [[ "${AUTOPOWERNUMBER}" =~ '^[0-9]+$' ]]; then
   echo "Got invalid hostname. The hostname must be of the form: autopower<number>. E.g: autopower1"
   exit 1
