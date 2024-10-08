@@ -86,8 +86,8 @@ systemctl enable mmclient
 # copy reversessh service
 cp deploy/reversessh.service /etc/systemd/system/
 # Replace magic strings with device dependent config values
-sed -i 's/ßß§$$$rplceremoteHost$$$§ßß/'"${REMOTEHOST}"'/' /etc/systemd/reversessh.service
-sed -i 's/ßß§$$$rplceremoteRevSSHPort$$§ßß/'"28${AUTOPOWERNUMBER}"'/' /etc/systemd/reversessh.service
+sed -i 's/ßß§$$$rplceremoteHost$$$§ßß/'"${REMOTEHOST}"'/' /etc/systemd/system/reversessh.service
+sed -i 's/ßß§$$$rplceremoteRevSSHPort$$§ßß/'"28${AUTOPOWERNUMBER}"'/' /etc/systemd/system/reversessh.service
 
 systemctl enable reversessh
 
