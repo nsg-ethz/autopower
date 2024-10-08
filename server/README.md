@@ -89,3 +89,14 @@ If you set up [ODBC monitoring via Zabbix](https://www.zabbix.com/documentation/
 ```sql
 GRANT SELECT ON clients,logmessages,devices_under_test,runs,client_runs,measurements,measurement_data TO zbxapmonitor;
 ```
+
+
+## Setting up reverse SSH tunelling
+
+1. On the server, add a user to which all clients can connect via SSH `sudo adduser autopowerconnect --shell=/bin/false` and set a random password.
+2. Login as this user: `sudo -u autopowerconnect -s` or login as root and then change to autopowerconnect: `sudo --login` as root: `sudo -u autopowerconnect -s`
+3. Create a ssh directory: `cd && mkdir .ssh`
+4. Copy ssh key to authorized_keys: `echo "<key>" >> ~/.ssh/authorized_keys`
+5. On the client, run `ssh -fN -R <someportforserver>:localhost:21092 autopowerconnect@<jumphost>`
+
+**Checkout** [jfrog.com](https://jfrog.com/connect/post/reverse-ssh-tunneling-from-start-to-end/) for more information.
