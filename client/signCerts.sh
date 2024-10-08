@@ -5,6 +5,7 @@
 
 source capassphrase.sh
 source serverIpConfig.sh
+source serverAdminConfig.sh
 DEVICENAME=$(hostname)
 
 # ssh into the server (which works thanks to agent forwarding) 
@@ -22,12 +23,15 @@ tmux send-keys -t certs "rm -f /usr/autopower/certs/client_${DEVICENAME}.csr" C-
 sleep 2 # wait a bit to give time to the tmux command to run
 
 
-# copy the certificate to the server with scp
+# copy certificates to the server with scp
 echo "copying the new files..."
 sudo cp /etc/mmclient/client_${DEVICENAME}.csr .
 scp ${NOKEYCHECK} ${JUMPHOST} client_${DEVICENAME}.csr autopower@${REMOTEHOST}:/usr/autopower/certs/client_${DEVICENAME}.csr
 # copy the psk to wherever (probably the server as well, I should make a directory for that)
 scp ${NOKEYCHECK} ${JUMPHOST} zabbix_psk.psk autopower@${REMOTEHOST}:/usr/autopower/zabbix/zabbix_client_${DEVICENAME}.psk
+# copy and chown ssh key for reverse ssh
+scp ${NOKEYCHECK} ${JUMPHOST} /home/reversessh/.ssh/id_ed25519.pub autopower@${REMOTEHOST}:/tmp/sshcert_${DEVICENAME}.pub
+tmux send-keys -t certs "chown autopowerconnect:autopowerconnect /tmp/sshcert_${DEVICENAME}.pub" C-m
 
 # sign the certificate on the server  
 echo "signing the new certificate..."
@@ -44,3 +48,11 @@ sudo mv ~/*.cer /etc/mmclient/
 sudo chown mmclient: /etc/mmclient/client.cer
 sudo chown mmclient: /etc/mmclient/ca.cer
 
+# Add external sshkey to autopowerconnect user on the server
+tmux send-keys -t certs "ssh ${NOKEYCHECK} ${JUMPHOST} ${EXTERNALADMINUSER}@${REMOTEHOST}" C-m
+SAVE_CMD="cat /tmp/sshcert_${DEVICENAME}.pub >> /local/home/autopowerconnect/.ssh/authorized_keys"
+tmux send-keys -t certs "${SAVE_CMD}" C-m
+
+# let autopowerconnect user connect (trial)
+
+sudo -u autopowerconnect -s ssh autopowerconnect@${REMOTEHOST} -t "echo 'Connection to autopowerconnect works'"

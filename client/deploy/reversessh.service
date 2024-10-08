@@ -1,0 +1,13 @@
+[Unit]
+Description=Reverse ssh creation daemon
+Wants=network-online.target
+After=network.target network-online.target
+[Service]
+User=reversessh
+Group=nogroup
+Type=simple
+# see https://superuser.com/questions/37738/how-to-reliably-keep-an-ssh-tunnel-open
+ExecStart=autossh -nNt -o "ServerAliveInterval 10" -o "ServerAliveCountMax 2" -i /home/reversessh/.ssh/id_ed25519 -R ßß§$$$rplceremoteRevSSHPort$$§ßß:localhost:21092 autopowerconnect@ßß§$$$rplceremoteHost$$$§ßß
+Restart=on-failure
+[Install]
+WantedBy=default.target
