@@ -31,7 +31,7 @@ Afterwards, create the `autopower` database:
 sudo -u postgres psql -d postgres -c "CREATE DATABASE autopower;"
 ```
 
-Now you can load the setup script for the database. If you use another database or user name, you may need to adapt the script database_schema.sql to fit to your needs. Be sure that the postgres user has read access to database_schema.sql. 
+Now you can load the setup script for the database. If you use another database or user name, you may need to adapt the script database_schema.sql to fit to your needs. Be sure that the postgres user has read access to database_schema.sql and you are in the `server` directory of this repo. 
 ```bash
 sudo -u postgres psql -d autopower -a -f database_schema.sql
 ```
