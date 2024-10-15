@@ -39,6 +39,7 @@ Make the server.key file readable to the user running server.py.
 
 To deploy the server:
 * Log in as root
+* If not already done, create a user called `autopower`: `adduser autopower`
 * Create a directory to save all the content from the server/ directory: `mkdir /usr/autopower`
 * Change to the directory you just created: `cd /usr/autopower`
 * Create a virtualenv: `virtualenv venv`
