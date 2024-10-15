@@ -46,14 +46,16 @@ Make the server.key file readable to the user running server.py.
 To deploy the server:
 * Log in as root
 * If not already done, create a user called `autopower`: `adduser autopower`
-* Create a directory to save all the content from the server/ directory: `mkdir /usr/autopower`
-* Change to the directory you just created: `cd /usr/autopower`
+* Clone this repository into `/usr`: `cd /usr && git clone https://github.com/nsg-ethz/autopower && chown -R autopower:autopower autopower/`
+* Login as `autopower`: `sudo -u autopower -s`
+* Change to the `server` directory: `cd /usr/autopower/server`
 * Create a virtualenv: `virtualenv venv`
 * Enter the virtual environment: `source venv/bin/activate`
 * Install the requirements: `pip3 install -r requirements.txt`
-* Create a symlink to the config directory: `ln -s /usr/autopower/config/ /etc/autopower`
+* Exit the shell and continue as root: `exit`
+* Create a symlink to the config directory: `ln -s /usr/autopower/server/config/ /etc/autopower`
 * Set permissions to autopower readonly: `chown root:autopower /etc/autopower && chmod u=rwx,g=rx,o= /etc/autopower`
-* Edit the `secrets.json` by setting the correct paths to certificates and the database connection (`nano /etc/autopower/secrets.json`). Place all the certificates in a place and set permissions such that the autopower user can read the certificates `chown root:autopower /path/to/srv.key && chmod u=r,g=r,o= /path/to/srv.key`. Repeat that for all the certificates specified in the config:
+* Edit the `secrets.json` by setting the correct paths to certificates and the database connection (`cp /etc/autopower/secrets.json.example /etc/autopower/secrets.json && nano /etc/autopower/secrets.json && chown root:autopower /etc/autopower/secrets.json && chmod u=r,g=r,o= /etc/autopower/secrets.json`). Place all the certificates in a place and set permissions such that the autopower user can read the certificates `chown root:autopower /path/to/srv.key && chmod u=r,g=r,o= /path/to/srv.key`. Repeat that for all the certificates specified in the config:
 ```
 {
     "postgres": {
