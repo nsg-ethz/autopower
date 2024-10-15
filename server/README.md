@@ -55,7 +55,9 @@ To deploy the server:
 * Exit the shell and continue as root: `exit`
 * Create a symlink to the config directory: `ln -s /usr/autopower/server/config/ /etc/autopower`
 * Set permissions to autopower readonly: `chown root:autopower /etc/autopower && chmod u=rwx,g=rx,o= /etc/autopower`
-* Edit the `secrets.json` by setting the correct paths to certificates and the database connection (`cp /etc/autopower/secrets.json.example /etc/autopower/secrets.json && nano /etc/autopower/secrets.json && chown root:autopower /etc/autopower/secrets.json && chmod u=r,g=r,o= /etc/autopower/secrets.json`). Place all the certificates in a place and set permissions such that the autopower user can read the certificates `chown root:autopower /path/to/srv.key && chmod u=r,g=r,o= /path/to/srv.key`. Repeat that for all the certificates specified in the config:
+* Edit the `secrets.json` by setting the correct paths to certificates and the database connection (`cp /etc/autopower/secrets.json.example /etc/autopower/secrets.json && nano /etc/autopower/secrets.json && chown root:autopower /etc/autopower/secrets.json && chmod u=r,g=r,o= /etc/autopower/secrets.json`).
+* Set up the CA on the server as shown in the `/certs/` folder of this repository.
+* Place all the certificates in a place and set permissions such that the autopower user can read the certificates `chown root:autopower /path/to/srv.key && chmod u=r,g=r,o= /path/to/srv.key`. Repeat that for all the certificates specified in the config:
 ```
 {
     "postgres": {
@@ -79,7 +81,7 @@ To deploy the server:
 }
 ```
 * Set permissions to only make the secrets file readable by the autopower user: `chown root:autopower /etc/autopower/secrets.json`, `chmod u=r,g=r,o= /etc/autopower/secrets.json`
-* Copy the mmserver.service systemd service definition file to setup the service: `cp /usr/autopower/mmserver.service /etc/systemd/system`
+* Copy the mmserver.service systemd service definition file to setup the service: `cp /usr/autopower/server/mmserver.service /etc/systemd/system`
 * Enable autostart: `systemctl enable mmserver.service`
 * Start the server: `systemctl start mmserver.service`
 
