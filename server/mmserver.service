@@ -7,7 +7,7 @@ After=postgresql.service time-sync.target network.target network-online.target
 User=autopower
 Group=autopower
 Type=simple
-ExecStart=/usr/autopower/venv/bin/python /usr/autopower/server.py -s /usr/autopower/config/secrets.json -c /usr/autopower/config/server_config.json
+ExecStart=/usr/autopower/server/venv/bin/python /usr/autopower/server/server.py -s /usr/autopower/server/config/secrets.json -c /usr/autopower/server/config/server_config.json
 Restart=on-failure
 [Install]
 WantedBy=default.target
