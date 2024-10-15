@@ -87,7 +87,7 @@ To deploy the server:
 
 ## Connecting to server via CLI:
 * The `cli.py` script enables you to connect to a server via a basic shell.
-* Go into the autopower folder: `cd /usr/autopower`
+* Go into the autopower server folder: `cd /usr/autopower/server`
 * To use `cli.py`, configure you may need to change the hostname and port the server runs: `cp config/cli_config.json.example config/cli_config.json && nano config/cli_config.json`
 * Create and sign keys for the cli client as described in the /certs/ folder
 * Now set up the paths to these keys in the `cli_secrets.json file`: `cp config/cli_secrets.json.example config/cli_secrets.json && nano config/cli_secrets.json`. The format closely follows the `ssl` section of the `secrets.json` file of the server.
