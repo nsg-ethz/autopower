@@ -88,7 +88,8 @@ To deploy the server:
 ## Connecting to server via CLI:
 * The `cli.py` script enables you to connect to a server via a basic shell.
 * Go into the autopower server folder: `cd /usr/autopower/server`
-* To use `cli.py`, configure you may need to change the hostname and port the server runs: `cp config/cli_config.json.example config/cli_config.json && nano config/cli_config.json`
+* To use `cli.py`, configure you may need to change the hostname and port the server runs: `cp config/cli_config.json.example config/cli_config.json && nano config/cli_config.json`. localhost may not work
+* Create a password for cli.py: `python3 cli.py --createpassword` and copy the hash into the `config/secrets.json` file
 * Create and sign keys for the cli client as described in the /certs/ folder
 * Now set up the paths to these keys in the `cli_secrets.json file`: `cp config/cli_secrets.json.example config/cli_secrets.json && nano config/cli_secrets.json`. The format closely follows the `ssl` section of the `secrets.json` file of the server.
 * Set permissions to only make the cli_secrets file readable by the autopower user: `chown root:autopower /etc/autopower/cli_secrets.json`, `chmod u=r,g=r,o= /etc/autopower/cli_secrets.json`
