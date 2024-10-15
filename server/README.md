@@ -15,7 +15,13 @@ To install the server, a recent version of python3 is required. Install python3 
 
 Autopower uses a PostgresSQL based database on both the client and server to store measurement and application data.
 
-The [Debian wiki](https://wiki.debian.org/PostgreSql) shows how to install PostgresSQL. After you have installed the server, create an user account for the server. Replace <password> with a secure password for the autopower user.
+The [Debian wiki](https://wiki.debian.org/PostgreSql) shows how to install PostgresSQL. On ETH infrastructure, you may want to ensure that PostgreSQL uses the correct, local user. The easiest way is to:
+1. Login as root
+2. Stop sssd: `systemctl stop sssd`. !!!DO NOT LOG OUT BEFORE SSSD HAS BEEN STARTED AGAIN!!!
+3. Install PostgreSQL (e.g. with `sudo apt install postgresql`)
+4. Restart sssd: `systemctl start sssd`
+
+After you have installed the server, create an user account for the server. Replace <password> with a secure password for the autopower user. 
 ```bash
 sudo -u postgres psql -d postgres -c "CREATE USER autopower WITH PASSWORD '<password>';"
 ```
