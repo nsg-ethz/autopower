@@ -1,6 +1,8 @@
 #pragma once
 #include "api.grpc.pb.h"
 #include "api.pb.h"
+#include <boost/asio/post.hpp>
+#include <boost/asio/thread_pool.hpp>
 #include <condition_variable>
 #include <csignal>
 #include <ctime>
@@ -9,8 +11,6 @@
 #include <shared_mutex>
 #include <string>
 #include <vector>
-#include <boost/asio/thread_pool.hpp>
-#include <boost/asio/post.hpp>
 
 // describes a measurement sample
 struct CMsmtSample {
@@ -106,7 +106,7 @@ class AutopowerClient {
   bool getDoLastUpload() {
     return this->doLastUpload;
   }
-  
+
   void setCurrentlyRunningPid(pid_t pid) {
     std::unique_lock<std::shared_mutex> rlck(ppIsRunningMtx);
     this->lastKnownPpPid = pid;
@@ -130,7 +130,8 @@ class AutopowerClient {
   std::string readFileToString(const std::string &filename); // TODO: remove this method from the client as it's an util function
   struct CMsmtSample parseMsmt(std::string msmtLine);
   std::unique_ptr<autopapi::CMeasurementApi::Stub> createGrpcConnection(std::string remoteHost, std::string remotePort, std::string privKeyClientPath, std::string pubKeyClientPath, std::string pubKeyCA = "");
-  
+
+  void notifyPwrLED(int waitTimes[], int numWaitElems);
   void notifyLEDConnectionFailed();
 
   void getAndSavePpData();
