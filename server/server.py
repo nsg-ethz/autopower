@@ -434,10 +434,18 @@ class CMeasurementApiServicer():
 
                     mmlist.append((internalId, mmt.msmtContent,mmtTime, mmt.sampleId))
                 # in the normal case insert tuples just into the measurement_data table.
-
+                # See https://stackoverflow.com/a/60443582 as information how we (ab) use RETURNING
                 ackdIds = pgextras.execute_values(curs,"""
-                    INSERT INTO measurement_data (server_measurement_id, measurement_value, measurement_timestamp, ack_id)
-                        VALUES %s RETURNING ack_id;
+                    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+                    WITH ists (server_measurement_id, measurement_value, measurement_timestamp, ack_id) AS (
+                      VALUES %s
+                    ), new_ists AS (
+                        INSERT INTO measurement_data (server_measurement_id, measurement_value, measurement_timestamp, ack_id)
+                        (SELECT * FROM ists) ON CONFLICT (server_measurement_id, ack_id) DO NOTHING RETURNING ack_id
+                    ) SELECT ack_id FROM new_ists
+                      UNION (
+                        SELECT measurement_data.ack_id FROM measurement_data, ists WHERE measurement_data.server_measurement_id = ists.server_measurement_id AND measurement_data.ack_id = ists.ack_id
+                      );
                         """, mmlist, fetch=True)
                 con.commit()
                 # acknowledge writing to DB successfully
