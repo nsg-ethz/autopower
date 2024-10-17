@@ -4,6 +4,7 @@
 #include <condition_variable>
 #include <csignal>
 #include <ctime>
+#include <fstream>
 #include <mutex>
 #include <shared_mutex>
 #include <string>
@@ -129,6 +130,8 @@ class AutopowerClient {
   std::string readFileToString(const std::string &filename); // TODO: remove this method from the client as it's an util function
   struct CMsmtSample parseMsmt(std::string msmtLine);
   std::unique_ptr<autopapi::CMeasurementApi::Stub> createGrpcConnection(std::string remoteHost, std::string remotePort, std::string privKeyClientPath, std::string pubKeyClientPath, std::string pubKeyCA = "");
+  
+  void notifyLEDConnectionFailed();
 
   void getAndSavePpData();
   std::pair<bool, std::string> startMeasurement();

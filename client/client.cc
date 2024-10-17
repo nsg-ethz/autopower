@@ -164,6 +164,25 @@ std::unique_ptr<autopapi::CMeasurementApi::Stub> AutopowerClient::createGrpcConn
   return stub;
 }
 
+void AutopowerClient::notifyLEDConnectionFailed() {
+  // if running on raspi (4), we can control the onboard power LED to convey errors: /sys/class/leds/PWR/brightness
+  // the user running mmclient must have write access to this file
+  std::ofstream ledStream("/sys/class/leds/PWR/brightness");
+  if (ledStream.is_open() && ledStream.good()) {
+    ledStream << "1";
+    sleep(1);
+    ledStream << "0";
+    sleep(1);
+    ledStream << "1";
+    sleep(1);
+    ledStream << "0";
+    sleep(1);
+    ledStream << "1";
+  }
+
+  ledStream.close();
+}
+
 void AutopowerClient::getAndSavePpData() {
   // start pinpoint
   bool loggedErrorToServer = false; // only log starting errors to server once per measurement
@@ -819,6 +838,7 @@ void AutopowerClient::manageMsmt() {
     std::cerr << sf.error_code() << ": " << sf.error_message() << ": " << sf.error_details() << std::endl;
     std::cerr << "Server stream exited. Will attempt re-register." << std::endl;
     cc.TryCancel(); // try to free up context as this is no longer possible to use.
+    notifyLEDConnectionFailed();
     sleep(5);       // sleep for 5 seconds before re-registering
   }
 
