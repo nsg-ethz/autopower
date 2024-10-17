@@ -551,8 +551,8 @@ bool AutopowerClient::streamMeasurementData(std::string measId) {
     autopapi::sampleAck smpAck;
     while (smpStream->Read(&smpAck)) {
       txn.exec_prepared("confirmMmUploaded", smpAck.sampleid());
-      txn.commit();
     }
+    txn.commit();
   });
 
   streamWriterThread.join();

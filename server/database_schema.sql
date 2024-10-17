@@ -50,7 +50,8 @@ CREATE TABLE measurement_data (
   ack_id INT NOT NULL,
   server_measurement_id INT NOT NULL REFERENCES measurements(server_measurement_id),
   measurement_value INT NOT NULL,
-  measurement_timestamp TIMESTAMP WITH TIME ZONE NOT NULL
+  measurement_timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+  UNIQUE (ack_id, server_measurement_id)
 );
 
 CREATE INDEX idx_msmt_and_timestamp ON measurement_data (server_measurement_id, measurement_timestamp);
