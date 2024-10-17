@@ -4,7 +4,7 @@ This was tested on Debian 12.5 and should also work on Raspberry Pi OS from 15.0
 
 ## Dependencies
 * Install GRPC v1.63.0 or later like in the [official documentation](https://grpc.io/docs/languages/cpp/quickstart/) from source. This may take some time. If you are compiling on a Raspberry Pi, a Raspberry Pi 4 with at least 4 GB RAM is recommended.
-* Install libjsoncpp-dev and libpqxx-dev: `apt install libjsoncpp-dev libpqxx-dev`
+* Install libjsoncpp-dev and libpqxx-dev. Boost is also necessary. For now install all of boost (you'll only need features related to threading): `apt install libjsoncpp-dev libpqxx-dev libboost-all-dev`
 ## Compile
 **Hint:** If you changed the .proto file, you may need to run `./genCppProto.sh` before compiling.
 To compile the client run:
