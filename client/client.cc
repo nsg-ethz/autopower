@@ -180,6 +180,7 @@ void AutopowerClient::notifyPwrLED(int waitTimes[], int numWaitElems) {
       }
 
       sendOne = !sendOne;
+      ledStream.flush();
       std::this_thread::sleep_for(std::chrono::milliseconds(waitTimes[i]));
     }
 
@@ -191,8 +192,8 @@ void AutopowerClient::notifyPwrLED(int waitTimes[], int numWaitElems) {
 }
 
 void AutopowerClient::notifyLEDConnectionFailed() {
-  int blinkPattern[4] = {250, 750, 250, 750};
-  notifyPwrLED(blinkPattern, 4);
+  int blinkPattern[6] = {150, 250, 150, 250, 300, 250};
+  notifyPwrLED(blinkPattern, 6);
 }
 
 void AutopowerClient::getAndSavePpData() {
