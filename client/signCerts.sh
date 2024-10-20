@@ -30,7 +30,7 @@ scp ${NOKEYCHECK} ${JUMPHOST} client_${DEVICENAME}.csr autopower@${REMOTEHOST}:/
 # copy the psk to wherever (probably the server as well, I should make a directory for that)
 scp ${NOKEYCHECK} ${JUMPHOST} zabbix_psk.psk autopower@${REMOTEHOST}:/usr/autopower/zabbix/zabbix_client_${DEVICENAME}.psk
 # copy and chown ssh key for reverse ssh
-scp ${NOKEYCHECK} ${JUMPHOST} /home/reversessh/.ssh/id_ed25519.pub autopower@${REMOTEHOST}:/tmp/sshcert_${DEVICENAME}.pub
+scp ${NOKEYCHECK} ${JUMPHOST} /home/reversessh/.ssh/id_ed25519.pub autopower@${EXTERNALJUMPHOST}:/tmp/sshcert_${DEVICENAME}.pub
 tmux send-keys -t certs "chown autopowerconnect:autopowerconnect /tmp/sshcert_${DEVICENAME}.pub" C-m
 
 # sign the certificate on the server  
@@ -50,9 +50,9 @@ sudo chown mmclient: /etc/mmclient/ca.cer
 
 # Add external sshkey to autopowerconnect user on the server
 tmux send-keys -t certs "ssh ${NOKEYCHECK} ${JUMPHOST} ${EXTERNALADMINUSER}@${EXTERNALJUMPHOST}" C-m
-SAVE_CMD="cat /tmp/sshcert_${DEVICENAME}.pub >> /local/home/autopowerconnect/.ssh/authorized_keys"
+SAVE_CMD="sudo sh -c \"cat /tmp/sshcert_${DEVICENAME}.pub >> /local/home/autopowerconnect/.ssh/authorized_keys\""
 tmux send-keys -t certs "${SAVE_CMD}" C-m
 
-# let autopowerconnect user connect (trial)
+# let reversessh user connect (trial)
 
-sudo -u autopowerconnect -s ssh autopowerconnect@${EXTERNALJUMPHOST} -t "echo 'Connection to autopowerconnect works'"
+sudo -u reversessh -s ssh autopowerconnect@${EXTERNALJUMPHOST} -t "echo 'Connection to autopowerconnect works'"
