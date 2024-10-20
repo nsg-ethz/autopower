@@ -52,10 +52,14 @@ sudo -u postgres psql -d postgres -c "CREATE USER autopower_client WITH PASSWORD
 sudo -u postgres psql -d postgres -c "CREATE DATABASE autopower_client;"
 sudo -u postgres psql -d autopower_client -a -f client_db_schema.sql
 
+# Create group to allow access to on board leds
+addgroup leds
 # create mmclient user and set up files
 adduser --system mmclient
 # allow access to power meter
 adduser mmclient dialout
+# Allow access to on board LEDs
+adduser mmclient leds
 # Setup reverse SSH user
 adduser --disabled-password --gecos "" reversessh
 # Create key for reversessh user
@@ -91,6 +95,8 @@ sed -i 's/ßß§$$$rplceremoteHost$$$§ßß/'"${EXTERNALJUMPHOST}"'/' /etc/syste
 sed -i 's/ßß§$$$rplceremoteRevSSHPort$$§ßß/'"28${AUTOPOWERNUMBER}"'/' /etc/systemd/system/reversessh.service
 
 systemctl enable reversessh
+# copy udev rule to allow leds group to access leds
+cp deploy/99-leds.rules /etc/udev/rules.d/99-leds.rules
 
 # set timezone
 timedatectl set-timezone "Europe/Zurich"

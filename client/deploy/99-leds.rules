@@ -1,0 +1,3 @@
+# https://forums.raspberrypi.com/viewtopic.php?t=356677
+
+SUBSYSTEM=="leds", ACTION=="add", PROGRAM="/bin/sh -c 'chgrp -R leds /sys%p && chmod -R g=u /sys%p'"
