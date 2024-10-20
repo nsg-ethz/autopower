@@ -49,10 +49,10 @@ sudo chown mmclient: /etc/mmclient/client.cer
 sudo chown mmclient: /etc/mmclient/ca.cer
 
 # Add external sshkey to autopowerconnect user on the server
-tmux send-keys -t certs "ssh ${NOKEYCHECK} ${JUMPHOST} ${EXTERNALADMINUSER}@${REMOTEHOST}" C-m
+tmux send-keys -t certs "ssh ${NOKEYCHECK} ${JUMPHOST} ${EXTERNALADMINUSER}@${EXTERNALJUMPHOST}" C-m
 SAVE_CMD="cat /tmp/sshcert_${DEVICENAME}.pub >> /local/home/autopowerconnect/.ssh/authorized_keys"
 tmux send-keys -t certs "${SAVE_CMD}" C-m
 
 # let autopowerconnect user connect (trial)
 
-sudo -u autopowerconnect -s ssh autopowerconnect@${REMOTEHOST} -t "echo 'Connection to autopowerconnect works'"
+sudo -u autopowerconnect -s ssh autopowerconnect@${EXTERNALJUMPHOST} -t "echo 'Connection to autopowerconnect works'"

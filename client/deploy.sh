@@ -3,6 +3,7 @@
 # Deploy an autopower device should only be run on the Raspberry Pi
 
 source serverIpConfig.sh
+source serverAdminConfig.sh
 
 # > we use the hostname configured on OS install
 #read -p "Enter name of device to deploy: " DEVICENAME
@@ -86,7 +87,7 @@ systemctl enable mmclient
 # copy reversessh service
 cp deploy/reversessh.service /etc/systemd/system/
 # Replace magic strings with device dependent config values
-sed -i 's/ßß§$$$rplceremoteHost$$$§ßß/'"${REMOTEHOST}"'/' /etc/systemd/system/reversessh.service
+sed -i 's/ßß§$$$rplceremoteHost$$$§ßß/'"${EXTERNALJUMPHOST}"'/' /etc/systemd/system/reversessh.service
 sed -i 's/ßß§$$$rplceremoteRevSSHPort$$§ßß/'"28${AUTOPOWERNUMBER}"'/' /etc/systemd/system/reversessh.service
 
 systemctl enable reversessh
