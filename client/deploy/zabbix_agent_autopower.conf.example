@@ -1,6 +1,7 @@
-Server=ßß§$$$rplceremoteHost$$$§ßß
+ServerActive=ßß§$$$rplceremoteHost$$$§ßß
+# Server=ßß§$$$rplceremoteHost$$$§ßß
 Hostname=ßß§$$$rplceClientUid$$$§ßß
 TLSConnect=psk
 TLSAccept=psk
 TLSPSKFile=/etc/zabbix/psk.psk
-TLSPSKIdentity=PSK ßß§$$$rplceClientUid$$$§ßß
+TLSPSKIdentity=Autopower Client

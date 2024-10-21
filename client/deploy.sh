@@ -113,8 +113,10 @@ cp deploy/zabbix_agent_autopower.conf.example /etc/zabbix/zabbix_agent2.d/zabbix
 sed -i 's/ßß§$$$rplceremoteHost$$$§ßß/'"${REMOTEHOST}"'/' /etc/zabbix/zabbix_agent2.d/zabbix_agent_autopower.conf
 sed -i 's/ßß§$$$rplceClientUid$$$§ßß/'"${DEVICENAME}"'/' /etc/zabbix/zabbix_agent2.d/zabbix_agent_autopower.conf
 # generate random psk for zabbix (according to official docs of zabbix: https://www.zabbix.com/documentation/current/en/manual/encryption/using_pre_shared_keys)
-openssl rand -hex 32 > zabbix_psk.psk
-cp zabbix_psk.psk /etc/zabbix/psk.psk
+#openssl rand -hex 32 > zabbix_psk.psk
+#cp zabbix_psk.psk /etc/zabbix/psk.psk
+# Use autoregistration PSK
+echo "${ZABBIXPSK}" > /etc/zabbix/psk.psk
 chmod u=r,g=r,o= /etc/zabbix/psk.psk
 chown root:zabbix /etc/zabbix/psk.psk
 
