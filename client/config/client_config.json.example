@@ -4,6 +4,5 @@
     "remotePort": "25181",
     "ppBinaryPath": "/usr/bin/pinpoint",
     "ppDevice": "MCP1",
-    "ppSamplingInterval": "500",
-    "supportedDevices": ["MCP1"]
+    "ppSamplingInterval": "500"
 }
