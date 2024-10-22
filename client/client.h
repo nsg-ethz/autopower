@@ -27,7 +27,7 @@ class AutopowerClient {
   std::string ppSamplingInterval;            // sampling interval for pinpoint
   std::string pgConString;                   // string for connecting to postgres DB
   std::string msmtId;                        // shared id of this measurement
-  std::vector<std::string> supportedDevices; // supported devices by pinpoint
+  std::vector<std::string> supportedDevices; // supported devices by pinpoint during last time pinpoint was queried
   uint32_t internalMmtId;                    // local (private to database) ID of this measurement
   std::mutex msmtIdMtx;
   std::shared_mutex hasExitedMtx;          // mutex to protect the exit/running status of pinpoint
@@ -117,6 +117,7 @@ class AutopowerClient {
     return 0 == kill(lastKnownPpPid, 0);
   }
 
+  void updateValidPpDeviceList();
   bool isValidPpDevice(std::string device);
 
   void putStatusToServer(uint32_t statuscode, std::string message);
@@ -136,6 +137,7 @@ class AutopowerClient {
   void notifyActLED(int waitTimes[], int numWaitElems);
   void notifyLEDConnectionFailed();
   void notifyLEDSampleSaved();
+
   void notifyLEDMeasurementCrashed();
   
   void getAndSavePpData();
@@ -160,5 +162,5 @@ public:
   AutopowerClient(std::string _clientUid,
                   std::string _remoteHost, std::string _remotePort, std::string _privKeyPath, std::string _pubKeyPath, std::string _pubKeyCA,
                   std::string _pgConnString,
-                  std::string _ppBinaryPath, std::string _ppDevice, std::string _ppSamplingInterval, std::vector<std::string> _supportedDevices);
+                  std::string _ppBinaryPath, std::string _ppDevice, std::string _ppSamplingInterval);
 };

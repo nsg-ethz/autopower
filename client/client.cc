@@ -32,8 +32,56 @@
 #include <unistd.h>
 #include <vector>
 
+void AutopowerClient::updateValidPpDeviceList() {
+  // sets local pinpoint device list to list of aliasses returned by pinpoint
+  int pipe_comm[2];
+  if (pipe(pipe_comm) == -1) {
+    std::string errMsg = "ERROR: Could not create pipe for querying valid devices from pinpoint";
+    std::cerr << errMsg << std::endl;
+    putStatusToServer(1, errMsg);
+    return; // pipe cannot be opened --> does not make sense to allow any device. This hints at a major issue of the system
+  }
+
+  pid_t pinpointCheckPid = fork();
+  if (pinpointCheckPid == 0) {
+    // child --> query pinpoint
+    close(pipe_comm[0]);
+    dup2(pipe_comm[1], STDOUT_FILENO); // ensure stdout of pinpoint goes to pipe
+    execlp(ppBinaryPath.c_str(), ppBinaryPath.c_str(), "-L", NULL);
+    // we should not reach anything after exec(). Thus, this is an error.
+    std::cerr << "ERROR: Could not start pinpoint to query for valid devices!" << std::endl;
+    putStatusToServer(1, "Could not start pinpoint to query for valid devices. Please check the client for errors.");
+    close(pipe_comm[1]);
+  } else {
+    // parent --> handle data
+    close(pipe_comm[1]);
+    char rdbuffer;
+    std::string ppOutput = "";
+    while (read(pipe_comm[0], &rdbuffer,1)) {
+      ppOutput+= rdbuffer;
+    }
+
+    close(pipe_comm[0]);
+    int ret = 0;
+    waitpid(pinpointCheckPid, &ret,0);
+    Json::Value root;
+    Json::Reader rdr;
+    if (!rdr.parse(ppOutput,root)) {
+      std::cerr << "Error: Pinpoint returned unparsable output for counter checking!" << std::endl;
+      return;
+    }
+
+    // check if given value is listed in the alias list (https://stackoverflow.com/a/45037450)
+    supportedDevices.clear();
+    for (auto element : root["available_aliasses"]) {
+      supportedDevices.push_back(element.getMemberNames()[0]);
+    }
+  }
+}
+
 bool AutopowerClient::isValidPpDevice(std::string device) {
-  // check if device is in the supportedDevices list
+  // update local list and query pinpoint to get all available aliasses
+  updateValidPpDeviceList();
   return std::find(this->supportedDevices.begin(), this->supportedDevices.end(), device) != this->supportedDevices.end();
 }
 
@@ -165,6 +213,7 @@ std::unique_ptr<autopapi::CMeasurementApi::Stub> AutopowerClient::createGrpcConn
   return stub;
 }
 
+
 void AutopowerClient::notifyLED(std::string filepath, int waitTimes[], int numWaitElems, bool defaultOn) {
   // if running on raspi (4), we can control the onboard LEDs to convey information e.g. /sys/class/leds/PWR/brightness
   // the user running mmclient must have write access to this file
@@ -277,7 +326,16 @@ void AutopowerClient::getAndSavePpData() {
       }
 
       if (!isValidPpDevice(ppDevice)) {
-        std::string errMsg = "ERROR: Could not start pinpoint as device is not whitelisted on the client and may not be supported! Please check the client side configuration! Stopping measurement.";
+        std::string errMsg = "ERROR: Could not start pinpoint as device is not available/whitelisted on the client and may not be supported! Only ";
+        for (std::string dev : this->supportedDevices) {
+          errMsg += dev + ", ";
+        }
+
+        // fencepost solving:
+        errMsg.pop_back();
+        errMsg.pop_back();
+        
+        errMsg += " are supported. Please check the client side configuration! Stopping measurement.";
         std::cerr << errMsg << std::endl;
         putStatusToServer(1, errMsg);
         stopMeasurement();
@@ -919,12 +977,12 @@ void AutopowerClient::manageMsmt() {
 AutopowerClient::AutopowerClient(std::string _clientUid,
                                  std::string _remoteHost, std::string _remotePort, std::string _privKeyPath, std::string _pubKeyPath, std::string _pubKeyCA,
                                  std::string _pgConnString,
-                                 std::string _ppBinaryPath, std::string _ppDevice, std::string _ppSamplingInterval, std::vector<std::string> _supportedDevices)
+                                 std::string _ppBinaryPath, std::string _ppDevice, std::string _ppSamplingInterval)
     : // set up variables for environment
       clientUid(_clientUid),
       pgConString(_pgConnString),
       ppBinaryPath(_ppBinaryPath), ppDevice(_ppDevice),
-      ppSamplingInterval(_ppSamplingInterval), supportedDevices(_supportedDevices) {
+      ppSamplingInterval(_ppSamplingInterval) {
   // connect to external server
   this->stub = createGrpcConnection(_remoteHost, _remotePort, _privKeyPath, _pubKeyPath, _pubKeyCA);
   std::cout << "Started client UID " << clientUid << " and ppBinaryPath: " << ppBinaryPath << std::endl;
@@ -951,7 +1009,6 @@ int main(int argc, char **argv) {
   std::string secretsFilePath = "";          // absolute path to secrets (postgres string, certs, ...)
   std::string configFilePath = "";           // absolute path to config file (JSON)
   std::string postgresString = "";           // string to connect to postgres DB
-  std::vector<std::string> supportedDevices; // vector of allowed and supported devices for pinpoint
 
   // get arguments from cli
   int arg;
@@ -1076,17 +1133,6 @@ int main(int argc, char **argv) {
     if (ppSamplingInterval.empty() && config["ppSamplingInterval"]) {
       ppSamplingInterval = config["ppSamplingInterval"].asString();
     }
-
-    if (!config["supportedDevices"]) {
-      std::cerr << "Could not find any supported devices in config file. Please whitelist the available counters you get via running pinpoint -l!" << std::endl;
-      return -1;
-    } else {
-      // we can get the devices --> save as allowed ones.
-      const Json::Value declaredDevices = config["supportedDevices"];
-      for (int i = 0; i < declaredDevices.size(); i++) {
-        supportedDevices.push_back(declaredDevices[i].asString());
-      }
-    }
   }
 
   if (clientUid.empty()) {
@@ -1117,7 +1163,7 @@ int main(int argc, char **argv) {
 
   // finally start client
   try {
-    AutopowerClient c(clientUid, remoteHost, remotePort, privKeyPath, pubKeyPath, pubKeyCA, postgresString, ppBinaryPath, ppDevice, ppSamplingInterval, supportedDevices);
+    AutopowerClient c(clientUid, remoteHost, remotePort, privKeyPath, pubKeyPath, pubKeyCA, postgresString, ppBinaryPath, ppDevice, ppSamplingInterval);
   } catch (std::exception &e) {
     std::cerr << "FATAL ERROR: An exception occurred: " << e.what() << std::endl;
   }
