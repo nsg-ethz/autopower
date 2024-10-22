@@ -165,10 +165,10 @@ std::unique_ptr<autopapi::CMeasurementApi::Stub> AutopowerClient::createGrpcConn
   return stub;
 }
 
-void AutopowerClient::notifyPwrLED(int waitTimes[], int numWaitElems) {
+void AutopowerClient::notifyLED(std::string filepath, int waitTimes[], int numWaitElems) {
   // if running on raspi (4), we can control the onboard power LED to convey information: /sys/class/leds/PWR/brightness
   // the user running mmclient must have write access to this file
-  std::ofstream ledStream("/sys/class/leds/PWR/brightness");
+  std::ofstream ledStream(filepath);
   if (ledStream.is_open() && ledStream.good()) {
     bool sendOne = true; // assumes that the led is on at the start
     for (int i = 0; i < numWaitElems; i++) {
@@ -191,9 +191,22 @@ void AutopowerClient::notifyPwrLED(int waitTimes[], int numWaitElems) {
   ledStream.close();
 }
 
+void AutopowerClient::notifyPwrLED(int waitTimes[], int numWaitElems) {
+  notifyLED("/sys/class/leds/PWR/brightness", waitTimes, numWaitElems);
+}
+
+void AutopowerClient::notifyActLED(int waitTimes[], int numWaitElems) {
+  notifyLED("/sys/class/leds/ACT/brightness", waitTimes, numWaitElems);
+}
+
 void AutopowerClient::notifyLEDConnectionFailed() {
   int blinkPattern[6] = {150, 250, 150, 250, 300, 250};
   notifyPwrLED(blinkPattern, 6);
+}
+
+void AutopowerClient::notifyLEDSampleSaved() {
+  int blinkPattern[4] = {25, 50,25,50};
+  notifyActLED(blinkPattern,4);
 }
 
 void AutopowerClient::getAndSavePpData() {
@@ -335,6 +348,8 @@ void AutopowerClient::getAndSavePpData() {
             txn.commit();
             setHasWrittenOnce(true); // specify success of writing at least once to DB
             setLastSampleTimestamp(msmtPoint.timestamp);
+            // notify LED if possible
+            notifyLEDSampleSaved();
           } catch (std::exception &e) {
             std::string exprContent = e.what();
             std::string errorMsg = "Error while writing measurement to database: " + exprContent;
