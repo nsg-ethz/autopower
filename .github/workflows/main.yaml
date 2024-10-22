@@ -15,7 +15,7 @@ jobs:
         commands: |
             # update system and install dependencies
             apt update
-            apt install -y cmake git build-essential autoconf libtool pkg-config libjsoncpp-dev libpqxx-dev
+            apt install -y cmake git build-essential autoconf libtool pkg-config libjsoncpp-dev libpqxx-dev libboost-all-dev
             # Compile gRPC 
             export MY_INSTALL_DIR=$HOME/.local
             mkdir -p $MY_INSTALL_DIR
