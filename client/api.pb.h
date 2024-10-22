@@ -115,6 +115,7 @@ enum srvRequestType : int {
   REQUEST_MEASUREMENT_LIST = 3,
   REQUEST_MEASUREMENT_DATA = 4,
   REQUEST_MEASUREMENT_STATUS = 5,
+  REQUEST_AVAILABLE_PP_DEVICE = 6,
   srvRequestType_INT_MIN_SENTINEL_DO_NOT_USE_ =
       std::numeric_limits<::int32_t>::min(),
   srvRequestType_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -124,8 +125,8 @@ enum srvRequestType : int {
 bool srvRequestType_IsValid(int value);
 extern const uint32_t srvRequestType_internal_data_[];
 constexpr srvRequestType srvRequestType_MIN = static_cast<srvRequestType>(0);
-constexpr srvRequestType srvRequestType_MAX = static_cast<srvRequestType>(5);
-constexpr int srvRequestType_ARRAYSIZE = 5 + 1;
+constexpr srvRequestType srvRequestType_MAX = static_cast<srvRequestType>(6);
+constexpr int srvRequestType_ARRAYSIZE = 6 + 1;
 const ::google::protobuf::EnumDescriptor*
 srvRequestType_descriptor();
 template <typename T>
@@ -138,7 +139,7 @@ const std::string& srvRequestType_Name(T value) {
 template <>
 inline const std::string& srvRequestType_Name(srvRequestType value) {
   return ::google::protobuf::internal::NameOfDenseEnum<srvRequestType_descriptor,
-                                                 0, 5>(
+                                                 0, 6>(
       static_cast<int>(value));
 }
 inline bool srvRequestType_Parse(absl::string_view name, srvRequestType* value) {
@@ -152,6 +153,7 @@ enum clientResponseType : int {
   MEASUREMENT_LIST_RESPONSE = 3,
   MEASUREMENT_DATA_RESPONSE = 4,
   MEASUREMENT_STATUS_RESPONSE = 5,
+  MEASUREMENT_PP_DEVICE_RESPONSE = 6,
   clientResponseType_INT_MIN_SENTINEL_DO_NOT_USE_ =
       std::numeric_limits<::int32_t>::min(),
   clientResponseType_INT_MAX_SENTINEL_DO_NOT_USE_ =
@@ -161,8 +163,8 @@ enum clientResponseType : int {
 bool clientResponseType_IsValid(int value);
 extern const uint32_t clientResponseType_internal_data_[];
 constexpr clientResponseType clientResponseType_MIN = static_cast<clientResponseType>(0);
-constexpr clientResponseType clientResponseType_MAX = static_cast<clientResponseType>(5);
-constexpr int clientResponseType_ARRAYSIZE = 5 + 1;
+constexpr clientResponseType clientResponseType_MAX = static_cast<clientResponseType>(6);
+constexpr int clientResponseType_ARRAYSIZE = 6 + 1;
 const ::google::protobuf::EnumDescriptor*
 clientResponseType_descriptor();
 template <typename T>
@@ -175,7 +177,7 @@ const std::string& clientResponseType_Name(T value) {
 template <>
 inline const std::string& clientResponseType_Name(clientResponseType value) {
   return ::google::protobuf::internal::NameOfDenseEnum<clientResponseType_descriptor,
-                                                 0, 5>(
+                                                 0, 6>(
       static_cast<int>(value));
 }
 inline bool clientResponseType_Parse(absl::string_view name, clientResponseType* value) {

@@ -622,36 +622,37 @@ const char descriptor_table_protodef_api_2eproto[] PROTOBUF_SECTION_VARIABLE(pro
     ".autopapi.srvRequestType\022\030\n\013requestBody\030"
     "\003 \001(\tH\000\210\001\001\022\026\n\trequestNo\030\004 \001(\rH\001\210\001\001\022\016\n\006mg"
     "mtId\030\005 \001(\t\022\n\n\002pw\030\006 \001(\tB\016\n\014_requestBodyB\014"
-    "\n\n_requestNo*\257\001\n\016srvRequestType\022\024\n\020INTRO"
+    "\n\n_requestNo*\320\001\n\016srvRequestType\022\024\n\020INTRO"
     "DUCE_SERVER\020\000\022\025\n\021START_MEASUREMENT\020\001\022\024\n\020"
     "STOP_MEASUREMENT\020\002\022\034\n\030REQUEST_MEASUREMEN"
     "T_LIST\020\003\022\034\n\030REQUEST_MEASUREMENT_DATA\020\004\022\036"
-    "\n\032REQUEST_MEASUREMENT_STATUS\020\005*\315\001\n\022clien"
-    "tResponseType\022\024\n\020INTRODUCE_CLIENT\020\000\022 \n\034S"
-    "TARTED_MEASUREMENT_RESPONSE\020\001\022 \n\034STOPPED"
-    "_MEASUREMENT_RESPONSE\020\002\022\035\n\031MEASUREMENT_L"
-    "IST_RESPONSE\020\003\022\035\n\031MEASUREMENT_DATA_RESPO"
-    "NSE\020\004\022\037\n\033MEASUREMENT_STATUS_RESPONSE\020\0052\367"
-    "\005\n\017CMeasurementApi\022\?\n\016registerClient\022\023.a"
-    "utopapi.clientUid\032\024.autopapi.srvRequest\""
-    "\0000\001\022B\n\021putClientResponse\022\030.autopapi.clie"
-    "ntResponse\032\021.autopapi.nothing\"\000\022\?\n\022putMe"
-    "asurementList\022\022.autopapi.msmtName\032\021.auto"
-    "papi.nothing\"\000(\001\022A\n\016putMeasurement\022\024.aut"
-    "opapi.msmtSample\032\023.autopapi.sampleAck\"\000("
-    "\0010\001\022F\n\025getMsmtSttngsAndStart\022\023.autopapi."
-    "clientUid\032\026.autopapi.msmtSettings\"\000\0226\n\014p"
-    "utStatusMsg\022\021.autopapi.cmMCode\032\021.autopap"
-    "i.nothing\"\000\022A\n\022getLoggedInClients\022\022.auto"
-    "papi.mgmtAuth\032\023.autopapi.clientUid\"\0000\001\022P"
-    "\n\025getRegistrationStatus\022\027.autopapi.authC"
-    "lientUid\032\034.autopapi.registrationStatus\"\000"
-    "\022A\n\016setMsmtSttings\022\032.autopapi.mgmtMsmtSe"
-    "ttings\032\021.autopapi.nothing\"\000\022I\n\024issueRequ"
-    "estToClient\022\025.autopapi.mgmtRequest\032\030.aut"
-    "opapi.clientResponse\"\000\0228\n\013getMessages\022\022."
-    "autopapi.mgmtAuth\032\021.autopapi.cmMCode\"\0000\001"
-    "b\006proto3"
+    "\n\032REQUEST_MEASUREMENT_STATUS\020\005\022\037\n\033REQUES"
+    "T_AVAILABLE_PP_DEVICE\020\006*\361\001\n\022clientRespon"
+    "seType\022\024\n\020INTRODUCE_CLIENT\020\000\022 \n\034STARTED_"
+    "MEASUREMENT_RESPONSE\020\001\022 \n\034STOPPED_MEASUR"
+    "EMENT_RESPONSE\020\002\022\035\n\031MEASUREMENT_LIST_RES"
+    "PONSE\020\003\022\035\n\031MEASUREMENT_DATA_RESPONSE\020\004\022\037"
+    "\n\033MEASUREMENT_STATUS_RESPONSE\020\005\022\"\n\036MEASU"
+    "REMENT_PP_DEVICE_RESPONSE\020\0062\367\005\n\017CMeasure"
+    "mentApi\022\?\n\016registerClient\022\023.autopapi.cli"
+    "entUid\032\024.autopapi.srvRequest\"\0000\001\022B\n\021putC"
+    "lientResponse\022\030.autopapi.clientResponse\032"
+    "\021.autopapi.nothing\"\000\022\?\n\022putMeasurementLi"
+    "st\022\022.autopapi.msmtName\032\021.autopapi.nothin"
+    "g\"\000(\001\022A\n\016putMeasurement\022\024.autopapi.msmtS"
+    "ample\032\023.autopapi.sampleAck\"\000(\0010\001\022F\n\025getM"
+    "smtSttngsAndStart\022\023.autopapi.clientUid\032\026"
+    ".autopapi.msmtSettings\"\000\0226\n\014putStatusMsg"
+    "\022\021.autopapi.cmMCode\032\021.autopapi.nothing\"\000"
+    "\022A\n\022getLoggedInClients\022\022.autopapi.mgmtAu"
+    "th\032\023.autopapi.clientUid\"\0000\001\022P\n\025getRegist"
+    "rationStatus\022\027.autopapi.authClientUid\032\034."
+    "autopapi.registrationStatus\"\000\022A\n\016setMsmt"
+    "Sttings\022\032.autopapi.mgmtMsmtSettings\032\021.au"
+    "topapi.nothing\"\000\022I\n\024issueRequestToClient"
+    "\022\025.autopapi.mgmtRequest\032\030.autopapi.clien"
+    "tResponse\"\000\0228\n\013getMessages\022\022.autopapi.mg"
+    "mtAuth\032\021.autopapi.cmMCode\"\0000\001b\006proto3"
 };
 static const ::_pbi::DescriptorTable* const descriptor_table_api_2eproto_deps[1] =
     {
@@ -661,7 +662,7 @@ static ::absl::once_flag descriptor_table_api_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_api_2eproto = {
     false,
     false,
-    2408,
+    2477,
     descriptor_table_protodef_api_2eproto,
     "api.proto",
     &descriptor_table_api_2eproto_once,
@@ -699,18 +700,18 @@ const ::google::protobuf::EnumDescriptor* srvRequestType_descriptor() {
   return file_level_enum_descriptors_api_2eproto[0];
 }
 PROTOBUF_CONSTINIT const uint32_t srvRequestType_internal_data_[] = {
-    393216u, 0u, };
+    458752u, 0u, };
 bool srvRequestType_IsValid(int value) {
-  return 0 <= value && value <= 5;
+  return 0 <= value && value <= 6;
 }
 const ::google::protobuf::EnumDescriptor* clientResponseType_descriptor() {
   ::google::protobuf::internal::AssignDescriptors(&descriptor_table_api_2eproto);
   return file_level_enum_descriptors_api_2eproto[1];
 }
 PROTOBUF_CONSTINIT const uint32_t clientResponseType_internal_data_[] = {
-    393216u, 0u, };
+    458752u, 0u, };
 bool clientResponseType_IsValid(int value) {
-  return 0 <= value && value <= 5;
+  return 0 <= value && value <= 6;
 }
 // ===================================================================
 

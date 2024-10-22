@@ -826,6 +826,27 @@ void AutopowerClient::handleMeasurementData(autopapi::srvRequest sRequest, autop
   putResponseToServer(statusCode, statusMsg, autopapi::clientResponseType::MEASUREMENT_DATA_RESPONSE, sRequest.requestno());
 }
 
+// server requests available pinpoint devices from client
+void AutopowerClient::handleAvailablePPDevice(autopapi::srvRequest sRequest, autopapi::clientUid cluid) {
+  uint32_t statusCode = 0;
+  Json::Value availableDevices;
+  // create JSON device array
+
+  int i = 0;
+  for (std::string device : this->supportedDevices) {
+    Json::Value deviceEntry;
+    deviceEntry["alias"] = device;
+    availableDevices[i] = deviceEntry;
+    i++;
+  }
+
+  Json::StreamWriterBuilder builder;
+  builder["indentation"] = ""; // to save space, do not have any indentation
+  std::string devicesString = Json::writeString(builder, availableDevices);
+
+  putResponseToServer(statusCode, devicesString, autopapi::clientResponseType::MEASUREMENT_PP_DEVICE_RESPONSE, sRequest.requestno());
+}
+
 // handle get request from server and issue commands
 void AutopowerClient::handleSrvRequest(autopapi::srvRequest sRequest, autopapi::clientUid cluid) {
   if (sRequest.msgtype() == autopapi::srvRequestType::START_MEASUREMENT) {
@@ -847,7 +868,10 @@ void AutopowerClient::handleSrvRequest(autopapi::srvRequest sRequest, autopapi::
   } else if (sRequest.msgtype() == autopapi::srvRequestType::REQUEST_MEASUREMENT_DATA) {
     std::cout << "Received REQUEST_MEASUREMENT_DATA" << std::endl;
     handleMeasurementData(sRequest, cluid);
-  } else {
+  } else if (sRequest.msgtype() == autopapi::srvRequestType::REQUEST_AVAILABLE_PP_DEVICE) {
+    std::cout << "Received REQUEST_AVAILABLE_PP_DEVICE" << std::endl;
+    handleAvailablePPDevice(sRequest, cluid);
+  }else {
     std::cerr << "Received unknown message type: " << sRequest.msgtype() << std::endl;
   }
 }

@@ -250,17 +250,32 @@ class CLI():
                 k = input("Use client with key: ")
 
             rq.clientUid = k
-            print("Available message types are:\n0: INTRODUCE_SERVER\n1: START_MEASUREMENT\n2: STOP_MEASUREMENT\n3: REQUEST_MEASUREMENT_LIST\n4: REQUEST_MEASUREMENT_DATA\n5: REQUEST_MEASUREMENT_STATUS")
+            print("Available message types are:\n0: INTRODUCE_SERVER\n1: START_MEASUREMENT\n2: STOP_MEASUREMENT\n3: REQUEST_MEASUREMENT_LIST\n4: REQUEST_MEASUREMENT_DATA\n5: REQUEST_MEASUREMENT_STATUS\n6: REQUEST_AVAILABLE_PP_DEVICE")
             mTpe = int(input("Enter message type: "))
             if mTpe == 0:
                 rq.msgType = pbdef.api__pb2.srvRequestType.INTRODUCE_SERVER
             elif mTpe == 1:
+                # Request list of available pp devices of this client
+                availableClientsRequest = pbdef.api__pb2.srvRequest()
+                availableClientsRequest.clientUid = k
+                availableClientsRequest.msgType = pbdef.api__pb2.REQUEST_AVAILABLE_PP_DEVICE
+                deviceRequestNo = cm.scheduleNewRequestToClient(k, availableClientsRequest)
                 smpInterval = input("Enter sampling interval: ")
-                ppDev = ""
-                while ppDev not in ["MCP1", "MCP2", "CPU"]:
-                    ppDev = input("Enter device (MCP1, MCP2, CPU): ")
-
                 uploadinterval = int(input("Enter upload interval in minutes: "))
+
+                clList = cm.getResponseOfRequestNo(k, deviceRequestNo)
+                if not clList:
+                    print("Could not get ppDevice list from client. Please try again later.")
+                    return
+
+                availablePPDevicesJson = json.loads(clList.msg)
+                ppDeviceNames = []
+                for dev in availablePPDevicesJson:
+                    ppDeviceNames.append(dev["alias"])
+                ppDev = ""
+                while ppDev not in ppDeviceNames:
+                    ppDev = input("Enter device " + str(ppDeviceNames) + ": ")
+
 
                 cm.setMsmtSettingsOfClient(k, ppDev, smpInterval, uploadinterval)
                 rq.msgType = pbdef.api__pb2.srvRequestType.START_MEASUREMENT
@@ -274,6 +289,8 @@ class CLI():
                 rq.requestBody = remtMsmtName
             elif mTpe == 5:
                 rq.msgType = pbdef.api__pb2.srvRequestType.REQUEST_MEASUREMENT_STATUS
+            elif mTpe == 6:
+                rq.msgType = pbdef.api__pb2.srvRequestType.REQUEST_AVAILABLE_PP_DEVICE
             print("Response: " + str(cm.addSyncRequest(k, rq)))  # blocks until the request was fulfilled or timeout
 
     def getLatestMessages(self):  # get the messages from the client manager and cleans up queue of last messages

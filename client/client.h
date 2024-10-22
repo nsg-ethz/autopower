@@ -151,7 +151,8 @@ class AutopowerClient {
   void handleMeasurementList(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
   void handleMeasurementStatus(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
   void handleMeasurementData(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
-
+  void handleAvailablePPDevice(autopapi::srvRequest sRequest, autopapi::clientUid cludi);
+  
   void handleSrvRequest(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
   void manageMsmt();
 

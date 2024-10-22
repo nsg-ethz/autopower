@@ -36,15 +36,32 @@ class CLI():
                 loggedInClientsList = getLoggedInClientsList()
 
             rq.clientUid = k
-            print("Available message types are:\n0: INTRODUCE_SERVER\n1: START_MEASUREMENT\n2: STOP_MEASUREMENT\n3: REQUEST_MEASUREMENT_LIST\n5: REQUEST_MEASUREMENT_STATUS")
+            print("Available message types are:\n0: INTRODUCE_SERVER\n1: START_MEASUREMENT\n2: STOP_MEASUREMENT\n3: REQUEST_MEASUREMENT_LIST\n5: REQUEST_MEASUREMENT_STATUS\n6: REQUEST_AVAILABLE_PP_DEVICE")
             mTpe = int(input("Enter message type: "))
             if mTpe == 0:
                 rq.msgType = pbdef.api__pb2.srvRequestType.INTRODUCE_SERVER
             elif mTpe == 1:
                 smpInterval = input("Enter sampling interval: ")
+
+                # Get clients list
+
+                availableClientsRequest = pbdef.api__pb2.mgmtRequest()
+                availableClientsRequest.clientUid = k
+                availableClientsRequest.mgmtId = mgmtId
+                availableClientsRequest.pw = pw
+
+                availableClientsRequest.msgType = pbdef.api__pb2.REQUEST_AVAILABLE_PP_DEVICE
+                ppDevResp = stub.issueRequestToClient(availableClientsRequest)
+                if ppDevResp.statusCode != 0:
+                    raise Exception("Could not execute pp dev request successfully: " + ppDevResp.msg)
+                
+                availablePPDevicesJson = json.loads(ppDevResp.msg)
+                ppDeviceNames = []
+                for dev in availablePPDevicesJson:
+                    ppDeviceNames.append(dev["alias"])
                 ppDev = ""
-                while ppDev not in ["MCP1", "MCP2", "CPU"]:
-                    ppDev = input("Enter device (MCP1, MCP2, CPU): ")
+                while ppDev not in ppDeviceNames:
+                    ppDev = input("Enter device " + str(ppDeviceNames) + ": ")
 
                 uploadinterval = int(input("Enter upload interval in minutes: "))
                 msmtSettings = pbdef.api__pb2.mgmtMsmtSettings()
@@ -67,6 +84,8 @@ class CLI():
                 rq.requestBody = remtMsmtName
             elif mTpe == 5:
                 rq.msgType = pbdef.api__pb2.srvRequestType.REQUEST_MEASUREMENT_STATUS
+            elif mTpe == 6:
+                rq.msgType = pbdef.api__pb2.srvRequestType.REQUEST_AVAILABLE_PP_DEVICE
 
             try:
                 resp = stub.issueRequestToClient(rq)
