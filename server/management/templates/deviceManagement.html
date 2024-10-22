@@ -24,9 +24,9 @@
                 <input type="number" id="msmtUploadInt" name="msmtUploadInt" class="form-control" value="1">
                 <label for="msmtPpDevSel">Measurement target</label>
                 <select name="msmtPpDevSel" id="msmtPpDevSel" class="form-select">
-                    {% for msmtPpDev in msmtPpDevList %}
-                    <option value="{{ msmtPpDev | e }}">{{ msmtPpDev | e }}</option>
-                    {% endfor %}
+                    <option value="CPU">CPU</option>
+                    <option value="MCP1">MCP1</option>
+                    <option value="MCP2">MCP2</option>
                 </select>
                 <button type="submit" class="btn btn-primary form-control mt-2" id="startMsmtBtn" disabled>Start measurement</button>
             </form>
@@ -56,7 +56,6 @@
 <script src="{{ url_for('static', filename='formAJAXSubmit.js') }}"></script>
 <script>
     var msg = $("#deviceStatus");
-
     function updateStatus() {
         $(document).ready(function() {
             $.getJSON("{{ url_for('getDeviceStatus', deviceUid=deviceUid) }}", null,function(resp, status, xhr) {
@@ -92,6 +91,17 @@
         });
     }
     $(document).ready(function() {
+        // get available ppdevices
+        $.getJSON("{{ url_for ('getPpDeviceList', deviceUid=deviceUid) }}", null, function(devResp, devStatus, devXhr) {
+            if (!devResp.status) {
+                console.log(devResp);
+                let options = "";
+                devResp.forEach(function(ppOption) {
+                    options += "<option value=\"" + escape(ppOption.alias) + "\">" + escape(ppOption.alias) + "</option>" 
+                });
+                $("#msmtPpDevSel").html(options);
+            }
+        });
         updateStatus();
 
         $("#stopMsmtBtn").click(function() {
