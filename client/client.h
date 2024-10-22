@@ -136,7 +136,8 @@ class AutopowerClient {
   void notifyActLED(int waitTimes[], int numWaitElems);
   void notifyLEDConnectionFailed();
   void notifyLEDSampleSaved();
-
+  void notifyLEDMeasurementCrashed();
+  
   void getAndSavePpData();
   std::pair<bool, std::string> startMeasurement();
   bool stopMeasurement();

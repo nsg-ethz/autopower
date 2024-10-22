@@ -209,6 +209,11 @@ void AutopowerClient::notifyLEDSampleSaved() {
   notifyActLED(blinkPattern,4);
 }
 
+void AutopowerClient::notifyLEDMeasurementCrashed() {
+  int blinkPattern[8] = {250, 300,250,300, 250, 300, 300,400};
+  notifyActLED(blinkPattern,8);
+}
+
 void AutopowerClient::getAndSavePpData() {
   // start pinpoint
   bool loggedErrorToServer = false; // only log starting errors to server once per measurement
@@ -394,6 +399,7 @@ void AutopowerClient::getAndSavePpData() {
 
     if (measuring()) {
       std::cerr << "Warning: Attempting to restart measurement since pinpoint exited..." << std::endl;
+      notifyLEDMeasurementCrashed();
     } else {
       loggedErrorToServer = false; // restart to log errors for a new measurement
     }
