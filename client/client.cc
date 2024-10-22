@@ -165,12 +165,18 @@ std::unique_ptr<autopapi::CMeasurementApi::Stub> AutopowerClient::createGrpcConn
   return stub;
 }
 
-void AutopowerClient::notifyLED(std::string filepath, int waitTimes[], int numWaitElems) {
-  // if running on raspi (4), we can control the onboard power LED to convey information: /sys/class/leds/PWR/brightness
+void AutopowerClient::notifyLED(std::string filepath, int waitTimes[], int numWaitElems, bool defaultOn) {
+  // if running on raspi (4), we can control the onboard LEDs to convey information e.g. /sys/class/leds/PWR/brightness
   // the user running mmclient must have write access to this file
   std::ofstream ledStream(filepath);
   if (ledStream.is_open() && ledStream.good()) {
-    bool sendOne = true; // assumes that the led is on at the start
+    if (defaultOn) {
+      ledStream << "1"; // ensure that the LED is on at the start
+    } else {
+      ledStream << "0"; // ensure default off
+    }
+    ledStream.flush();
+    bool sendOne = true;
     for (int i = 0; i < numWaitElems; i++) {
       // go through pattern
       if (sendOne) {
@@ -184,19 +190,25 @@ void AutopowerClient::notifyLED(std::string filepath, int waitTimes[], int numWa
       std::this_thread::sleep_for(std::chrono::milliseconds(waitTimes[i]));
     }
 
-    // ensure on state of power led (always) at blink pattern end
-    ledStream << "1";
+    // ensure on state of LED is as requested by defaultOn parameter
+    if (defaultOn) {
+      ledStream << "1";
+    } else {
+      ledStream << "0";
+    }
+
+    ledStream.flush();
   }
 
   ledStream.close();
 }
 
 void AutopowerClient::notifyPwrLED(int waitTimes[], int numWaitElems) {
-  notifyLED("/sys/class/leds/PWR/brightness", waitTimes, numWaitElems);
+  notifyLED("/sys/class/leds/PWR/brightness", waitTimes, numWaitElems, true);
 }
 
 void AutopowerClient::notifyActLED(int waitTimes[], int numWaitElems) {
-  notifyLED("/sys/class/leds/ACT/brightness", waitTimes, numWaitElems);
+  notifyLED("/sys/class/leds/ACT/brightness", waitTimes, numWaitElems, false);
 }
 
 void AutopowerClient::notifyLEDConnectionFailed() {

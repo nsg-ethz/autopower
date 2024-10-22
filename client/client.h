@@ -131,7 +131,7 @@ class AutopowerClient {
   struct CMsmtSample parseMsmt(std::string msmtLine);
   std::unique_ptr<autopapi::CMeasurementApi::Stub> createGrpcConnection(std::string remoteHost, std::string remotePort, std::string privKeyClientPath, std::string pubKeyClientPath, std::string pubKeyCA = "");
 
-  void notifyLED(std::string filePath, int waitTimes[], int numWaitElems);
+  void notifyLED(std::string filePath, int waitTimes[], int numWaitElems, bool defaultOn);
   void notifyPwrLED(int waitTimes[], int numWaitElems);
   void notifyActLED(int waitTimes[], int numWaitElems);
   void notifyLEDConnectionFailed();
