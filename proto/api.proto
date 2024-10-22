@@ -22,6 +22,7 @@ enum srvRequestType {
   REQUEST_MEASUREMENT_LIST = 3; // get the list of measurements
   REQUEST_MEASUREMENT_DATA = 4; // get the content of the measurement specified in requestBody. This is expected to be a finished measurement.
   REQUEST_MEASUREMENT_STATUS = 5; // get the status of the current measurement (running, parameters)
+  REQUEST_AVAILABLE_PP_DEVICE = 6; // get all available pinpoint devices for this autopower device
 }
 
 // responses to a srvRequest
@@ -31,6 +32,8 @@ enum srvRequestType {
 // { requestId = "measurementListResponse", responseBody = "<measurement_list>" } responds with a string of measurements stored on the client in responseBody
 // { requestId = "measurementDataResponse", responseBody = "" } responds with the status of pushing the data of some measurement to the servers DB
 // { requestId = "measurementStatusResponse", responseBody = "<json>" } responds with the status information of the measurement state of the client
+// { requestId = "measurementPpDeviceResponse", responseBody = "<json>" } responds with the available pinpoint devices of the client
+
 enum clientResponseType {
   INTRODUCE_CLIENT = 0; // ping response to INTRODUCE_SERVER
   STARTED_MEASUREMENT_RESPONSE = 1;
@@ -38,6 +41,7 @@ enum clientResponseType {
   MEASUREMENT_LIST_RESPONSE = 3;
   MEASUREMENT_DATA_RESPONSE = 4;
   MEASUREMENT_STATUS_RESPONSE = 5;
+  MEASUREMENT_PP_DEVICE_RESPONSE = 6;
 }
 
 // a message from the server to trigger some action on the measurement device

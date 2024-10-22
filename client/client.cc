@@ -213,12 +213,19 @@ std::unique_ptr<autopapi::CMeasurementApi::Stub> AutopowerClient::createGrpcConn
   return stub;
 }
 
-void AutopowerClient::notifyLED(std::string filepath, int waitTimes[], int numWaitElems) {
-  // if running on raspi (4), we can control the onboard power LED to convey information: /sys/class/leds/PWR/brightness
+
+void AutopowerClient::notifyLED(std::string filepath, int waitTimes[], int numWaitElems, bool defaultOn) {
+  // if running on raspi (4), we can control the onboard LEDs to convey information e.g. /sys/class/leds/PWR/brightness
   // the user running mmclient must have write access to this file
   std::ofstream ledStream(filepath);
   if (ledStream.is_open() && ledStream.good()) {
-    bool sendOne = true; // assumes that the led is on at the start
+    if (defaultOn) {
+      ledStream << "1"; // ensure that the LED is on at the start
+    } else {
+      ledStream << "0"; // ensure default off
+    }
+    ledStream.flush();
+    bool sendOne = true;
     for (int i = 0; i < numWaitElems; i++) {
       // go through pattern
       if (sendOne) {
@@ -232,19 +239,25 @@ void AutopowerClient::notifyLED(std::string filepath, int waitTimes[], int numWa
       std::this_thread::sleep_for(std::chrono::milliseconds(waitTimes[i]));
     }
 
-    // ensure on state of power led (always) at blink pattern end
-    ledStream << "1";
+    // ensure on state of LED is as requested by defaultOn parameter
+    if (defaultOn) {
+      ledStream << "1";
+    } else {
+      ledStream << "0";
+    }
+
+    ledStream.flush();
   }
 
   ledStream.close();
 }
 
 void AutopowerClient::notifyPwrLED(int waitTimes[], int numWaitElems) {
-  notifyLED("/sys/class/leds/PWR/brightness", waitTimes, numWaitElems);
+  notifyLED("/sys/class/leds/PWR/brightness", waitTimes, numWaitElems, true);
 }
 
 void AutopowerClient::notifyActLED(int waitTimes[], int numWaitElems) {
-  notifyLED("/sys/class/leds/ACT/brightness", waitTimes, numWaitElems);
+  notifyLED("/sys/class/leds/ACT/brightness", waitTimes, numWaitElems, false);
 }
 
 void AutopowerClient::notifyLEDConnectionFailed() {
@@ -255,6 +268,11 @@ void AutopowerClient::notifyLEDConnectionFailed() {
 void AutopowerClient::notifyLEDSampleSaved() {
   int blinkPattern[4] = {25, 50,25,50};
   notifyActLED(blinkPattern,4);
+}
+
+void AutopowerClient::notifyLEDMeasurementCrashed() {
+  int blinkPattern[8] = {250, 300,250,300, 250, 300, 300,400};
+  notifyActLED(blinkPattern,8);
 }
 
 void AutopowerClient::getAndSavePpData() {
@@ -451,6 +469,7 @@ void AutopowerClient::getAndSavePpData() {
 
     if (measuring()) {
       std::cerr << "Warning: Attempting to restart measurement since pinpoint exited..." << std::endl;
+      notifyLEDMeasurementCrashed();
     } else {
       loggedErrorToServer = false; // restart to log errors for a new measurement
     }
@@ -865,6 +884,27 @@ void AutopowerClient::handleMeasurementData(autopapi::srvRequest sRequest, autop
   putResponseToServer(statusCode, statusMsg, autopapi::clientResponseType::MEASUREMENT_DATA_RESPONSE, sRequest.requestno());
 }
 
+// server requests available pinpoint devices from client
+void AutopowerClient::handleAvailablePPDevice(autopapi::srvRequest sRequest, autopapi::clientUid cluid) {
+  uint32_t statusCode = 0;
+  Json::Value availableDevices;
+  // create JSON device array
+
+  int i = 0;
+  for (std::string device : this->supportedDevices) {
+    Json::Value deviceEntry;
+    deviceEntry["alias"] = device;
+    availableDevices[i] = deviceEntry;
+    i++;
+  }
+
+  Json::StreamWriterBuilder builder;
+  builder["indentation"] = ""; // to save space, do not have any indentation
+  std::string devicesString = Json::writeString(builder, availableDevices);
+
+  putResponseToServer(statusCode, devicesString, autopapi::clientResponseType::MEASUREMENT_PP_DEVICE_RESPONSE, sRequest.requestno());
+}
+
 // handle get request from server and issue commands
 void AutopowerClient::handleSrvRequest(autopapi::srvRequest sRequest, autopapi::clientUid cluid) {
   if (sRequest.msgtype() == autopapi::srvRequestType::START_MEASUREMENT) {
@@ -886,7 +926,10 @@ void AutopowerClient::handleSrvRequest(autopapi::srvRequest sRequest, autopapi::
   } else if (sRequest.msgtype() == autopapi::srvRequestType::REQUEST_MEASUREMENT_DATA) {
     std::cout << "Received REQUEST_MEASUREMENT_DATA" << std::endl;
     handleMeasurementData(sRequest, cluid);
-  } else {
+  } else if (sRequest.msgtype() == autopapi::srvRequestType::REQUEST_AVAILABLE_PP_DEVICE) {
+    std::cout << "Received REQUEST_AVAILABLE_PP_DEVICE" << std::endl;
+    handleAvailablePPDevice(sRequest, cluid);
+  }else {
     std::cerr << "Received unknown message type: " << sRequest.msgtype() << std::endl;
   }
 }

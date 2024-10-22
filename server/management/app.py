@@ -16,8 +16,6 @@ import hashlib
 from werkzeug.middleware.proxy_fix import ProxyFix
 import concurrent.futures
 
-allowedPpDevList = ["MCP1", "MCP2", "CPU"]
-
 # TODO: Change this to have other paths and config files than CI
 with open('../config/web_secrets.json', encoding='utf-8') as secrFile:
     secrets = json.load(secrFile)
@@ -173,7 +171,17 @@ def homepage():
 
 @app.route("/manageDevice/<deviceUid>")
 def deviceManagementPage(deviceUid):
-    return render_template("deviceManagement.html", deviceUid=deviceUid, msmtPpDevList=allowedPpDevList, lastSeen=getLastSeenTimeAgo(deviceUid), autopowerDevMeasurements=getAllMeasurementMetadataOfDevice(deviceUid))
+    # get allowedPp Device list from client
+    return render_template("deviceManagement.html", deviceUid=deviceUid, lastSeen=getLastSeenTimeAgo(deviceUid), autopowerDevMeasurements=getAllMeasurementMetadataOfDevice(deviceUid))
+
+@app.route("/manageDevice/<deviceUid>/getPpDeviceList")
+def getPpDeviceList(deviceUid):
+    if not deviceIsRegistered(deviceUid):
+        return {"status": "Not registered"}, 422  # only if client is not even on the server side --> say not registered
+
+    deviceListRequest = pbdef.api__pb2.mgmtRequest()
+    deviceListRequest.msgType = pbdef.api__pb2.REQUEST_AVAILABLE_PP_DEVICE
+    return issueRequest(deviceUid, deviceListRequest, parseJSON=True)
 
 
 @app.route("/getDeviceStatus/<deviceUid>")
@@ -252,8 +260,18 @@ def startMeasurementAtDevice(deviceUid):
     uploadInterval = int(request.form.get("msmtUploadInt"))
     ppDev = request.form.get("msmtPpDevSel")
 
-    if ppDev not in allowedPpDevList:
-        return "Got invalid Output to measure", 422
+    # Request allowed device list from client
+    deviceResponse, devErrorCode = getPpDeviceList(deviceUid)
+    if devErrorCode != 200:
+        return deviceResponse, devErrorCode
+    
+    deviceFound = False
+    for dev in deviceResponse:
+      if dev["alias"] == ppDev:
+        deviceFound = True
+        break
+    if not deviceFound:
+        return "Got invalid Output to measure (ppDevice)", 422
 
     # Now build the request to the server
 

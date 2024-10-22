@@ -14,6 +14,7 @@ class srvRequestType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     REQUEST_MEASUREMENT_LIST: _ClassVar[srvRequestType]
     REQUEST_MEASUREMENT_DATA: _ClassVar[srvRequestType]
     REQUEST_MEASUREMENT_STATUS: _ClassVar[srvRequestType]
+    REQUEST_AVAILABLE_PP_DEVICE: _ClassVar[srvRequestType]
 
 class clientResponseType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     __slots__ = ()
@@ -23,18 +24,21 @@ class clientResponseType(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     MEASUREMENT_LIST_RESPONSE: _ClassVar[clientResponseType]
     MEASUREMENT_DATA_RESPONSE: _ClassVar[clientResponseType]
     MEASUREMENT_STATUS_RESPONSE: _ClassVar[clientResponseType]
+    MEASUREMENT_PP_DEVICE_RESPONSE: _ClassVar[clientResponseType]
 INTRODUCE_SERVER: srvRequestType
 START_MEASUREMENT: srvRequestType
 STOP_MEASUREMENT: srvRequestType
 REQUEST_MEASUREMENT_LIST: srvRequestType
 REQUEST_MEASUREMENT_DATA: srvRequestType
 REQUEST_MEASUREMENT_STATUS: srvRequestType
+REQUEST_AVAILABLE_PP_DEVICE: srvRequestType
 INTRODUCE_CLIENT: clientResponseType
 STARTED_MEASUREMENT_RESPONSE: clientResponseType
 STOPPED_MEASUREMENT_RESPONSE: clientResponseType
 MEASUREMENT_LIST_RESPONSE: clientResponseType
 MEASUREMENT_DATA_RESPONSE: clientResponseType
 MEASUREMENT_STATUS_RESPONSE: clientResponseType
+MEASUREMENT_PP_DEVICE_RESPONSE: clientResponseType
 
 class nothing(_message.Message):
     __slots__ = ()

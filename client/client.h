@@ -132,12 +132,14 @@ class AutopowerClient {
   struct CMsmtSample parseMsmt(std::string msmtLine);
   std::unique_ptr<autopapi::CMeasurementApi::Stub> createGrpcConnection(std::string remoteHost, std::string remotePort, std::string privKeyClientPath, std::string pubKeyClientPath, std::string pubKeyCA = "");
 
-  void notifyLED(std::string filePath, int waitTimes[], int numWaitElems);
+  void notifyLED(std::string filePath, int waitTimes[], int numWaitElems, bool defaultOn);
   void notifyPwrLED(int waitTimes[], int numWaitElems);
   void notifyActLED(int waitTimes[], int numWaitElems);
   void notifyLEDConnectionFailed();
   void notifyLEDSampleSaved();
 
+  void notifyLEDMeasurementCrashed();
+  
   void getAndSavePpData();
   std::pair<bool, std::string> startMeasurement();
   bool stopMeasurement();
@@ -151,7 +153,8 @@ class AutopowerClient {
   void handleMeasurementList(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
   void handleMeasurementStatus(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
   void handleMeasurementData(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
-
+  void handleAvailablePPDevice(autopapi::srvRequest sRequest, autopapi::clientUid cludi);
+  
   void handleSrvRequest(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
   void manageMsmt();
 
