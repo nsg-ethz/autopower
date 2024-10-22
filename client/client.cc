@@ -889,7 +889,7 @@ void AutopowerClient::handleAvailablePPDevice(autopapi::srvRequest sRequest, aut
   uint32_t statusCode = 0;
   Json::Value availableDevices;
   // create JSON device array
-
+  updateValidPpDeviceList();
   int i = 0;
   for (std::string device : this->supportedDevices) {
     Json::Value deviceEntry;
