@@ -54,5 +54,5 @@ SAVE_CMD="sudo sh -c \"cat /tmp/sshcert_${DEVICENAME}.pub >> /local/home/autopow
 tmux send-keys -t certs "${SAVE_CMD}" C-m
 
 # let reversessh user connect (trial)
-
+sudo -u reversessh -s ssh-keyscan -t ed25519 ${EXTERNALJUMPHOST} >> /home/reversessh/.ssh/known_hosts
 sudo -u reversessh -s ssh autopowerconnect@${EXTERNALJUMPHOST} -t "echo 'Connection to autopowerconnect works'"
