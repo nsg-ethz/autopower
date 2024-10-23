@@ -27,10 +27,10 @@ sleep 2 # wait a bit to give time to the tmux command to run
 echo "copying the new files..."
 sudo cp /etc/mmclient/client_${DEVICENAME}.csr .
 scp ${NOKEYCHECK} ${JUMPHOST} client_${DEVICENAME}.csr autopower@${REMOTEHOST}:/usr/autopower/certs/client_${DEVICENAME}.csr
-# copy the psk to wherever (probably the server as well, I should make a directory for that)
-scp ${NOKEYCHECK} ${JUMPHOST} zabbix_psk.psk autopower@${REMOTEHOST}:/usr/autopower/zabbix/zabbix_client_${DEVICENAME}.psk
+
 # copy and chown ssh key for reverse ssh
-scp ${NOKEYCHECK} ${JUMPHOST} /home/reversessh/.ssh/id_ed25519.pub autopower@${EXTERNALJUMPHOST}:/tmp/sshcert_${DEVICENAME}.pub
+sudo cp /home/reversessh/.ssh/id_ed25519.pub reversessh_ed25519.pub
+scp ${NOKEYCHECK} ${JUMPHOST} reversessh_ed25519.pub ${EXTERNALJUMPHOSTADMINUSER}@${EXTERNALJUMPHOST}:/tmp/sshcert_${DEVICENAME}.pub
 tmux send-keys -t certs "chown autopowerconnect:autopowerconnect /tmp/sshcert_${DEVICENAME}.pub" C-m
 
 # sign the certificate on the server  
@@ -54,5 +54,8 @@ SAVE_CMD="sudo sh -c \"cat /tmp/sshcert_${DEVICENAME}.pub >> /local/home/autopow
 tmux send-keys -t certs "${SAVE_CMD}" C-m
 
 # let reversessh user connect (trial)
-sudo -u reversessh -s ssh-keyscan -t ed25519 ${EXTERNALJUMPHOST} >> /home/reversessh/.ssh/known_hosts
+sudo -u reversessh mkdir /home/reversessh/.ssh/
+sudo touch /home/reversessh/.ssh/known_hosts
+sudo chown reversessh:reversessh /home/reversessh/.ssh/known_hosts
+sudo -u reversessh sh -c "ssh-keyscan -t ed25519 ${EXTERNALJUMPHOST} >> /home/reversessh/.ssh/known_hosts"
 sudo -u reversessh -s ssh autopowerconnect@${EXTERNALJUMPHOST} -t "echo 'Connection to autopowerconnect works'"
