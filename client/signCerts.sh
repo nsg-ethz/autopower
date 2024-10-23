@@ -43,19 +43,13 @@ sudo mv ~/*.cer /etc/mmclient/
 sudo chown mmclient: /etc/mmclient/client.cer
 sudo chown mmclient: /etc/mmclient/ca.cer
 
-tmux kill-session -t certs      # clean up if session already exists
-tmux new-session -d -s certs    # create a tmux session
-tmux send-keys -t certs '' C-m  # wait a bit
-
 # copy and chown ssh key for reverse ssh
 sudo cp /home/reversessh/.ssh/id_ed25519.pub reversessh_ed25519.pub
-scp ${NOKEYCHECK} reversessh_ed25519.pub ${EXTERNALJUMPHOSTADMINUSER}@${EXTERNALJUMPHOST}:/tmp/sshcert_${DEVICENAME}.pub
-tmux send-keys -t certs "chown autopowerconnect:autopowerconnect /tmp/sshcert_${DEVICENAME}.pub" C-m
+scp ${NOKEYCHECK} reversessh_ed25519.pub autopowerconnect@${EXTERNALJUMPHOST}:/tmp/sshcert_${DEVICENAME}.pub
 
 # Add external sshkey to autopowerconnect user on the server
-tmux send-keys -t certs "ssh ${NOKEYCHECK} ${EXTERNALADMINUSER}@${EXTERNALJUMPHOST}" C-m
-SAVE_CMD="sudo sh -c \"cat /tmp/sshcert_${DEVICENAME}.pub >> /local/home/autopowerconnect/.ssh/authorized_keys\""
-tmux send-keys -t certs "${SAVE_CMD}" C-m
+SAVE_CMD="cat /tmp/sshcert_${DEVICENAME}.pub >> /local/home/autopowerconnect/.ssh/authorized_keys"
+ssh -t ${NOKEYCHECK} autopowerconnect@${EXTERNALJUMPHOST} "${SAVE_CMD}"
 
 # let reversessh user connect (trial)
 sudo -u reversessh mkdir /home/reversessh/.ssh/
