@@ -28,11 +28,6 @@ echo "copying the new files..."
 sudo cp /etc/mmclient/client_${DEVICENAME}.csr .
 scp ${NOKEYCHECK} ${JUMPHOST} client_${DEVICENAME}.csr autopower@${REMOTEHOST}:/usr/autopower/certs/client_${DEVICENAME}.csr
 
-# copy and chown ssh key for reverse ssh
-sudo cp /home/reversessh/.ssh/id_ed25519.pub reversessh_ed25519.pub
-scp ${NOKEYCHECK} ${JUMPHOST} reversessh_ed25519.pub ${EXTERNALJUMPHOSTADMINUSER}@${EXTERNALJUMPHOST}:/tmp/sshcert_${DEVICENAME}.pub
-tmux send-keys -t certs "chown autopowerconnect:autopowerconnect /tmp/sshcert_${DEVICENAME}.pub" C-m
-
 # sign the certificate on the server  
 echo "signing the new certificate..."
 SIGN_CMD="openssl x509 -req -in client_${DEVICENAME}.csr -CA ca.cer -CAkey ca.key -CAcreateserial -out client_${DEVICENAME}.cer -days 365 -sha512 -passin pass:'${PASSPHRASE}'"
@@ -48,8 +43,17 @@ sudo mv ~/*.cer /etc/mmclient/
 sudo chown mmclient: /etc/mmclient/client.cer
 sudo chown mmclient: /etc/mmclient/ca.cer
 
+tmux kill-session -t certs      # clean up if session already exists
+tmux new-session -d -s certs    # create a tmux session
+tmux send-keys -t certs '' C-m  # wait a bit
+
+# copy and chown ssh key for reverse ssh
+sudo cp /home/reversessh/.ssh/id_ed25519.pub reversessh_ed25519.pub
+scp ${NOKEYCHECK} reversessh_ed25519.pub ${EXTERNALJUMPHOSTADMINUSER}@${EXTERNALJUMPHOST}:/tmp/sshcert_${DEVICENAME}.pub
+tmux send-keys -t certs "chown autopowerconnect:autopowerconnect /tmp/sshcert_${DEVICENAME}.pub" C-m
+
 # Add external sshkey to autopowerconnect user on the server
-tmux send-keys -t certs "ssh ${NOKEYCHECK} ${JUMPHOST} ${EXTERNALADMINUSER}@${EXTERNALJUMPHOST}" C-m
+tmux send-keys -t certs "ssh ${NOKEYCHECK} ${EXTERNALADMINUSER}@${EXTERNALJUMPHOST}" C-m
 SAVE_CMD="sudo sh -c \"cat /tmp/sshcert_${DEVICENAME}.pub >> /local/home/autopowerconnect/.ssh/authorized_keys\""
 tmux send-keys -t certs "${SAVE_CMD}" C-m
 
