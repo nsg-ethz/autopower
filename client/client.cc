@@ -759,15 +759,19 @@ void AutopowerClient::handleMeasurementStart(autopapi::srvRequest sRequest, auto
   // verify data
   std::string newPpdev = mset.ppdevice();
   if (!isValidPpDevice(newPpdev)) {
-    std::string errorDescription = "Error: Received invalid device for pinpoint. Only ";
+    std::string errorDescription = "Error: Received invalid device for pinpoint.";
 
-    for (std::string dev : this->supportedDevices) {
-      errorDescription += dev + ", ";
+    if (!this->supportedDevices.empty()) {
+      errorDescription += " Only ";
+      for (std::string dev : this->supportedDevices) {
+        errorDescription += dev + ", ";
+      }
+      // fencepost solving:
+      errorDescription.pop_back();
+      errorDescription.pop_back();
+    } else {
+      errorDescription += " No devices found.";
     }
-
-    // fencepost solving:
-    errorDescription.pop_back();
-    errorDescription.pop_back();
 
     errorDescription += " allowed. Ignoring request.";
     std::cerr << errorDescription << std::endl;
