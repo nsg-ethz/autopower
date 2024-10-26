@@ -41,7 +41,7 @@ chmod +x /usr/bin/mmclient
 if [[ ! -f "bin/pinpoint" ]]; then
   pushd bin
   echo "Could not found pinpoint binary. Downloading ${RELEASE_DOWNLOAD_VERSION}"
-  curl "https://github.com/nsg-ethz/autopower/releases/download/${RELEASE_DOWNLOAD_VERSION}/pinpoint"
+  wget "https://github.com/nsg-ethz/autopower/releases/download/${RELEASE_DOWNLOAD_VERSION}/pinpoint"
   popd
 fi
 cp bin/pinpoint /usr/bin/pinpoint
