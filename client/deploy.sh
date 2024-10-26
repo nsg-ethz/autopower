@@ -26,19 +26,23 @@ rm zabbix-release_6.0-5+debian12_all.deb
 popd
 apt update
 apt upgrade -y
-apt install curl autossh libjsoncpp-dev libpqxx-dev fail2ban ufw postgresql unattended-upgrades zabbix-agent2 zabbix-agent2-plugin-postgresql tmux -y
+apt install wget autossh libjsoncpp-dev libpqxx-dev fail2ban ufw postgresql unattended-upgrades zabbix-agent2 zabbix-agent2-plugin-postgresql tmux -y
 
 # install mmclient and pinpoint
 
 if [[ ! -f "bin/mmclient" ]]; then
+  pushd bin
   echo "Could not found mmclient binary. Downloading ${RELEASE_DOWNLOAD_VERSION}"
-  curl "https://github.com/nsg-ethz/autopower/releases/download/${RELEASE_DOWNLOAD_VERSION}/mmclient" > bin/mmclient
+  wget "https://github.com/nsg-ethz/autopower/releases/download/${RELEASE_DOWNLOAD_VERSION}/mmclient"
+  popd
 fi
 cp bin/mmclient /usr/bin/mmclient
 chmod +x /usr/bin/mmclient
 if [[ ! -f "bin/pinpoint" ]]; then
+  pushd bin
   echo "Could not found pinpoint binary. Downloading ${RELEASE_DOWNLOAD_VERSION}"
-  curl "https://github.com/nsg-ethz/autopower/releases/download/${RELEASE_DOWNLOAD_VERSION}/pinpoint" > bin/pinpoint
+  curl "https://github.com/nsg-ethz/autopower/releases/download/${RELEASE_DOWNLOAD_VERSION}/pinpoint"
+  popd
 fi
 cp bin/pinpoint /usr/bin/pinpoint
 chmod +x /usr/bin/pinpoint
