@@ -26,11 +26,20 @@ rm zabbix-release_6.0-5+debian12_all.deb
 popd
 apt update
 apt upgrade -y
-apt install autossh libjsoncpp-dev libpqxx-dev fail2ban ufw postgresql unattended-upgrades zabbix-agent2 zabbix-agent2-plugin-postgresql tmux -y
+apt install curl autossh libjsoncpp-dev libpqxx-dev fail2ban ufw postgresql unattended-upgrades zabbix-agent2 zabbix-agent2-plugin-postgresql tmux -y
 
 # install mmclient and pinpoint
+
+if [[ ! -f "bin/mmclient" ]]; then
+  echo "Could not found mmclient binary. Downloading ${RELEASE_DOWNLOAD_VERSION}"
+  curl "https://github.com/nsg-ethz/autopower/releases/download/${RELEASE_DOWNLOAD_VERSION}/mmclient" > bin/mmclient
+fi
 cp bin/mmclient /usr/bin/mmclient
 chmod +x /usr/bin/mmclient
+if [[ ! -f "bin/pinpoint" ]]; then
+  echo "Could not found pinpoint binary. Downloading ${RELEASE_DOWNLOAD_VERSION}"
+  curl "https://github.com/nsg-ethz/autopower/releases/download/${RELEASE_DOWNLOAD_VERSION}/pinpoint" > bin/pinpoint
+fi
 cp bin/pinpoint /usr/bin/pinpoint
 chmod +x /usr/bin/pinpoint
 # set hostname
@@ -54,7 +63,7 @@ PGPASSWORD=$(cat /dev/urandom | tr -dc A-Za-z0-9~_- | head -c 60 && echo)
 # Delete autopower_client user if already exists and create database + schema
 sudo -u postgres psql -d postgres -c "DROP ROLE IF EXISTS autopower_client;"
 sudo -u postgres psql -d postgres -c "CREATE USER autopower_client WITH PASSWORD '${PGPASSWORD}';"
-sudo -u postgres psql -d postgres -c "CREATE DATABASE IF NOT EXISTS autopower_client;"
+sudo -u postgres psql -d postgres -c "CREATE DATABASE autopower_client;"
 sudo -u postgres psql -d autopower_client -a -f client_db_schema.sql
 
 # Create group to allow access to on board leds
