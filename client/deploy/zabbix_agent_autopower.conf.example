@@ -1,5 +1,5 @@
 ServerActive=ßß§$$$rplceremoteHost$$$§ßß
-# Server=ßß§$$$rplceremoteHost$$$§ßß
+Server=ßß§$$$rplceremoteHost$$$§ßß
 Hostname=ßß§$$$rplceClientUid$$$§ßß
 TLSConnect=psk
 TLSAccept=psk
