@@ -57,16 +57,16 @@ void AutopowerClient::updateValidPpDeviceList() {
     close(pipe_comm[1]);
     char rdbuffer;
     std::string ppOutput = "";
-    while (read(pipe_comm[0], &rdbuffer,1)) {
-      ppOutput+= rdbuffer;
+    while (read(pipe_comm[0], &rdbuffer, 1)) {
+      ppOutput += rdbuffer;
     }
 
     close(pipe_comm[0]);
     int ret = 0;
-    waitpid(pinpointCheckPid, &ret,0);
+    waitpid(pinpointCheckPid, &ret, 0);
     Json::Value root;
     Json::Reader rdr;
-    if (!rdr.parse(ppOutput,root)) {
+    if (!rdr.parse(ppOutput, root)) {
       std::cerr << "Error: Pinpoint returned unparsable output for counter checking!" << std::endl;
       return;
     }
@@ -213,7 +213,6 @@ std::unique_ptr<autopapi::CMeasurementApi::Stub> AutopowerClient::createGrpcConn
   return stub;
 }
 
-
 void AutopowerClient::notifyLED(std::string filepath, int waitTimes[], int numWaitElems, bool defaultOn) {
   // if running on raspi (4), we can control the onboard LEDs to convey information e.g. /sys/class/leds/PWR/brightness
   // the user running mmclient must have write access to this file
@@ -265,14 +264,9 @@ void AutopowerClient::notifyLEDConnectionFailed() {
   notifyPwrLED(blinkPattern, 6);
 }
 
-void AutopowerClient::notifyLEDSampleSaved() {
-  int blinkPattern[4] = {25, 50,25,50};
-  notifyActLED(blinkPattern,4);
-}
-
 void AutopowerClient::notifyLEDMeasurementCrashed() {
-  int blinkPattern[8] = {250, 300,250,300, 250, 300, 300,400};
-  notifyActLED(blinkPattern,8);
+  int blinkPattern[8] = {250, 300, 250, 300, 250, 300, 300, 400};
+  notifyActLED(blinkPattern, 8);
 }
 
 void AutopowerClient::getAndSavePpData() {
@@ -334,7 +328,7 @@ void AutopowerClient::getAndSavePpData() {
         // fencepost solving:
         errMsg.pop_back();
         errMsg.pop_back();
-        
+
         errMsg += " are supported. Please check the client side configuration! Stopping measurement.";
         std::cerr << errMsg << std::endl;
         putStatusToServer(1, errMsg);
@@ -423,8 +417,6 @@ void AutopowerClient::getAndSavePpData() {
             txn.commit();
             setHasWrittenOnce(true); // specify success of writing at least once to DB
             setLastSampleTimestamp(msmtPoint.timestamp);
-            // notify LED if possible
-            notifyLEDSampleSaved();
           } catch (std::exception &e) {
             std::string exprContent = e.what();
             std::string errorMsg = "Error while writing measurement to database: " + exprContent;
@@ -933,7 +925,7 @@ void AutopowerClient::handleSrvRequest(autopapi::srvRequest sRequest, autopapi::
   } else if (sRequest.msgtype() == autopapi::srvRequestType::REQUEST_AVAILABLE_PP_DEVICE) {
     std::cout << "Received REQUEST_AVAILABLE_PP_DEVICE" << std::endl;
     handleAvailablePPDevice(sRequest, cluid);
-  }else {
+  } else {
     std::cerr << "Received unknown message type: " << sRequest.msgtype() << std::endl;
   }
 }
@@ -1001,18 +993,18 @@ AutopowerClient::AutopowerClient(std::string _clientUid,
 }
 
 int main(int argc, char **argv) {
-  std::string clientUid = "";                // unique ID for this client
-  std::string remoteHost = "";               // domain of control server
-  std::string remotePort = "";               // port of server
-  std::string privKeyPath = "";              // path to private key for authentification to server
-  std::string pubKeyPath = "";               // path to public key for authentification to server
-  std::string pubKeyCA = "";                 // path to public key of custom CA. Only use this if the servers CA is not trusted
-  std::string ppBinaryPath = "";             // absolute path to pinpoint binary
-  std::string ppDevice = "";                 // device to measure (MCP1, MCP2, CPU etc.)
-  std::string ppSamplingInterval = "";       // sampling interval for pinpoint in ms
-  std::string secretsFilePath = "";          // absolute path to secrets (postgres string, certs, ...)
-  std::string configFilePath = "";           // absolute path to config file (JSON)
-  std::string postgresString = "";           // string to connect to postgres DB
+  std::string clientUid = "";          // unique ID for this client
+  std::string remoteHost = "";         // domain of control server
+  std::string remotePort = "";         // port of server
+  std::string privKeyPath = "";        // path to private key for authentification to server
+  std::string pubKeyPath = "";         // path to public key for authentification to server
+  std::string pubKeyCA = "";           // path to public key of custom CA. Only use this if the servers CA is not trusted
+  std::string ppBinaryPath = "";       // absolute path to pinpoint binary
+  std::string ppDevice = "";           // device to measure (MCP1, MCP2, CPU etc.)
+  std::string ppSamplingInterval = ""; // sampling interval for pinpoint in ms
+  std::string secretsFilePath = "";    // absolute path to secrets (postgres string, certs, ...)
+  std::string configFilePath = "";     // absolute path to config file (JSON)
+  std::string postgresString = "";     // string to connect to postgres DB
 
   // get arguments from cli
   int arg;

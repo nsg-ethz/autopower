@@ -139,7 +139,7 @@ class AutopowerClient {
   void notifyLEDSampleSaved();
 
   void notifyLEDMeasurementCrashed();
-  
+
   void getAndSavePpData();
   std::pair<bool, std::string> startMeasurement();
   bool stopMeasurement();
@@ -154,7 +154,7 @@ class AutopowerClient {
   void handleMeasurementStatus(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
   void handleMeasurementData(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
   void handleAvailablePPDevice(autopapi::srvRequest sRequest, autopapi::clientUid cludi);
-  
+
   void handleSrvRequest(autopapi::srvRequest sRequest, autopapi::clientUid cluid);
   void manageMsmt();
 
