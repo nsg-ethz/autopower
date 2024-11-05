@@ -466,10 +466,11 @@ class CMeasurementApiServicer():
                         """, mmlist, fetch=True)
                 con.commit()
                 # acknowledge writing to DB successfully
-                for id in ackdIds:
+                def createAck(id):
                     ack = pbdef.api__pb2.sampleAck()
                     ack.sampleId = id[0]
-                    yield ack
+                    return ack
+                yield from map(createAck, ackdIds)
                 
 
     def getMsmtSttngsAndStart(self, request, context):
