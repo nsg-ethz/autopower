@@ -4,7 +4,8 @@
 #include <memory>
 #include <unordered_map>
 #include "PgConnectorFactory.h"
-#include "pbdef/api_pb2.h"
+#include "api.pb.h"
+#include "api.grpc.pb.h"
 #include <pqxx/pqxx>
 
 class CMeasurementApiServicer {

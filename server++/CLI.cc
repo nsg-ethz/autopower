@@ -1,6 +1,6 @@
 #include "CLI.h"
 #include <iostream>
-#include <json/json.h>
+#include <jsoncpp/json/json.h>
 
 void CLI::addManualRequest() {
     ClientManager cm;

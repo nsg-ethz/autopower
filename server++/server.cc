@@ -1,5 +1,5 @@
 #include <grpcpp/grpcpp.h>
-#include <json/json.h>
+#include <jsoncpp/json/json.h>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -7,8 +7,8 @@
 #include <thread>
 #include "CLI.h"
 #include "CMeasurementApiServicer.h"
-#include "pbdef.grpc.pb.h"
-#include "pgConnectorFactory.h"
+#include "PgConnectorFactory.h"
+#include "server.h"
 
 void serve(const Json::Value& secrets, const Json::Value& config, bool interactive) {
     // Create gRPC server with thread pool
