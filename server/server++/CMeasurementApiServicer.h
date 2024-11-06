@@ -1,5 +1,4 @@
-#ifndef C_MEASUREMENT_API_SERVICER_H
-#define C_MEASUREMENT_API_SERVICER_H
+#pragma once
 
 #include <string>
 #include <memory>
@@ -31,5 +30,3 @@ private:
     std::shared_ptr<pgConnectorFactory> pgFactory_;
     std::unordered_map<std::string, std::string> allowedMgmtClients_;
 };
-
-#endif // C_MEASUREMENT_API_SERVICER_H

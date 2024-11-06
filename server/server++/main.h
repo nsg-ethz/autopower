@@ -1,5 +1,4 @@
-#ifndef MAIN_H
-#define MAIN_H
+#pragma once
 
 #include <json/json.h>
 #include <grpcpp/grpcpp.h>
@@ -12,5 +11,3 @@ class CMeasurementApiServicer;
 class pgConnectorFactory;
 
 void serve(const Json::Value& secrets, const Json::Value& config, bool interactive);
-
-#endif // MAIN_H

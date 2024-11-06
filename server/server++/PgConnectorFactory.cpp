@@ -1,5 +1,6 @@
 #include "pgConnectorFactory.h"
 #include <pqxx/pqxx>
+#include <string>
 
 pgConnectorFactory::pgConnectorFactory(const std::string& host, const std::string& database, const std::string& user, const std::string& password)
     : host_(host), database_(database), user_(user), password_(password) {}

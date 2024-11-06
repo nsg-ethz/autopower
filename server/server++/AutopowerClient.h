@@ -1,13 +1,15 @@
-// ExternalClient.h
+#pragma once
+
 #include <queue>
 #include <map>
 #include <mutex>
 #include <condition_variable>
 #include <string>
 
-class ExternalClient {
+// Represents an autopower device
+class AutopowerClient {
 public:
-    ExternalClient(const std::string& uid);
+    AutopowerClient(const std::string& uid);
 
     void setPpDevice(const std::string& ppdev);
     std::string getPpDevice() const;

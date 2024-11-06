@@ -27,7 +27,7 @@ void ClientManager::setMsmtSettingsOfClient(const std::string& clientId, const s
         return;
     }
 
-    ExternalClient& ec = loggedInClients[clientId];
+    AutopowerClient& ec = loggedInClients[clientId];
     ec.setPpDevice(ppdev);
     ec.setPpSampleInterval(sampleInt);
     ec.setuploadIntervalMin(uploadInt);
@@ -49,7 +49,7 @@ void ClientManager::addNewClient(const std::string& clientId) {
         loggedInClients[clientId].scheduleDeletion();
     }
 
-    loggedInClients[clientId] = ExternalClient(clientId);
+    loggedInClients[clientId] = AutopowerClient(clientId);
 }
 
 // Schedules a new request to a client.
@@ -76,7 +76,7 @@ Response ClientManager::getResponseOfRequestNo(const std::string& clientId, int 
         throw std::runtime_error("Request not available");
     }
 
-    ExternalClient& ec = loggedInClients[clientId];
+    AutopowerClient& ec = loggedInClients[clientId];
     if (!ec.responseArrived(requestNo)) {
         OutCommunicator pm;
         pm.addMessage("Cannot get requestNo " + std::to_string(requestNo) + " for client " + clientId + " as it did not arrive yet");

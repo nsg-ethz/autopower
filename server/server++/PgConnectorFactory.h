@@ -1,5 +1,4 @@
-#ifndef PG_CONNECTOR_FACTORY_H
-#define PG_CONNECTOR_FACTORY_H
+#pragma once
 
 #include <string>
 #include <memory>
@@ -18,5 +17,3 @@ private:
     std::string user_;
     std::string password_;
 };
-
-#endif // PG_CONNECTOR_FACTORY_H

@@ -1,12 +1,14 @@
+#pragma once
+
 #include <unordered_map>
 #include <string>
 #include <vector>
-#include "ExternalClient.h"
+#include "AutopowerClient.h"
 #include "OutCommunicator.h"
 
 class ClientManager {
 private:
-    std::unordered_map<std::string, ExternalClient> loggedInClients;
+    std::unordered_map<std::string, AutopowerClient> loggedInClients;
 
 public:
     std::vector<std::string> getLoggedInClientsList();
