@@ -11,7 +11,7 @@
 #include "server.h"
 
 void serve(const Json::Value& secrets, const Json::Value& config, bool interactive) {
-    // Create gRPC server with thread pool
+    // Create gRPC server
     grpc::ServerBuilder builder;
     std::shared_ptr<grpc::ServerCredentials> serverCreds;
 
