@@ -45,32 +45,32 @@ class ExternalClient():
         self.ppSamplingInterval = "500"
         self.uploadIntervalMin = 5
 
-    def setPpDevice(self, ppdev):
+    def setPpDevice(self, ppdev): # done
         self.ppDevice = ppdev
 
-    def getPpDevice(self):
+    def getPpDevice(self): # done
         return self.ppDevice
 
-    def setPpSampleInterval(self, sampInt):
+    def setPpSampleInterval(self, sampInt): # done
         self.ppSamplingInterval = sampInt
 
-    def getPpSampleInterval(self):
+    def getPpSampleInterval(self): # done
         return self.ppSamplingInterval
 
-    def setuploadIntervalMin(self, uploadInt):
+    def setuploadIntervalMin(self, uploadInt): # done
         self.uploadIntervalMin = uploadInt
 
-    def getuploadIntervalMin(self):
+    def getuploadIntervalMin(self): # done
         return self.uploadIntervalMin
 
-    def scheduleDeletion(self):
+    def scheduleDeletion(self): # Done
         self.jobqueue.put(None)  # add None to jobqueue to terminate the thread waiting on this
 
-    def getMsmtSettings(self):
+    def getMsmtSettings(self): # Maybe done
         sttngs = {"ppDevice": self.ppDevice, "ppSamplingInterval": self.ppSamplingInterval, "uploadIntervalMin": self.uploadIntervalMin}
         return sttngs
 
-    def scheduleRequest(self, job):
+    def scheduleRequest(self, job): # Done
         # adds a job to the local queue.
         self.seqnoLock.acquire()
         self.lastRequestNo = self.lastRequestNo + 1
@@ -80,16 +80,16 @@ class ExternalClient():
         self.seqnoLock.release()
         return seqno
 
-    def getNextRequest(self):
+    def getNextRequest(self): # done
         return self.jobqueue.get(block=True)  # Get last content from scheduler queue. Will block if queue is empty
 
-    def setResponse(self, response):
+    def setResponse(self, response): # Done
         self.responsedictlock.acquire()
         self.responsedict[response.requestNo] = response
         self.responsedictcv.notify_all()
         self.responsedictlock.release()
 
-    def responseArrived(self, requestNo):
+    def responseArrived(self, requestNo): # done
         self.responsedictlock.acquire()
         # return true if the response for requestNo is in the response dict. False otherwise
         didArrive = False
@@ -134,9 +134,9 @@ class ExternalClient():
 class ClientManager():
     loggedInClients = dict({})
 
-    def getLoggedInClientsList(self):
+    def getLoggedInClientsList(self): #done
         return list(self.loggedInClients.keys())
-    def isInLoggedInClientsList(self, id):
+    def isInLoggedInClientsList(self, id): # done
         return id in self.loggedInClients.keys()
     def getNextRequestOfClient(self, clientId):
         ec = self.loggedInClients[clientId]
@@ -160,7 +160,7 @@ class ClientManager():
             msettings = ec.getMsmtSettings()
             return msettings
 
-    def addNewClient(self, clientId):
+    def addNewClient(self, clientId): # added and modified
         if clientId in self.getLoggedInClientsList():
             pm = OutCommunicator()
             pm.addMessage("Re-registered already existing client. Deleting old one.")
@@ -174,7 +174,7 @@ class ClientManager():
         ec = self.loggedInClients[clientId]
         return ec.scheduleRequest(job)  # returns requestNo
 
-    def addNewResponseToRequest(self, clientId, response):
+    def addNewResponseToRequest(self, clientId, response): # done
         if clientId not in self.getLoggedInClientsList():
             pm = OutCommunicator()
             pm.addMessage("Cannot handle response of non existing client " + clientId + ". Please issue the last requests again.")
@@ -183,7 +183,7 @@ class ClientManager():
         ec = self.loggedInClients[clientId]
         ec.setResponse(response)
 
-    def getResponseOfRequestNo(self, clientId, requestNo):
+    def getResponseOfRequestNo(self, clientId, requestNo): # done
 
         if clientId not in self.getLoggedInClientsList():
             pm = OutCommunicator()

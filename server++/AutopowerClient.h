@@ -1,10 +1,12 @@
 #pragma once
 
+#include "api.pb.h"
 #include <queue>
 #include <map>
 #include <mutex>
 #include <condition_variable>
 #include <string>
+#include <unordered_map>
 
 // Represents an autopower device
 class AutopowerClient {
@@ -21,23 +23,26 @@ public:
     int getUploadIntervalMin() const;
 
     void scheduleDeletion();
-    std::map<std::string, std::string> getMsmtSettings() const;
+    std::unordered_map<std::string, std::string> getMsmtSettings() const;
 
-    int scheduleRequest(Job job);
-    Job getNextRequest();
-    void setResponse(const Response& response);
+    int scheduleRequest(autopapi::srvRequest job);
+    autopapi::srvRequest getNextRequest();
+    void setResponse(autopapi::clientResponse response);
 
     bool responseArrived(int requestNo) const;
-    Response getResponse(int requestNo);
+    autopapi::clientResponse getResponse(int requestNo) const;
     bool waitForResponseTo(int requestNo);
     void purgeRequestNo(int requestNo);
 
 private:
     std::string uid;
-    std::queue<Job> jobqueue;
-    std::map<int, Response> responsedict;
-    mutable std::mutex responsedictlock;
-    std::condition_variable responsedictcv;
+    std::queue<autopapi::srvRequest> jobqueue; // TODO: Maybe think about Lifo queue
+    mutable std::mutex jobQueueMutex;
+    std::condition_variable jobQueueCondition;
+
+    std::map<int, autopapi::clientResponse> responses;
+    mutable std::mutex responseslock;
+    std::condition_variable responsescv;
     std::mutex seqnoLock;
     int lastRequestNo;
 
