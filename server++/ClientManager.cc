@@ -18,8 +18,8 @@ bool ClientManager::isInLoggedInClientsList(const std::string& id) {
 }
 
 // Gets the next request to send of a specific client.
-autopapi::srvRequest ClientManager::getNextRequestOfClient(const std::string& clientId) {
-    return loggedInClients.at(clientId).getNextRequest();
+autopapi::srvRequest* ClientManager::getNextRequestOfClient(const std::string& clientId) {
+    return loggedInClients.at(clientId)->getNextRequest();
 }
 
 // Sets measurement settings for a specific client.

@@ -25,8 +25,8 @@ public:
     void scheduleDeletion();
     std::unordered_map<std::string, std::string> getMsmtSettings() const;
 
-    int scheduleRequest(autopapi::srvRequest job);
-    autopapi::srvRequest getNextRequest();
+    int scheduleRequest(autopapi::srvRequest* job);
+    autopapi::srvRequest* getNextRequest();
     void setResponse(autopapi::clientResponse response);
 
     bool responseArrived(int requestNo) const;
@@ -36,7 +36,7 @@ public:
 
 private:
     std::string uid;
-    std::queue<autopapi::srvRequest> jobqueue; // TODO: Maybe think about Lifo queue
+    std::queue<autopapi::srvRequest*> jobqueue; // TODO: Maybe think about Lifo queue
     mutable std::mutex jobQueueMutex;
     std::condition_variable jobQueueCondition;
 

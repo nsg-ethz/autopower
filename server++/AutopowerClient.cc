@@ -1,4 +1,3 @@
-#include <cstddef>
 #include <map>
 #include <stdexcept>
 #include "AutopowerClient.h"
@@ -50,21 +49,21 @@ std::unordered_map<std::string, std::string> AutopowerClient::getMsmtSettings() 
 
 // Schedule a new request to this client.
 // Adds a job to the job queue with an incremented sequence/request number.
-int AutopowerClient::scheduleRequest(autopapi::srvRequest job) {
+int AutopowerClient::scheduleRequest(autopapi::srvRequest* job) {
     std::lock_guard<std::mutex> lock(seqnoLock);
     lastRequestNo++;
-    job.set_requestno(lastRequestNo);
+    job->set_requestno(lastRequestNo);
     jobqueue.push(job);
     jobQueueCondition.notify_all();
     return lastRequestNo;
 }
 
 // Retrieves the next job from the queue, blocking if empty.
-autopapi::srvRequest AutopowerClient::getNextRequest() {
+autopapi::srvRequest* AutopowerClient::getNextRequest() {
     std::unique_lock<std::mutex> lock(jobQueueMutex);
     jobQueueCondition.wait(lock, [this]() { return !jobqueue.empty(); });
-    autopapi::srvRequest nextJob = jobqueue.front();
-    jobqueue.pop(); // remove this request
+    autopapi::srvRequest* nextJob = jobqueue.front();
+    jobqueue.pop(); // remove this request pointer
     return nextJob;
 }
 
