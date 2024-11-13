@@ -4,9 +4,9 @@
 #include <memory>
 #include <pqxx/pqxx>
 
-class pgConnectorFactory {
+class PgConnectorFactory {
 public:
-    pgConnectorFactory(const std::string& host, const std::string& database, const std::string& user, const std::string& password);
+    PgConnectorFactory(const std::string& host, const std::string& database, const std::string& user, const std::string& password);
 
     // Creates a new PostgreSQL connection
     std::shared_ptr<pqxx::connection> createConnection();

@@ -123,8 +123,8 @@ void CLI::addManualRequest() {
 
 void CLI::getLatestMessages() {
     // get the messages from the client manager and cleans up queue of last messages
-    OutCommunicator pm;
+    OutCommunicator oc;
     while (true) {
-        std::cout << pm.getNextMessageCli() << std::endl;
+        std::cout << oc.getNextMessageCli() << std::endl;
     }
 }
