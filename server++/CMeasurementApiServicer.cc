@@ -1,7 +1,9 @@
 #include "CMeasurementApiServicer.h"
 #include "ClientManager.h" 
 #include "OutCommunicator.h"
+#include "api.pb.h"
 #include "cmake/api.pb.h"
+#include <grpcpp/server_context.h>
 #include <grpcpp/support/server_callback.h>
 #include <grpcpp/support/status.h>
 #include <netinet/in.h>
@@ -115,31 +117,146 @@ bool CMeasurementApiServicer::isValidMgmtClient(const autopapi::mgmtRequest& req
 }
 
 ::grpc::ServerReadReactor<::autopapi::msmtName>* putMeasurementList(::grpc::CallbackServerContext* ctxt, ::autopapi::nothing* nth) {
-    pqxx::work txn(*pgConn_);
-    for (const auto& measurementName : requestList) {
-        txn.exec_params("INSERT INTO measurement_names (name) VALUES ($1) ON CONFLICT (name) DO NOTHING", measurementName.name());
-    }
-    txn.commit();
-    return pbdef::api::nothing();
+    // print measurement list from client to out communicator
+
+    class Recorder : public grpc::ServerReadReactor<autopapi::msmtName> {
+        public:
+          Recorder() {
+            oc = OutCommunicator();
+            StartRead(&mname_);
+          }
+
+          void OnReadDone (bool ok) override {
+            if (ok) {
+                oc.addMessage(mname_.name());
+                // successful read, continue
+                logClientWasSeenNow(mname_.clientuid());
+                StartRead(&mname_);
+            } else {
+                // finishing up
+                Finish(grpc::Status::OK);
+            }
+          }
+
+          void OnDone() override {
+            delete this;
+          }
+
+          void OnCancel() override { /* Nothing to do since the rpc does not mutate state */};
+
+          private:
+            OutCommunicator oc;
+            ::autopapi::msmtName mname_;
+    };
+
+    nth = autopapi::nothing(); // TODO: this should most likely be a new object?
+
+    return new Recorder();
 }
 
 ::grpc::ServerBidiReactor< ::autopapi::msmtSample, ::autopapi::sampleAck>* putMeasurement(::grpc::CallbackServerContext* ctxt) {
-    // TODO
+    class MeasurementSaveHandler : public grpc::ServerBidiReactor<::autopapi::msmtSample, ::autopapi::sampleAck>(::grpc::CallbackServerContext* ctx) {
+        public:
+          MeasurementSaveHandler(pqxx::connection& cnn) {
+            cnn_ = cnn;
+            txn_ = pqxx::work(cnn);
+            
+            txn.prepare("insMsmtData", "INSERT INTO measurement_data (server_measurement_id, measurement_value, measurement_timestamp)
+                        VALUES(
+                            (SELECT server_measurement_id FROM measurements WHERE shared_measurement_id = $1 LIMIT 1) -- handles only the server id
+                        ,$2,$3) RETURNING $4 AS sampleid;");
+
+            txn.prepare("createClientIfNeeded", "INSERT INTO clients (client_uid) VALUES ($1) ON CONFLICT (client_uid) DO UPDATE SET last_seen = NOW();");
+            // $1 = clientUid, $2 = measurementStartTimestamp, $3 = measurementId
+            txn.prepare("createMeasurementIfNeeded", "WITH getRunIds AS (
+                            SELECT runs.run_id AS run_id FROM runs, client_runs WHERE client_runs.client_uid = $1 AND runs.run_id = client_runs.run_id AND start_run <= $2 AND (stop_run >= $2 OR stop_run IS NULL)
+                        ),
+                        getRunId AS ( -- ensures that only one result can get back. Otherwise return NULL
+                            SELECT CASE WHEN (COUNT(*) <> 1) THEN NULL ELSE (SELECT * FROM getRunIds LIMIT 1) END FROM getRunIds
+                        )
+                        INSERT INTO
+                        measurements (shared_measurement_id, client_uid, run_id)
+                        VALUES (
+                            $3,
+                            $1,
+                            (SELECT * FROM getRunId LIMIT 1) -- will return NULL if there is no run id else the run id
+                        )
+                        ON CONFLICT DO NOTHING");
+            msmtIdSoFar = ""; // for performance, we only execute certain queries if the measurement id changed
+            StartRead(&smp);
+          }
+
+          void OnReadDone(bool ok) override {
+            if (ok) {
+                if (msmtIdSoFar != smp->msmtid()) {
+                    txn.exec_prepared("createClientIfNeeded", smp->clientuid());
+                    txn.exec_prepared("createMeasurementIfNeeded", smp->clientuid(), google::protobuf::util::TimeUtil::ToString(smp->msmttime()), smp->msmtid());
+                    msmtIdSoFar = smp->msmtid();
+                }
+
+                // if measurementid changed:
+                  // create client if needed
+                  // create measurement if needed
+                  // get new server_measurement_id
+
+                writeAndAckMtx->Lock();
+                // write sample to DB. On conflict still succeed to avoid duplicates.
+                // convert timestamp to UTC (TODO: Check if this is auto converted now)
+
+                pqxx::result insertRes = txn.exec_prepared("insMsmtData", smp->msmtid(), smp->msmtcontent(), google::protobuf::util::TimeUtil::ToString(smp->msmttime()), smp->sampleid());
+                savedMeasurementsToAck.append(insertRes[0]["sampleid"]);
+                // save ack in local acking queue.
+                writeAndAckMtx->Unlock();
+
+                StartWrite(&smp);
+            } else {
+                Finish(Status::OK);
+            }
+          }
+
+          void OnWriteDone(bool ok) override {NextWrite()};
+
+          void OnDone() override {
+            // commit written entries
+            CommitAndAck();
+            delete this;
+          }
+
+          void OnCancel() {
+            std::cerr << "measurement upload received cancel request. The database may not be synchronized." << std::endl;
+            // rever the transaction
+          }
+        private:
+          ::autopapi::msmtSample smp;
+          pqxx::connection cnn_;
+          pqxx::work txn_;
+          std::queue<uint64_t> savedMeasurementsToAck;
+          std::string msmtIdSoFar;
+
+          absl::mutex* writeAndAckMtx;
+        void CommitAndAck() {
+            // commits all entries written so far and then notifies the client that it has written the samples successfully.
+            writeAndAckMtx->Lock();
+            txn_.commit();
+            while(!savedMeasurementsToAck.empty()) {
+                // get all sample ids and create acks
+                uint64_t sampleIdToAck = savedMeasurementsToAck.front();
+                savedMeasurementsToAck.pop();
+
+                ::autopapi::sampleAck ack();
+                ack.set_sampleid(sampleIdToAck);
+                StartWrite(&ack);
+            }
+
+            writeAndAckMtx->Unlock();
+        }
+    }
+
+    return MeasurementSaveHandler(*pgConn_);
 }
 
 ::grpc::ServerUnaryReactor* getMsmtSttngsAndStart(::grpc::CallbackServerContext* ctxt, const ::autopapi::clientUid* cluid, ::autopapi::msmtSettings* mset) {
-    pbdef::api::msmtSettings settings;
-    pqxx::work txn(*pgConn_);
-    pqxx::result r = txn.exec_params("SELECT setting_key, setting_value FROM measurement_settings WHERE client_uid = $1", request.uid());
-
-    for (auto row : r) {
-        auto* setting = settings.add_settings();
-        setting->set_key(row["setting_key"].c_str());
-        setting->set_value(row["setting_value"].c_str());
-    }
-    txn.commit();
-    logClientWasSeenNow(request.uid());
-    return settings;
+    // TODO
 }
 
 ::grpc::ServerUnaryReactor* putStatusMsg(::grpc::CallbackServerContext* ctxt, const ::autopapi::cmMCode* cmde, ::autopapi::nothing* nth) {
