@@ -192,12 +192,9 @@ bool CMeasurementApiServicer::isValidMgmtClient(const autopapi::mgmtRequest& req
                     txn.exec_prepared("createClientIfNeeded", smp->clientuid());
                     txn.exec_prepared("createMeasurementIfNeeded", smp->clientuid(), google::protobuf::util::TimeUtil::ToString(smp->msmttime()), smp->msmtid());
                     msmtIdSoFar = smp->msmtid();
-                }
 
-                // if measurementid changed:
-                  // create client if needed
-                  // create measurement if needed
-                  // get new server_measurement_id
+                    CommitAndAck();
+                }
 
                 writeAndAckMtx->Lock();
                 // write sample to DB. On conflict still succeed to avoid duplicates.
@@ -224,7 +221,8 @@ bool CMeasurementApiServicer::isValidMgmtClient(const autopapi::mgmtRequest& req
 
           void OnCancel() {
             std::cerr << "measurement upload received cancel request. The database may not be synchronized." << std::endl;
-            // rever the transaction
+            txn_->rollback();
+            // revert the transaction
           }
         private:
           ::autopapi::msmtSample smp;
@@ -256,14 +254,54 @@ bool CMeasurementApiServicer::isValidMgmtClient(const autopapi::mgmtRequest& req
 }
 
 ::grpc::ServerUnaryReactor* getMsmtSttngsAndStart(::grpc::CallbackServerContext* ctxt, const ::autopapi::clientUid* cluid, ::autopapi::msmtSettings* mset) {
-    // TODO
+    ClientManager cm;
+    if (cm.isInLoggedInClientsList(cluid->uid())) {
+        struct msmtSettings msmtSettings = cm.getMsmtSettingsOfClient(cluid->uid());
+        mset->set_ppdevice(msmtSettings.ppDevice);
+        mset->set_ppsamplinginterval(msmtSettings.ppSamplingInterval);
+        mset->set_uploadintervalmin(msmtSettings.uploadIntervalMin);
+        logClientWasSeenNow(cluid->uid());
+        auto* reactor = ctxt->DefaultReactor();
+        reactor->Finish(grpc::Status::OK);
+        return reactor;
+    }
+
+    // not logged in client --> return error
+    auto* reactor = ctxt->DefaultReactor();
+    reactor->Finish(grpc::Status::NOT_FOUND);
+    return reactor;
+
 }
 
 ::grpc::ServerUnaryReactor* putStatusMsg(::grpc::CallbackServerContext* ctxt, const ::autopapi::cmMCode* cmde, ::autopapi::nothing* nth) {
+    // Store an (error) message in the DB log
     ClientManager cm;
-    cm.updateClientStatus(request.client_uid(), request.msg());
-    logClientWasSeenNow(request.client_uid());
-    return pbdef::api::nothing();
+    OutCommunicator oc;
+    
+    // ::autopapi::nothing* nothing = new ::autopapi::nothing; // TODO: maybe need to alloc or not --> api
+    // nth = nothing;
+
+    if (cm.isInLoggedInClientsList(cmde->clientuid())) {
+        if (cmde->statuscode() != 0) {
+            pc.addMessage("Logging error from '" + cmde->clientuid() + "': " + cmde->msg());
+            pqxx::work txn = pqxx::work(*pgConn_);
+            // may need to create client if not exists
+            txn.exec_params("INSERT INTO clients (client_uid) VALUES ($1) ON CONFLICT (client_uid) DO UPDATE SET last_seen = NOW();", cmde->clientuid());
+            txn.exec_params("INSERT INTO logmessages (client_uid, error_code, log_message) VALUES ($1, $2, $3)", cmde->clientuid(), cmde->statuscode(), cmde->msg());
+            txn.commit();
+        } else {
+            pc.addMessage("[Status] from '" + cmde->clientuid() + "': " + cmde->msg());
+        }
+        logClientWasSeenNow(cmde->clientuid());
+        auto* reactor = ctxt->DefaultReactor();
+        reactor->Finish(grpc::Status::OK);
+        return reactor;
+    }
+
+    // not logged in client --> return error
+    auto* reactor = ctxt->DefaultReactor();
+    reactor->Finish(grpc::Status::NOT_FOUND);
+    return reactor;
 }
 
 ::grpc::ServerWriteReactor< ::autopapi::clientUid>* getLoggedInClients(::grpc::CallbackServerContext* ctxt, const ::autopapi::mgmtAuth* mmauth) {

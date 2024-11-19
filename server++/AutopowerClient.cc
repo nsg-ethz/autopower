@@ -38,12 +38,12 @@ void AutopowerClient::scheduleDeletion() {
     std::swap(this->jobqueue, empty);
 }
 
-std::unordered_map<std::string, std::string> AutopowerClient::getMsmtSettings() const {
+struct msmtSettings AutopowerClient::getMsmtSettings() const {
     // TODO: may need to rewrite this into JSON
     return {
         {"ppDevice", ppDevice},
         {"ppSamplingInterval", ppSamplingInterval},
-        {"uploadIntervalMin", std::to_string(uploadIntervalMin)}
+        {"uploadIntervalMin", uploadIntervalMin}
     };
 }
 

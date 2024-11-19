@@ -8,6 +8,15 @@
 #include <string>
 #include <unordered_map>
 
+
+// Represents measurement settings
+
+struct msmtSettings {
+    std::string ppDevice;
+    std::string ppSamplingInterval;
+    uint32_t uploadIntervalMin;
+};
+
 // Represents an autopower device
 class AutopowerClient {
 public:
@@ -23,7 +32,7 @@ public:
     int getUploadIntervalMin() const;
 
     void scheduleDeletion();
-    std::unordered_map<std::string, std::string> getMsmtSettings() const;
+    struct msmtSettings getMsmtSettings() const;
 
     int scheduleRequest(autopapi::srvRequest* job);
     autopapi::srvRequest* getNextRequest();

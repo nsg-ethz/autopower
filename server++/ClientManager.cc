@@ -30,17 +30,17 @@ void ClientManager::setMsmtSettingsOfClient(const std::string& clientId, const s
         return;
     }
 
-    AutopowerClient& ac = loggedInClients[clientId];
-    ac.setPpDevice(ppdev);
-    ac.setPpSampleInterval(sampleInt);
-    ac.setUploadIntervalMin(uploadInt);
+    AutopowerClient* ac = loggedInClients[clientId];
+    ac->setPpDevice(ppdev);
+    ac->setPpSampleInterval(sampleInt);
+    ac->setUploadIntervalMin(uploadInt);
 }
 
 // Retrieves the measurement settings for a client.
 std::unordered_map<std::string, std::string> ClientManager::getMsmtSettingsOfClient(const std::string& clientId) {
     if (isInLoggedInClientsList(clientId)) {
         // measurement can start --> return measurement settings to client.
-        return loggedInClients.at(clientId).getMsmtSettings();
+        return loggedInClients.at(clientId)->getMsmtSettings();
     }
     return {}; // non logged in client has no measurement settings. Will be handled in getMsmtSttngsAndStart of CMeasurementApiServicer
 }
