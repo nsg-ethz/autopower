@@ -1,6 +1,7 @@
 #include "CMeasurementApiServicer.h"
 #include "ClientManager.h" 
 #include "OutCommunicator.h"
+#include "ServicerSettings.h"
 #include "api.pb.h"
 #include "cmake/api.pb.h"
 #include <grpcpp/server_context.h>
@@ -13,9 +14,11 @@
 #include <arpa/inet.h>
 #include <sys/socket.h>
 
-CMeasurementApiServicer::CMeasurementApiServicer(std::unique_ptr<PgConnectorFactory> pgFactory, const std::unordered_map<std::string, std::string>& allowedMgmtClients)
-    : pgFactory_(pgFactory), allowedMgmtClients_(allowedMgmtClients) {
-    pgConn_ = pgFactory_->createConnection();
+CMeasurementApiServicer::CMeasurementApiServicer(struct ServicerSettings* set) {
+    
+    pgFactory_ = set->pgFactory.get();
+    allowedMgmtClients_ = set->allowedMgmtClients;
+    pgConn_ = set->pgFactory.get()->createConnection();
 }
 
 // convinience methods
@@ -161,27 +164,27 @@ bool CMeasurementApiServicer::isValidMgmtClient(const autopapi::mgmtRequest& req
             cnn_ = cnn;
             txn_ = pqxx::work(cnn);
             
-            txn.prepare("insMsmtData", "INSERT INTO measurement_data (server_measurement_id, measurement_value, measurement_timestamp)
-                        VALUES(
-                            (SELECT server_measurement_id FROM measurements WHERE shared_measurement_id = $1 LIMIT 1) -- handles only the server id
-                        ,$2,$3) RETURNING $4 AS sampleid;");
+            txn.prepare("insMsmtData", "INSERT INTO measurement_data (server_measurement_id, measurement_value, measurement_timestamp)"
+                        "VALUES("
+                        "    (SELECT server_measurement_id FROM measurements WHERE shared_measurement_id = $1 LIMIT 1) -- handles only the server id"
+                        ",$2,$3) RETURNING $4 AS sampleid;");
 
             txn.prepare("createClientIfNeeded", "INSERT INTO clients (client_uid) VALUES ($1) ON CONFLICT (client_uid) DO UPDATE SET last_seen = NOW();");
             // $1 = clientUid, $2 = measurementStartTimestamp, $3 = measurementId
-            txn.prepare("createMeasurementIfNeeded", "WITH getRunIds AS (
-                            SELECT runs.run_id AS run_id FROM runs, client_runs WHERE client_runs.client_uid = $1 AND runs.run_id = client_runs.run_id AND start_run <= $2 AND (stop_run >= $2 OR stop_run IS NULL)
-                        ),
-                        getRunId AS ( -- ensures that only one result can get back. Otherwise return NULL
-                            SELECT CASE WHEN (COUNT(*) <> 1) THEN NULL ELSE (SELECT * FROM getRunIds LIMIT 1) END FROM getRunIds
-                        )
-                        INSERT INTO
-                        measurements (shared_measurement_id, client_uid, run_id)
-                        VALUES (
-                            $3,
-                            $1,
-                            (SELECT * FROM getRunId LIMIT 1) -- will return NULL if there is no run id else the run id
-                        )
-                        ON CONFLICT DO NOTHING");
+            txn.prepare("createMeasurementIfNeeded", "WITH getRunIds AS ("
+                        "    SELECT runs.run_id AS run_id FROM runs, client_runs WHERE client_runs.client_uid = $1 AND runs.run_id = client_runs.run_id AND start_run <= $2 AND (stop_run >= $2 OR stop_run IS NULL)"
+                        "),"
+                        "getRunId AS ( -- ensures that only one result can get back. Otherwise return NULL"
+                        "    SELECT CASE WHEN (COUNT(*) <> 1) THEN NULL ELSE (SELECT * FROM getRunIds LIMIT 1) END FROM getRunIds"
+                        ")"
+                        "INSERT INTO"
+                        "measurements (shared_measurement_id, client_uid, run_id)"
+                        "VALUES ("
+                        "    $3,"
+                        "    $1,"
+                        "    (SELECT * FROM getRunId LIMIT 1) -- will return NULL if there is no run id else the run id"
+                        ")"
+                        "ON CONFLICT DO NOTHING");
             msmtIdSoFar = ""; // for performance, we only execute certain queries if the measurement id changed
             StartRead(&smp);
           }
@@ -272,7 +275,7 @@ bool CMeasurementApiServicer::isValidMgmtClient(const autopapi::mgmtRequest& req
     return reactor;
 
 }
-
+/*
 ::grpc::ServerUnaryReactor* putStatusMsg(::grpc::CallbackServerContext* ctxt, const ::autopapi::cmMCode* cmde, ::autopapi::nothing* nth) {
     // Store an (error) message in the DB log
     ClientManager cm;
@@ -305,18 +308,8 @@ bool CMeasurementApiServicer::isValidMgmtClient(const autopapi::mgmtRequest& req
 }
 
 ::grpc::ServerWriteReactor< ::autopapi::clientUid>* getLoggedInClients(::grpc::CallbackServerContext* ctxt, const ::autopapi::mgmtAuth* mmauth) {
-    std::vector<pbdef::api::clientUid> clients;
-    pqxx::work txn(*pgConn_);
-    pqxx::result r = txn.exec("SELECT client_uid FROM clients WHERE logged_in = true");
+    // CHECK AUTH
 
-    for (auto row : r) {
-        pbdef::api::clientUid clientUid;
-        clientUid.set_uid(row["client_uid"].c_str());
-        clients.push_back(clientUid);
-    }
-    txn.commit();
-    logClientWasSeenNow(request.uid());
-    return clients;
 }
 
 ::grpc::ServerUnaryReactor* getRegistrationStatus(::grpc::CallbackServerContext* ctxt, const ::autopapi::authClientUid* cluid, ::autopapi::registrationStatus* regstatus) {
@@ -333,37 +326,27 @@ bool CMeasurementApiServicer::isValidMgmtClient(const autopapi::mgmtRequest& req
 }
 
 ::grpc::ServerUnaryReactor* setMsmtSttings(::grpc::CallbackServerContext* ctxt, const ::autopapi::mgmtMsmtSettings* mset, ::autopapi::nothing* nth) {
-    pqxx::work txn(*pgConn_);
-    for (const auto& setting : request.settings()) {
-        txn.exec_params(
-            "INSERT INTO measurement_settings (client_uid, setting_key, setting_value) VALUES ($1, $2, $3) "
-            "ON CONFLICT (client_uid, setting_key) DO UPDATE SET setting_value = $3",
-            request.client_uid(), setting.key(), setting.value());
-    }
-    txn.commit();
-    logClientWasSeenNow(request.client_uid());
-    return pbdef::api::nothing();
+    // TODO: Check auth
 }
 
 ::grpc::ServerUnaryReactor* issueRequestToClient(::grpc::CallbackServerContext* ctxt, const ::autopapi::mgmtRequest* mgrequest, ::autopapi::clientResponse* cresp) {
+    // TODO check auth
     ClientManager cm;
-    cm.issueRequestToClient(request.client_uid(), request);
-    logClientWasSeenNow(request.client_uid());
+    std::cout << "Got request for client: " << mgmtRequest->clientuid() << std::endl;
 
-    pbdef::api::srvResponse response;
-    response.set_status("Request issued successfully.");
-    return response;
+    if (!cm.isInLoggedInClientsList(mgrequest->clientuid())) {
+        // TODO: abort
+    } else {
+        cm.issueRequestToClient(request.client_uid(), request);
+        logClientWasSeenNow(request.client_uid());
+
+        pbdef::api::srvResponse response;
+        response.set_status("Request issued successfully.");
+        return response;
+    }
 }
 
 ::grpc::ServerWriteReactor< ::autopapi::cmMCode>* getMessages(::grpc::CallbackServerContext* ctxt, const ::autopapi::mgmtAuth* mgmtauth) {
-    ClientManager cm;
-    std::vector<pbdef::api::cmMCode> messages;
+    // TODO: Implement
+}*/
 
-    for (const auto& message : cm.getMessagesOfClient(request.client_uid())) {
-        pbdef::api::cmMCode msg;
-        msg.set_msg(message);
-        messages.push_back(msg);
-    }
-    logClientWasSeenNow(request.client_uid());
-    return messages;
-}

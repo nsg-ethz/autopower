@@ -1,5 +1,6 @@
 #pragma once
 
+#include <grpcpp/server_builder.h>
 #include <grpcpp/server_context.h>
 #include <grpcpp/support/server_callback.h>
 #include <grpcpp/support/sync_stream.h>
@@ -13,9 +14,10 @@
 #include "cmake/api.pb.h"
 #include <pqxx/pqxx>
 
+
 class CMeasurementApiServicer final : public autopapi::CMeasurementApi::CallbackService {
 public:
-    CMeasurementApiServicer(std::unique_ptr<PgConnectorFactory> pgFactory, const std::unordered_map<std::string, std::string>& allowedMgmtClients);
+    explicit CMeasurementApiServicer(struct ServicerSettings*);
     ::grpc::ServerWriteReactor< ::autopapi::srvRequest>* registerClient(::grpc::CallbackServerContext* ctxt, const ::autopapi::clientUid* cluid);
     ::grpc::ServerUnaryReactor* putClientResponse(::grpc::CallbackServerContext* ctxt, const ::autopapi::clientResponse& response);
     ::grpc::ServerReadReactor<::autopapi::msmtName>* putMeasurementList(::grpc::CallbackServerContext* ctxt, ::autopapi::nothing* nth);

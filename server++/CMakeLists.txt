@@ -49,7 +49,7 @@ include_directories("${CMAKE_CURRENT_BINARY_DIR}")
 # Targets (server)
 foreach(_target
   server)
-  add_executable(${_target} "${_target}.cc"
+  add_executable(${_target} "OutCommunicator.cc" "CMeasurementApiServicer.cc" "${_target}.cc"
     ${hw_proto_srcs}
     ${hw_grpc_srcs})
   target_link_libraries(${_target}
