@@ -222,7 +222,7 @@ def getLastMeasurementTimestampOfDevicePost():
         pgcurs.execute("SELECT MAX(measurement_timestamp) FROM measurement_data JOIN measurements ON measurement_data.server_measurement_id = measurements.server_measurement_id WHERE measurements.client_uid = %(dev)s", {'dev': devUid})
         pgConnection.commit()
         lastMsmt = pgcurs.fetchone()
-        if not lastMsmt:
+        if not lastMsmt or lastMsmt[0] == None:
             return "No measurement found for this id", 404
 
         return lastMsmt[0].isoformat()

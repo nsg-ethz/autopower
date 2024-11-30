@@ -3,6 +3,8 @@
 {% block head %}
   {{ super() }}
   <link href="{{ url_for('static', filename='startpage.css') }}" rel="stylesheet" />
+  <script src="{{ url_for('static', filename='jquery.timeago.js') }}"></script>
+
 {% endblock %}
 {% block main %}
 <div class="autopowerDevicesList">
@@ -19,6 +21,7 @@
 </div>
 <script>
     $(document).ready(function() {
+        $("time.timeago").timeago(); // init timeago
         $(".lastSeenTimestamp").each(function() {
             var timeBox = $(this);
             var lsTimestamp = new Date(timeBox.data("lastseen"));
@@ -34,66 +37,95 @@
             // for each status label of the autopower device, check the status
             var clientUid = $(this).data("apcluid");
             var statusBox = $(this);
+
+            // get only data from the database unless clicked
+
             $.ajax({
                 type:"POST",
-                dataType: "json",
-                url:"{{ url_for('getDeviceStatusPost') }}",
-                data: {deviceUid:clientUid},
+                url:"{{ url_for('getLastMeasurementTimestampOfDevicePost') }}",
+                data:{deviceUid:clientUid},
                 success: function(resp) {
-                    if (!resp.status && resp.inMeasuringMode && !resp.ppHasExited && resp.ppHasWrittenOnce) {
-                        if (resp.lastSampleTimestamp) {
-                            // check if we wrote to the client side DB
-                            var lastSampleTsWrittenOnClient = new Date(resp.lastSampleTimestamp);
-
-                            var samplingInt = resp.measurementSettings.ppSamplingInterval;
-                            var nextSamplingDeadline = new Date();
-                            nextSamplingDeadline.setMilliseconds(nextSamplingDeadline.getMilliseconds() - 100 * samplingInt);
-                            console.log(nextSamplingDeadline);
-                            console.log(lastSampleTsWrittenOnClient);
-                            if (lastSampleTsWrittenOnClient < nextSamplingDeadline) {
-                                setAlertSeverity(statusBox,"alert-warning");
-                                statusBox.text("Trying to measure, but last client side measurement may be outdated. Check the client for hardware and timing issues.");
-                                return;
-                            }
-                        }
-                        $.ajax({
-                            type:"POST",
-                            url:"{{ url_for('getLastMeasurementTimestampOfDevicePost') }}",
-                            data:{deviceUid:clientUid},
-                            success: function(resp) {
-                                var lastMsmtTs = new Date(resp);
-                                var oneHourAgo = new Date();
-                                oneHourAgo.setHours(oneHourAgo.getHours() - 1);
-                                if (lastMsmtTs < oneHourAgo) {
-                                    setAlertSeverity(statusBox,"alert-warning");
-                                    statusBox.text("Measuring. But latest data is older than one hour.");
-                                } else {
-                                    setAlertSeverity(statusBox,"alert-success");
-                                    statusBox.text("Measuring");
-
-                                }
-                            },
-                            error: function(xhr) {
-                                setAlertSeverity(statusBox,"alert-info");
-                                statusBox.text("Measuring. Waiting on data.");
-                            }
-                        });
+                    var lastMsmtTs = new Date(resp);
+                    var tenMinutesAgo = new Date();
+                    tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - 10);
+                    if (lastMsmtTs < tenMinutesAgo) {
+                        console.log(lastMsmtTs);
+                        console.log(tenMinutesAgo);
+                        setAlertSeverity(statusBox,"alert-info");
                     } else {
-                        setAlertSeverity(statusBox,"alert-warning");
-                        statusBox.text("Not measuring");
+                        setAlertSeverity(statusBox,"alert-success");
                     }
+                    statusBox.html("Latest data from <time class=\"timeago\" datetime=\"" + lastMsmtTs.toISOString() +"\">"+$.timeago(lastMsmtTs)+"</time>");
                 },
                 error: function(xhr) {
-                    resp = xhr.responseJSON;
-                    setAlertSeverity(statusBox,"alert-primary");
-                    if (resp && resp.status) {
-                        statusBox.text(resp.status);
-                    } else {
-                        statusBox.text("ERROR. Check page for status")
-                    }
+                    setAlertSeverity(statusBox,"alert-info");
+                    statusBox.text("No data");
                 }
             });
-        });
+
+            $(this).click(function() {
+                $.ajax({
+                    type:"POST",
+                    dataType: "json",
+                    url:"{{ url_for('getDeviceStatusPost') }}",
+                    data: {deviceUid:clientUid},
+                    success: function(resp) {
+                        if (!resp.status && resp.inMeasuringMode && !resp.ppHasExited && resp.ppHasWrittenOnce) {
+                            if (resp.lastSampleTimestamp) {
+                                // check if we wrote to the client side DB
+                                var lastSampleTsWrittenOnClient = new Date(resp.lastSampleTimestamp);
+
+                                var samplingInt = resp.measurementSettings.ppSamplingInterval;
+                                var nextSamplingDeadline = new Date();
+                                nextSamplingDeadline.setMilliseconds(nextSamplingDeadline.getMilliseconds() - 100 * samplingInt);
+                                console.log(nextSamplingDeadline);
+                                console.log(lastSampleTsWrittenOnClient);
+                                if (lastSampleTsWrittenOnClient < nextSamplingDeadline) {
+                                    setAlertSeverity(statusBox,"alert-warning");
+                                    statusBox.text("Trying to measure, but last client side measurement may be outdated. Check the client for hardware and timing issues.");
+                                    return;
+                                }
+                            }
+                            $.ajax({
+                                type:"POST",
+                                url:"{{ url_for('getLastMeasurementTimestampOfDevicePost') }}",
+                                data:{deviceUid:clientUid},
+                                success: function(resp) {
+                                    var lastMsmtTs = new Date(resp);
+                                    var oneHourAgo = new Date();
+                                    oneHourAgo.setHours(oneHourAgo.getHours() - 1);
+                                    if (lastMsmtTs < oneHourAgo) {
+                                        setAlertSeverity(statusBox,"alert-warning");
+                                        statusBox.text("Measuring. But latest data is older than one hour.");
+                                    } else {
+                                        setAlertSeverity(statusBox,"alert-success");
+                                        statusBox.text("Measuring");
+
+                                    }
+                                },
+                                error: function(xhr) {
+                                    setAlertSeverity(statusBox,"alert-info");
+                                    statusBox.text("Measuring. Waiting on data.");
+                                }
+                            });
+                        } else {
+                            setAlertSeverity(statusBox,"alert-warning");
+                            statusBox.text("Not measuring");
+                        }
+                    },
+                    error: function(xhr) {
+                        resp = xhr.responseJSON;
+                        setAlertSeverity(statusBox,"alert-primary");
+                        if (resp && resp.status) {
+                            statusBox.text(resp.status);
+                        } else {
+                            statusBox.text("ERROR. Check page for status")
+                        }
+                    }
+                });
+        
+              });
+            });
     });
 </script>
 {% endblock %}
