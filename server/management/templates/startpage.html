@@ -49,8 +49,6 @@
                     var tenMinutesAgo = new Date();
                     tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - 10);
                     if (lastMsmtTs < tenMinutesAgo) {
-                        console.log(lastMsmtTs);
-                        console.log(tenMinutesAgo);
                         setAlertSeverity(statusBox,"alert-info");
                     } else {
                         setAlertSeverity(statusBox,"alert-success");
