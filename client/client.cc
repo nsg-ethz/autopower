@@ -323,16 +323,22 @@ void AutopowerClient::getAndSavePpData() {
       }
 
       if (!isValidPpDevice(ppDevice)) {
-        std::string errMsg = "ERROR: Could not start pinpoint as device is not available/whitelisted on the client and may not be supported! Only ";
-        for (std::string dev : this->supportedDevices) {
-          errMsg += dev + ", ";
+        std::string errMsg = "ERROR: Could not start pinpoint as device is not available/whitelisted on the client and may not be supported! ";
+
+        if (!this->supportedDevices.empty()) {
+          errMsg += " Only ";
+          for (std::string dev : this->supportedDevices) {
+            errMsg += dev + ", ";
+          }
+          // fencepost solving:
+          errMsg.pop_back();
+          errMsg.pop_back();
+          errMsg += " allowed.";
+        } else {
+          errMsg += " No devices found.";
         }
 
-        // fencepost solving:
-        errMsg.pop_back();
-        errMsg.pop_back();
-
-        errMsg += " are supported. Please check the client side configuration! Stopping measurement.";
+        errMsg += ". Please check the client side configuration! Stopping measurement.";
         std::cerr << errMsg << std::endl;
         putStatusToServer(1, errMsg);
         stopMeasurement();
