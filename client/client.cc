@@ -209,7 +209,7 @@ std::unique_ptr<autopapi::CMeasurementApi::Stub> AutopowerClient::createGrpcConn
   chanOptions.SetInt(GRPC_ARG_INITIAL_RECONNECT_BACKOFF_MS, 100);
   chanOptions.SetInt(GRPC_ARG_MAX_RECONNECT_BACKOFF_MS, 4000);
   // set keep alive settings since devices may be deployed behind a NAT
-  chanOptions.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 60000); // set time period to send pings every minute
+  chanOptions.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 60000);          // set time period to send pings every minute
   chanOptions.SetInt(GRPC_ARG_KEEPALIVE_PERMIT_WITHOUT_CALLS, 1); // send keep alive without any streams. Should make the connection more stable even if the registerClient method somehow failed for a long time.
   std::shared_ptr<grpc::Channel> cnl = grpc::CreateCustomChannel(remoteHost + ":" + remotePort, cred, chanOptions);
   std::unique_ptr<autopapi::CMeasurementApi::Stub> stub = autopapi::CMeasurementApi::NewStub(cnl);
@@ -497,20 +497,20 @@ std::pair<bool, std::string> AutopowerClient::startMeasurement() {
     mm.unlock();
     measuringCv.notify_all();
     // wait until it is known that there was at least one write to the db. Then we assume that pinpoint can succeed.
-      // this is not a fully sure method to check if the measurement will continue working as pinpoint may crash. For the actual current status, check the lastKnownPpPid.
-      std::shared_lock wol(writtenOnceMtx);
-      uint64_t waitTime = 10;
-      try {
-        waitTime += (std::stoll(ppSamplingInterval) / 1000);
-      } catch (std::exception &e) {
-        std::cerr << "Warning: Could not parse sampling interval: " << e.what() << ". Setting wait time to 10 seconds." << std::endl;
-      }
-      if (!hasWrittenOnceCv.wait_until(wol, std::chrono::system_clock::now() + std::chrono::seconds(waitTime), [this]() { return this->thisMeasurementHasWrittenOnce; })) {
-        wol.unlock();
-          std::cout << "Couldn't start measurement as the measurement did not write in the last " << waitTime << " seconds. Thus stopping again. Please check pinpoint output!" << std::endl;
+    // this is not a fully sure method to check if the measurement will continue working as pinpoint may crash. For the actual current status, check the lastKnownPpPid.
+    std::shared_lock wol(writtenOnceMtx);
+    uint64_t waitTime = 10;
+    try {
+      waitTime += (std::stoll(ppSamplingInterval) / 1000);
+    } catch (std::exception &e) {
+      std::cerr << "Warning: Could not parse sampling interval: " << e.what() << ". Setting wait time to 10 seconds." << std::endl;
+    }
+    if (!hasWrittenOnceCv.wait_until(wol, std::chrono::system_clock::now() + std::chrono::seconds(waitTime), [this]() { return this->thisMeasurementHasWrittenOnce; })) {
+      wol.unlock();
+      std::cout << "Couldn't start measurement as the measurement did not write in the last " << waitTime << " seconds. Thus stopping again. Please check pinpoint output!" << std::endl;
       stopMeasurement();
-          return std::pair<bool, std::string>(false, sharedMsmtId);
-        }
+      return std::pair<bool, std::string>(false, sharedMsmtId);
+    }
     std::cout << "Started measurement." << std::endl;
     return std::pair<bool, std::string>(true, sharedMsmtId);
   } catch (std::exception &e) {
