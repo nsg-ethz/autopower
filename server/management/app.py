@@ -231,7 +231,7 @@ def getLastMeasurementTimestampOfDevicePost():
                 ts = tsRow[0]
                 if lastMsmt == None:
                     lastMsmt = ts
-                elif lastMsmt > ts:
+                elif lastMsmt < ts:
                     lastMsmt = ts
 
         if not lastMsmt:
