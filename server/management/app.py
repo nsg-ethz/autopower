@@ -219,13 +219,25 @@ def getLastMeasurementTimestampOfDevicePost():
     devUid = request.form.get("deviceUid")
     with createPgConnection() as pgConnection:
         pgcurs = pgConnection.cursor()
-        pgcurs.execute("SELECT MAX(measurement_timestamp) FROM measurement_data JOIN measurements ON measurement_data.server_measurement_id = measurements.server_measurement_id WHERE measurements.client_uid = %(dev)s", {'dev': devUid})
-        pgConnection.commit()
-        lastMsmt = pgcurs.fetchone()
-        if not lastMsmt or lastMsmt[0] == None:
+        # get all measurements from this device
+        pgcurs.execute("SELECT server_measurement_id FROM measurements WHERE client_uid = %(dev)s", {'dev': devUid})
+        allMsmtsOfThisDevice = pgcurs.fetchall()
+        lastMsmt = None
+        for msmt in allMsmtsOfThisDevice:
+            # speed up manually by issuing the max request for each measurement
+            pgcurs.execute("SELECT MAX(measurement_timestamp) FROM measurement_data WHERE server_measurement_id = %(mmid)s", {'mmid': msmt[0]})
+            tsRow = pgcurs.fetchone()
+            if tsRow and tsRow[0]:
+                ts = tsRow[0]
+                if lastMsmt == None:
+                    lastMsmt = ts
+                elif lastMsmt > ts:
+                    lastMsmt = ts
+
+        if not lastMsmt:
             return "No measurement found for this id", 404
 
-        return lastMsmt[0].isoformat()
+        return lastMsmt.isoformat()
 
 
 @app.route("/downloadMeasurement/<measurementId>")
