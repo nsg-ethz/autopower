@@ -8,7 +8,7 @@
 <h2>{{ deviceUid | e}}</h2>
 <div class="deviceManagementControls">
     <div>Last seen {{ lastSeen | e }}</div>
-    <div id="ip" class="mb-2">IP: <code class="p-2" id="ipLabel">Not yet known</code></div>
+    <div id="ip" class="mb-2">IP: <span class="unknownIp">Maybe </span><code class="p-2" id="ipLabel">{{ lastIp | e }}</code></div>
     <div class="alert alert-info p-2" id="deviceConnectivityStatus">No connection status yet</div>
     <div class="bg-light p-2">
         <div class="alert alert-info p-2" id="deviceStatus">No status</div>
@@ -141,13 +141,13 @@
         // get IP address if available
         $.ajax({url:"{{url_for('requestIntroduceClient', deviceUid=deviceUid)}}", success:function(res){
                 if (res.msg == "PONG" && res.peer != null) {
+                    $(".unknownIp").hide();
                     $("#ipLabel").text(res.peer);
                     setAlertSeverity(deviceConnectStatusBox,"alert-success");
                     deviceConnectStatusBox.text("Online");
                 } else {
                     setAlertSeverity(deviceConnectStatusBox,"alert-warning");
                     deviceConnectStatusBox.text("Unknown connectivity");
-                    $("#ipLabel").text("Unknown");
                 }
             },
             error:function(xhr) {
@@ -158,7 +158,6 @@
                     deviceConnectStatusBox.text("Unknown connectivity");
                 }
 
-                $("#ipLabel").text("Unknown");
             }});
         // measurement form AJAX
         makeAjaxForm(

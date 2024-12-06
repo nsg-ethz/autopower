@@ -347,10 +347,23 @@ class CMeasurementApiServicer():
         self.pgFactory = pgfac
         self.allowedMgmtClients = allowedMgmtClients
 
-    def logClientWasSeenNow(self, clientUid):
-        # log that this client has been seen now to populate "latest" field in DB
+    def extractIpFromContext(self, context):
+        ipPort = ulunquote(context.peer())[5:]  # remove ipv4/ipv6 prefix
+        ip, sep, _ = ipPort.rpartition(":")
+        # check if ip string contains "[" or "]", which would hint at an ipv6 address. The ipaddress module needs removal of those characters
+        if ip.startswith("[") and ip.endswith("]"):
+            ip = ip[1:-1]
+
+        ip = ipaddress.ip_address(ip)
+        if not sep:
+            return None # invalid ip given
+        
+        return ip
+    def logClientOccurance(self, clientUid, context):
+        # log that this client has been seen now to populate "latest" field in DB with IP
+
         with self.pgConn.cursor() as curs:
-            curs.execute("UPDATE clients SET last_seen = NOW() WHERE client_uid = %(cluid)s;", {'cluid': clientUid})
+            curs.execute("UPDATE clients SET last_seen = NOW(), last_known_ip = %(lastip)s WHERE client_uid = %(cluid)s;", {'cluid': clientUid, 'lastip': str(self.extractIpFromContext(context))})
             self.pgConn.commit()
 
     def registerClient(self, request, context):
@@ -358,7 +371,7 @@ class CMeasurementApiServicer():
         pm = OutCommunicator()
         cmAdd.addNewClient(request.uid)
         with self.pgConn.cursor() as curs:
-            curs.execute("INSERT INTO clients (client_uid) VALUES (%(cluid)s) ON CONFLICT (client_uid) DO UPDATE SET last_seen = NOW();", {'cluid': request.uid})
+            curs.execute("INSERT INTO clients (client_uid, last_known_ip) VALUES (%(cluid)s, %(lastip)s) ON CONFLICT (client_uid) DO UPDATE SET last_seen = NOW(), last_known_ip = %(lastip)s;", {'cluid': request.uid, 'lastip': str(self.extractIpFromContext(context))})
             self.pgConn.commit()
         pm.addMessage("UID '" + request.uid + "' registered")
 
@@ -392,14 +405,14 @@ class CMeasurementApiServicer():
             resp.msg = json.dumps(result)
 
         cm.addNewResponseToRequest(resp.clientUid, resp)
-        self.logClientWasSeenNow(resp.clientUid)
+        self.logClientOccurance(resp.clientUid, context)
         return pbdef.api__pb2.nothing()
 
     def putMeasurementList(self, request_iterator, context):
         pm = OutCommunicator()
 
         for remoteMsmtName in request_iterator:
-            self.logClientWasSeenNow(remoteMsmtName.clientUid)
+            self.logClientOccurance(remoteMsmtName.clientUid, context)
             pm.addMessage(remoteMsmtName.name)
 
         return pbdef.api__pb2.nothing()
@@ -484,7 +497,7 @@ class CMeasurementApiServicer():
             msettings.uploadIntervalMin = settings["uploadIntervalMin"]
             msettings.clientUid = request.uid
             # log that client was seen now - since it called this method
-            self.logClientWasSeenNow(request.uid)
+            self.logClientOccurance(request.uid, context)
 
             return msettings
 
@@ -503,7 +516,7 @@ class CMeasurementApiServicer():
                     self.pgConn.commit()
             else:
                 pc.addMessage("[Status] from '" + request.clientUid + "': " + request.msg)
-            self.logClientWasSeenNow(request.clientUid)
+            self.logClientOccurance(request.clientUid, context)
         return pbdef.api__pb2.nothing()
 
     # Management messages

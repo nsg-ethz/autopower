@@ -125,6 +125,13 @@ def getLastSeenTimeAgo(deviceUid):
         activeTimestamp = pgcurs.fetchone()
         return getTimeAgo(activeTimestamp["last_seen"])
 
+def getLastIpOfDevice(deviceUid):
+    with createPgConnection() as pgConnection:
+        pgcurs = pgConnection.cursor(cursor_factory=pgextra.RealDictCursor)
+        pgcurs.execute("SELECT last_known_ip FROM clients WHERE client_uid = %(cluid)s LIMIT 1", {'cluid': deviceUid})
+        pgConnection.commit()
+        lastIp = pgcurs.fetchone()
+        return lastIp["last_known_ip"]
 
 def getAllMeasurementMetadataOfDevice(deviceUid):
     with createPgConnection() as pgConnection:
@@ -172,7 +179,7 @@ def homepage():
 @app.route("/manageDevice/<deviceUid>")
 def deviceManagementPage(deviceUid):
     # get allowedPp Device list from client
-    return render_template("deviceManagement.html", deviceUid=deviceUid, lastSeen=getLastSeenTimeAgo(deviceUid), autopowerDevMeasurements=getAllMeasurementMetadataOfDevice(deviceUid))
+    return render_template("deviceManagement.html", deviceUid=deviceUid, lastSeen=getLastSeenTimeAgo(deviceUid), autopowerDevMeasurements=getAllMeasurementMetadataOfDevice(deviceUid), lastIp=getLastIpOfDevice(deviceUid))
 
 @app.route("/manageDevice/<deviceUid>/getPpDeviceList")
 def getPpDeviceList(deviceUid):

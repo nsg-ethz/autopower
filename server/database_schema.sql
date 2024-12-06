@@ -1,6 +1,7 @@
 CREATE TABLE clients (
   client_uid VARCHAR(255) PRIMARY KEY,
-  last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW() -- last time this client connected to the server, meaning we know it is alive
+  last_seen TIMESTAMP WITH TIME ZONE DEFAULT NOW(), -- last time this client connected to the server, meaning we know it is alive
+  last_known_ip INET DEFAULT NULL -- last known IP of a call from the client
 );
 
 CREATE TABLE logmessages (
