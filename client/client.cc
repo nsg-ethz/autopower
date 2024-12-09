@@ -204,10 +204,8 @@ std::unique_ptr<autopapi::CMeasurementApi::Stub> AutopowerClient::createGrpcConn
     cred = grpc::InsecureChannelCredentials();
   }
 
-  // due to backoff in grpc we could have a slow re-connect. Thus have lower backoff like https://stackoverflow.com/a/77193007
   grpc::ChannelArguments chanOptions;
-  chanOptions.SetInt(GRPC_ARG_INITIAL_RECONNECT_BACKOFF_MS, 100);
-  chanOptions.SetInt(GRPC_ARG_MAX_RECONNECT_BACKOFF_MS, 4000);
+
   // set keep alive settings since devices may be deployed behind a NAT
   chanOptions.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 60000);          // set time period to send pings every minute
   chanOptions.SetInt(GRPC_ARG_KEEPALIVE_PERMIT_WITHOUT_CALLS, 1); // send keep alive without any streams. Should make the connection more stable even if the registerClient method somehow failed for a long time.
