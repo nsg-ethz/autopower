@@ -53,8 +53,17 @@ chmod +x /usr/bin/pinpoint
 PGPASSWORD=$(cat /dev/urandom | tr -dc A-Za-z0-9~_- | head -c 60 && echo)
 # Delete autopower_client user if already exists and create database + schema
 sudo -u postgres psql -d postgres -c "DROP ROLE IF EXISTS autopower_client;"
-sudo -u postgres psql -d postgres -c "CREATE USER autopower_client WITH PASSWORD '${PGPASSWORD}';"
-sudo -u postgres psql -d postgres -c "CREATE DATABASE autopower_client;"
+sudo -u postgres psql -d postgres -c "CREATE USER autopower_client;"
+sudo -u postgres psql -d postgres -c "ALTER USER autopower_client WITH PASSWORD '${PGPASSWORD}';"
+
+# Create database if necessary
+DB_EXISTS=$(sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = 'autopower_client'" | grep -q 1)
+if [[ ! ${DB_EXISTS} == "1" ]]; then
+  sudo -u postgres psql -d postgres -c "CREATE DATABASE autopower_client;"
+else
+  echo "Warning: Skipping DB creation since the autopower_client database already seems to exist"
+fi
+
 sudo -u postgres psql -d autopower_client -a -f client_db_schema.sql
 
 # Create group to allow access to on board leds
@@ -97,7 +106,13 @@ systemctl enable mmclient
 cp deploy/reversessh.service /etc/systemd/system/
 # Replace magic strings with device dependent config values
 sed -i 's/ßß§$$$rplceremoteHost$$$§ßß/'"${EXTERNALJUMPHOST}"'/' /etc/systemd/system/reversessh.service
-sed -i 's/ßß§$$$rplceremoteRevSSHPort$$§ßß/'"28${AUTOPOWERNUMBER}"'/' /etc/systemd/system/reversessh.service
+
+if [[ ${AUTOPOWERNUMBER} -lt 10 ]]; then
+  # must set a zero as we otherwise might get into non assignable ports
+  sed -i 's/ßß§$$$rplceremoteRevSSHPort$$§ßß/'"280${AUTOPOWERNUMBER}"'/' /etc/systemd/system/reversessh.service
+else
+  sed -i 's/ßß§$$$rplceremoteRevSSHPort$$§ßß/'"28${AUTOPOWERNUMBER}"'/' /etc/systemd/system/reversessh.service
+fi
 
 systemctl enable reversessh
 # copy udev rule to allow leds group to access leds
