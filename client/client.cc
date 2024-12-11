@@ -200,7 +200,7 @@ std::unique_ptr<autopapi::CMeasurementApi::Stub> AutopowerClient::createGrpcConn
 
     cred = grpc::SslCredentials(sslopt);
   } else {
-    std::cout << "WARNING: Server connection is unencrypted since private/public key path were not given. Use the -e argument to specify the Private key path and -f for the Public key path." << std::endl;
+    std::cout << "Warning: Server connection is unencrypted since private/public key path were not given. Use the -e argument to specify the Private key path and -f for the Public key path." << std::endl;
     cred = grpc::InsecureChannelCredentials();
   }
 
@@ -321,7 +321,7 @@ void AutopowerClient::getAndSavePpData() {
       }
 
       if (!isValidPpDevice(ppDevice)) {
-        std::string errMsg = "ERROR: Could not start pinpoint as device is not available/whitelisted on the client and may not be supported! ";
+        std::string errMsg = "ERROR: Device '" + ppDevice + "' is not available on the client!";
 
         if (!this->supportedDevices.empty()) {
           errMsg += " Only ";
@@ -336,7 +336,7 @@ void AutopowerClient::getAndSavePpData() {
           errMsg += " No devices found.";
         }
 
-        errMsg += ". Please check the client side configuration! Stopping measurement.";
+        errMsg += " Please check the client configuration! Stopping measurement.";
         std::cerr << errMsg << std::endl;
         putStatusToServer(1, errMsg);
         stopMeasurement();
@@ -457,7 +457,7 @@ void AutopowerClient::getAndSavePpData() {
       waitpid(pid, &retStatus, 0);
       setHasExited(true); // log the exit of pinpoint. Allows to get status
       if (retStatus != SIGTERM) {
-        std::string errorMsg = "Pinpoint exited with non SIGTERM exit code " + std::to_string(retStatus) + ". Something may be wrong.";
+        std::string errorMsg = "Warning: Pinpoint exited with unexpected exit code " + std::to_string(retStatus) + ".";
         std::cerr << errorMsg << std::endl;
         if (!loggedErrorToServer) {
           putStatusToServer(1, errorMsg);
@@ -568,7 +568,7 @@ bool AutopowerClient::uploadMeasurementList() {
     msmt.set_clientuid(clientUid);
     msmt.set_name(tuple["internal_measurement_id"].as<std::string>() + " AKA " + tuple["shared_measurement_id"].as<std::string>());
     if (!measurementNameStream->Write(msmt)) {
-      std::cerr << "Writing measurement names to server failed. Maybe the connetion failed?" << std::endl;
+      std::cerr << "Writing measurement names to server failed: " << std::endl;
       break;
     }
     // docs (https://grpc.io/docs/languages/cpp/basics/) include a sleep here.
@@ -735,7 +735,7 @@ void AutopowerClient::doPeriodicDataUpload() {
 // Server wants to start a measurement
 void AutopowerClient::handleMeasurementStart(autopapi::srvRequest sRequest, autopapi::clientUid cluid) {
   if (measuring()) {
-    std::string errorDescription = "Warning: Received START_MEASUREMENT, even though already measuring. Ignoring request.";
+    std::string errorDescription = "Warning: Received START_MEASUREMENT, even though already measuring. Ignoring.";
     std::cerr << errorDescription << std::endl;
     // put warning to server
     putResponseToServer(1, errorDescription, autopapi::clientResponseType::STARTED_MEASUREMENT_RESPONSE, sRequest.requestno());
@@ -967,7 +967,7 @@ void AutopowerClient::manageMsmt() {
 
     grpc::Status sf = serverApiStream->Finish();
     std::cerr << sf.error_code() << ": " << sf.error_message() << ": " << sf.error_details() << std::endl;
-    std::cerr << "Server stream exited. Will attempt re-register." << std::endl;
+    std::cerr << "Server stream exited. Attempting to re-register." << std::endl;
     cc.TryCancel(); // try to free up context as this is no longer possible to use.
     notifyLEDConnectionFailed();
     sleep(5); // sleep for 5 seconds before re-registering
@@ -988,7 +988,7 @@ AutopowerClient::AutopowerClient(std::string _clientUid,
       ppSamplingInterval(_ppSamplingInterval) {
   // connect to external server
   this->stub = createGrpcConnection(_remoteHost, _remotePort, _privKeyPath, _pubKeyPath, _pubKeyCA);
-  std::cout << "Started client UID " << clientUid << " and ppBinaryPath: " << ppBinaryPath << std::endl;
+  std::cout << "Started client with UID " << clientUid << std::endl;
   // start client running in multiple threads
   std::thread managementThread(&AutopowerClient::manageMsmt, this); // thread to connect to server and for API
   std::thread measurementThread(&AutopowerClient::getAndSavePpData, this);

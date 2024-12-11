@@ -1,4 +1,4 @@
-RELEASE_DOWNLOAD_VERSION="r3.0.0_beta" # version to download from GitHub
+RELEASE_DOWNLOAD_VERSION="r3.0.0" # version to download from GitHub
 
 # Edit this file to use a different IP and host
 REMOTEHOST="ee-tik-nsgvm057.ethz.ch"
