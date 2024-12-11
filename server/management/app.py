@@ -171,7 +171,9 @@ def deviceIsRegistered(deviceUid):
 def homepage():
     with createPgConnection() as pgConnection:
         pgcurs = pgConnection.cursor(cursor_factory=pgextra.RealDictCursor)
-        pgcurs.execute("SELECT client_uid, last_seen FROM clients ORDER BY client_uid ASC")
+        # Follow ordering hack from https://stackoverflow.com/a/53889966
+        # Since the device names don't have leading zeros, and all follow the same pattern, checking the length is sufficient
+        pgcurs.execute("SELECT client_uid, last_seen FROM clients ORDER BY LENGTH(client_uid), client_uid ASC")
         pgConnection.commit()
         return render_template("startpage.html", autopowerDevices=pgcurs.fetchall())
 
