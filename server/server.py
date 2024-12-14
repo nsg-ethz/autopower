@@ -618,8 +618,10 @@ class CMeasurementApiServicer():
 
 
 def serve(secrets, config, args):
-
-    grpcServer = grpc.server(futures.ThreadPoolExecutor(max_workers=20))
+    gRPCOpts = opts = [ 
+        ("grpc.keepalive_permit_without_calls", True),
+        ("grpc.http2.max_ping_strikes", 0)] 
+    grpcServer = grpc.server(futures.ThreadPoolExecutor(max_workers=20), options=gRPCOpts)
     if ("ssl" in secrets):
         # Read encryption
         if (not "privKeyPath" in secrets["ssl"]):
