@@ -9,18 +9,12 @@ source serverAdminConfig.sh
 DEVICENAME=$(hostname)
 
 # ssh into the server (which works thanks to agent forwarding) 
-tmux kill-session -t certs      # clean up if session already exists
-tmux new-session -d -s certs    # create a tmux session
-tmux send-keys -t certs '' C-m  # wait a bit
-tmux send-keys -t certs "ssh ${NOKEYCHECK} ${JUMPHOST} autopower@${REMOTEHOST}" C-m
 
 # clean existing read-only files
 echo "cleaning existing files on the server..."
-tmux send-keys -t certs 'cd /usr/autopower/zabbix/' C-m
-tmux send-keys -t certs "rm -f zabbix_client_${DEVICENAME}.psk" C-m
-tmux send-keys -t certs 'cd /usr/autopower/certs/' C-m
-tmux send-keys -t certs "rm -f /usr/autopower/certs/client_${DEVICENAME}.csr" C-m
-sleep 2 # wait a bit to give time to the tmux command to run
+ssh ${NOKEYCHECK} ${JUMPHOST} autopower@${REMOTEHOST} -t "rm -f /usr/autopower/zabbix/zabbix_client_${DEVICENAME}.psk"
+ssh ${NOKEYCHECK} ${JUMPHOST} autopower@${REMOTEHOST} -t "rm -f /usr/autopower/certs/client_${DEVICENAME}.csr"
+ssh ${NOKEYCHECK} ${JUMPHOST} autopower@${REMOTEHOST} -t "rm -f /usr/autopower/certs/client_${DEVICENAME}.cer"
 
 
 # copy certificates to the server with scp
@@ -30,9 +24,10 @@ scp ${NOKEYCHECK} ${JUMPHOST} client_${DEVICENAME}.csr autopower@${REMOTEHOST}:/
 
 # sign the certificate on the server  
 echo "signing the new certificate..."
-SIGN_CMD="openssl x509 -req -in client_${DEVICENAME}.csr -CA ca.cer -CAkey ca.key -CAcreateserial -out client_${DEVICENAME}.cer -days 365 -sha512 -passin pass:'${PASSPHRASE}'"
-tmux send-keys -t certs "${SIGN_CMD}" C-m
-sleep 2 # wait a bit to give time to the tmux command to run
+
+SIGN_CMD="openssl x509 -req -in /usr/autopower/certs/client_${DEVICENAME}.csr -CA /usr/autopower/certs/ca.cer -CAkey /usr/autopower/certs/ca.key -CAcreateserial -out /usr/autopower/certs/client_${DEVICENAME}.cer -days 365 -sha512 -passin pass:'${PASSPHRASE}'"
+ssh ${NOKEYCHECK} ${JUMPHOST} autopower@${REMOTEHOST} -t "${SIGN_CMD}"
+
 
 # copy back client.cer and ca.cer (can be done via scp from the PI)
 # > scp-ing directly would require to make the mmclient directory globally writable
