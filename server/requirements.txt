@@ -5,4 +5,5 @@ grpcio
 grpcio-status
 grpcio-tools
 protobuf
-passlib
+pyjwt
+pyjwt[crypto]

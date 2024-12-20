@@ -3,10 +3,7 @@ import api_pb2_grpc as pbdef
 import json
 import threading
 import argparse
-from passlib.context import CryptContext
-from getpass import getpass
-pwdCtxt = CryptContext(schemes=["sha512_crypt"], deprecated="auto")
-
+import jwt
 
 class CLI():
     def addManualRequest(self, stub, mgmtId, pw):  # issue request message from CLI
@@ -131,13 +128,12 @@ if __name__ == '__main__':
     if (not "mgmtId" in secrets):
         print("ERROR: mgmtId is not set in cli_secrets.json. Please set an unique management client name.")
         exit(1)
-    if (not "pw" in secrets):
-        print("ERROR: pw is not set in cli_secrets.json. Please set a password for this client. For the server, you can create a hash by running this script with --createpassword. For the client, put your password as pw parameter in cli_secrets.json")
-        exit(1)
 
     if (not "privKeyPath" in secrets) or (not "pubKeyPath" in secrets):
         print("WARNING: privKeyPath/pubKeyPath is not set in cli_secrets.json. Connecting insecurely.")
         channel = grpc.insecure_channel(config["remoteHost"] + ":" + config["remotePort"])
+        # Create insecure jwt token
+        jwtToken = jwt.encode({"mgmtId": secrets["mgmtId"]}, "insecure", algorithm="HS256")
     else:
         # setup secure connection
         with open(secrets["privKeyPath"], "rb") as privKeyReader:
@@ -156,12 +152,14 @@ if __name__ == '__main__':
             config["remoteHost"] + ": " + config["remotePort"],
             credentials=grpc.ssl_channel_credentials(private_key=privkey, certificate_chain=chain, root_certificates=clientCa)
         )
+        # Create secure jwt token
+        jwtToken = jwt.encode({"mgmtId": secrets["mgmtId"]}, privkey, algorithm="PS256")
 
     stub = pbdef.CMeasurementApiStub(channel)
     cli = CLI()
-    latestServerReaderThread = threading.Thread(target=cli.getLatestMessages, args=[stub, secrets["mgmtId"], secrets["pw"]])
+    latestServerReaderThread = threading.Thread(target=cli.getLatestMessages, args=[stub, secrets["mgmtId"], jwtToken])
     latestServerReaderThread.start()
-    userCommunicatorThread = threading.Thread(target=cli.addManualRequest, args=[stub, secrets["mgmtId"], secrets["pw"]])
+    userCommunicatorThread = threading.Thread(target=cli.addManualRequest, args=[stub, secrets["mgmtId"], jwtToken])
     userCommunicatorThread.start()
     userCommunicatorThread.join()
     latestServerReaderThread.join()

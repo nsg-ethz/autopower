@@ -7,7 +7,8 @@ grpcio
 grpcio-status
 grpcio-tools
 protobuf
-passlib
 gunicorn
 gevent
 psycogreen
+pyjwt
+pyjwt[crypto]

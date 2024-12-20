@@ -13,8 +13,9 @@ import psycopg2.extras as pgextras
 import api_pb2_grpc as pbdef
 import concurrent.futures as futures
 
+import jwt
+from cryptography import x509
 from urllib.parse import unquote as ulunquote
-from passlib.context import CryptContext
 from google.protobuf import any_pb2
 from grpc_status import rpc_status
 from google.rpc import status_pb2, code_pb2
@@ -25,9 +26,6 @@ from google.protobuf.timestamp_pb2 import Timestamp
 from datetime import tzinfo, timezone, datetime
 
 logging.basicConfig(level=logging.INFO)
-
-# Create password context for management
-pwdCtxt = CryptContext(schemes=["sha512_crypt"], deprecated="auto")
 
 # shared class for communication with CMeasurementApiServicer. Represents a client
 class ExternalClient():
@@ -525,7 +523,26 @@ class CMeasurementApiServicer():
             # For invalid request always deny
             print("WARNING: Got invalid request with auth for management method. Ignoring.")
             return False
-        if request.mgmtId in self.allowedMgmtClients and pwdCtxt.verify(request.pw, self.allowedMgmtClients[request.mgmtId]):
+        if request.mgmtId in self.allowedMgmtClients:
+            try:
+                if (self.allowedMgmtClients[request.mgmtId] == None or self.allowedMgmtClients[request.mgmtId] == "") and ("insecureMode" in secrets):
+                    verifiedJWT = jwt.decode(request.pw, "insecure", algorithms=["HS256"])
+                    print("WARNING: Allowed '" + request.mgmtId + "' to execute arbitary management methods since we are in insecure mode")
+                else:
+                    # Secure mode (default)
+                    with open(self.allowedMgmtClients[request.mgmtId], "rb") as mmPubKeyFileReader:
+                        keyMmClient = mmPubKeyFileReader.read()
+                    
+                    pubkeyMmClient = x509.load_pem_x509_certificate(keyMmClient).public_key()
+                    verifiedJWT = jwt.decode(request.pw, pubkeyMmClient, algorithms=["PS256"])
+                if verifiedJWT["mgmtId"] == request.mgmtId:
+                    return True
+                else:
+                    print("WARNING: did not get correct name of management client from JWT token")
+                    return False
+            except:
+                print("WARNING: Could not verify management client JWT token")
+                return False
             return True
         else:
             print("WARNING: Login failed due to invalid authentication paramaters. Ignoring.")
@@ -652,10 +669,12 @@ def serve(secrets, config, args):
 
         grpcServer.add_secure_port(config["listenOn"], srvCred)
 
-    else:
+    elif ("insecureMode" in secrets):
         print("Warning: Started server in insecure mode. Please check that the keys are set correctly in the secrets.json config file.")
         grpcServer.add_insecure_port(config["listenOn"])
-
+    else:
+        print("Error: No SSL certificates defined and not in insecure mode. Please set keys correctly in the secrets.json config file or if you are developing, enable insecureMode in secrets.json")
+        exit(1)
     allowedMgmtClients = None
     if not "allowedMgmtClients" in secrets:
         print("Warning: No management clients set in secrets file. You will not be able to manage any device. Please set allowedMgmtClients!")

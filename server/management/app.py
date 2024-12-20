@@ -9,8 +9,10 @@ import grpc
 import timeago
 import datetime
 import pytz
+import jwt
 from tzlocal import get_localzone
 import ipaddress
+
 from datetime import datetime
 import hashlib
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -30,9 +32,7 @@ if (not "remotePort" in config):
 if (not "mgmtId" in secrets):
     print("ERROR: mgmtId is not set in cli_secrets.json. Please set an unique management client name.")
     exit(1)
-if (not "pw" in secrets):
-    print("ERROR: pw is not set in web_secrets.json. Please set a password for this client. For the server, you can create a hash by running the cli.py script with --createpassword. For the client, put your password as pw parameter in web_secrets.json")
-    exit(1)
+
 if (not "ssl" in secrets):
     print("WARNING: privKeyPath/pubKeyPath is not set in web_secrets.json. Connecting insecurely.")
     channel = grpc.insecure_channel(config["remoteHost"] + ":" + config["remotePort"])
@@ -79,12 +79,21 @@ app.wsgi_app = ProxyFix(
     app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1
 )
 
+def createJwt():
+    if (not "ssl" in secrets):
+        return jwt.encode({"mgmtId": secrets["mgmtId"]}, "insecure", algorithm="HS256")
+    with open(secrets["ssl"]["privKeyPath"], "rb") as privKeyReader:
+       privkey = privKeyReader.read()
+    jtkn = jwt.encode({"mgmtId": secrets["mgmtId"]}, privkey, algorithm="PS256")
+    privkey = None # to not have the key in memory too long
+    return jtkn
+
 def issueRequest(deviceUid, rq, parseJSON=False):
     # parse JSON tries to parse the response as JSON
     # set auth and deviceUid settings for server
     rq.clientUid = deviceUid
     rq.mgmtId = secrets["mgmtId"]
-    rq.pw = secrets["pw"]
+    rq.pw = createJwt()
     try:
         resp = stub.issueRequestToClient(rq)
         if resp.statusCode != 0:
@@ -157,7 +166,7 @@ def deviceIsRegistered(deviceUid):
     # Check if device deviceUid is registered at the server
     mgmtAuth = pbdef.api__pb2.authClientUid()
     mgmtAuth.mgmtId = secrets["mgmtId"]
-    mgmtAuth.pw = secrets["pw"]
+    mgmtAuth.pw = createJwt()
     mgmtAuth.clientUid = deviceUid
     try:
         regStatus = stub.getRegistrationStatus(mgmtAuth, timeout=10)  # may benefit from a message checking if device is in the server list instead of manual looping
@@ -298,7 +307,7 @@ def startMeasurementAtDevice(deviceUid):
 
     msmtSettings = pbdef.api__pb2.mgmtMsmtSettings()
     msmtSettings.mgmtId = secrets["mgmtId"]
-    msmtSettings.pw = secrets["pw"]
+    msmtSettings.pw = createJwt()
     msmtSettings.clientUid = deviceUid
     msmtSettings.ppDevice = ppDev
     msmtSettings.ppSamplingInterval = str(smpInterval)
