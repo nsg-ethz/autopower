@@ -33,7 +33,7 @@ if (not "mgmtId" in secrets):
     print("ERROR: mgmtId is not set in cli_secrets.json. Please set an unique management client name.")
     exit(1)
 if (not "mgmtSecret" in secrets):
-    print("ERROR: mgmtSecret is not set in cli_secrets.json. Please set an secure shared secret. Create it with python3 cli.py --createpassword")
+    print("ERROR: mgmtSecret is not set in cli_secrets.json. Please set an secure shared secret.")
     exit(1)
 
 if (not "ssl" in secrets):
