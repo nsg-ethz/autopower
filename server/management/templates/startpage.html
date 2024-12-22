@@ -9,7 +9,7 @@
 {% block main %}
 <div class="autopowerDevicesList">
     {% for device in autopowerDevices %}
-    <div class="d-flex justify-content-lg-between align-items-lg-center flex-lg-row flex-sm-column autopowerDevice bg-light border p-2 mt-2">
+    <div class="d-flex justify-content-lg-between align-items-lg-center flex-lg-row flex-column autopowerDevice bg-light border p-2 mt-2">
         <div class="metadata">
             <a href="{{ url_for('deviceManagementPage', deviceUid=device.client_uid) }}" class="text-decoration-none"><h2>{{ device.client_uid | e }}</h2></a>
             <div class="alert p-2 autopowerDeviceStatus alert-secondary" id="status-{{ device.client_uid | e }}" data-apcluid="{{ device.client_uid | e }}">Unknown</div>
