@@ -14,7 +14,6 @@ import api_pb2_grpc as pbdef
 import concurrent.futures as futures
 
 import jwt
-from cryptography import x509
 from urllib.parse import unquote as ulunquote
 from google.protobuf import any_pb2
 from grpc_status import rpc_status
@@ -525,16 +524,12 @@ class CMeasurementApiServicer():
             return False
         if request.mgmtId in self.allowedMgmtClients:
             try:
-                if (self.allowedMgmtClients[request.mgmtId] == None or self.allowedMgmtClients[request.mgmtId] == "") and ("insecureMode" in secrets):
-                    verifiedJWT = jwt.decode(request.pw, "insecure", algorithms=["HS256"])
-                    print("WARNING: Allowed '" + request.mgmtId + "' to execute arbitary management methods since we are in insecure mode")
+                if (self.allowedMgmtClients[request.mgmtId] == None or self.allowedMgmtClients[request.mgmtId] == ""):
+                    print("WARNING: '" + request.mgmtId + "' does not have a valid secret stored on the server")
+                    return False
                 else:
-                    # Secure mode (default)
-                    with open(self.allowedMgmtClients[request.mgmtId], "rb") as mmPubKeyFileReader:
-                        keyMmClient = mmPubKeyFileReader.read()
-                    
-                    pubkeyMmClient = x509.load_pem_x509_certificate(keyMmClient).public_key()
-                    verifiedJWT = jwt.decode(request.pw, pubkeyMmClient, algorithms=["PS256"])
+                    # Verify JWT token
+                    verifiedJWT = jwt.decode(request.pw, self.allowedMgmtClients[request.mgmtId], algorithms=["HS256"])
                 if verifiedJWT["mgmtId"] == request.mgmtId:
                     return True
                 else:

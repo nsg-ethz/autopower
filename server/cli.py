@@ -104,15 +104,7 @@ class CLI():
 
 if __name__ == '__main__':
     argParser = argparse.ArgumentParser()
-    argParser.add_argument("--createpassword", help="Create a password for management authentication with server", nargs="?", const=True)
     args = argParser.parse_args()
-
-    # Create password via password hash function and print to CLI
-    if args.createpassword:
-        print("This allows you to create a new management password hash for the secrets file. Copy the hash into allowedMgmtClients key at the servers' secrets.json config file.")
-        pw = getpass("New Password: ")
-        print(pwdCtxt.hash(pw))
-        exit(0)
 
     with open('config/cli_secrets.json') as secrFile:
         secrets = json.load(secrFile)
@@ -128,12 +120,15 @@ if __name__ == '__main__':
     if (not "mgmtId" in secrets):
         print("ERROR: mgmtId is not set in cli_secrets.json. Please set an unique management client name.")
         exit(1)
+    if (not "mgmtSecret" in secrets):
+        print("ERROR: mgmtSecret is not set in cli_secrets.json. Please set an secure shared secret.")
+        exit(1)
+
+    jwtToken = jwt.encode({"mgmtId": secrets["mgmtId"]}, secrets["mgmtSecret"], algorithm="HS256")
 
     if (not "privKeyPath" in secrets) or (not "pubKeyPath" in secrets):
         print("WARNING: privKeyPath/pubKeyPath is not set in cli_secrets.json. Connecting insecurely.")
         channel = grpc.insecure_channel(config["remoteHost"] + ":" + config["remotePort"])
-        # Create insecure jwt token
-        jwtToken = jwt.encode({"mgmtId": secrets["mgmtId"]}, "insecure", algorithm="HS256")
     else:
         # setup secure connection
         with open(secrets["privKeyPath"], "rb") as privKeyReader:
@@ -152,8 +147,7 @@ if __name__ == '__main__':
             config["remoteHost"] + ": " + config["remotePort"],
             credentials=grpc.ssl_channel_credentials(private_key=privkey, certificate_chain=chain, root_certificates=clientCa)
         )
-        # Create secure jwt token
-        jwtToken = jwt.encode({"mgmtId": secrets["mgmtId"]}, privkey, algorithm="PS256")
+
 
     stub = pbdef.CMeasurementApiStub(channel)
     cli = CLI()

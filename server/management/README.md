@@ -27,7 +27,7 @@ To set up the management ui:
 * Enable mod proxy via `a2enmod proxy` (Not yet tested)
 * Enable the autopower-management site `a2ensite autopower-management.conf`
 * Copy the `../config/web_config.json.example` file to `../config/web_config.json` and the `../web_secrets.json.example` file to `../web_secrets.json`
-* Edit the `web_config.json` and `web_secrets.json` files to fit your setup. Note: You need to set a secret key for management in `web_secrets.json` and put the hash into `secrets.json` file (key allowedMgmtClients). You can create the hash by running cli.py in the server directory with the `--createpassword` argument.
+* Edit the `web_config.json` and `web_secrets.json` files to fit your setup. Note: You need to set a secret key for management in `web_secrets.json` and put it into `secrets.json` file (key allowedMgmtClients). You can create it from your password manager.
 * Set the permissions to both config files such that `www-data` or the user under which you plan to run the management ui under has read access.
 * Copy the apmanagement.service file to `/etc/systemd/system/` and edit it to your liking (if needed)
 * Start the apmanagement service via systemd `systemctl start apmanagement` and enable autostart `systemctl enable apmanagement`

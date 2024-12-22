@@ -32,6 +32,9 @@ if (not "remotePort" in config):
 if (not "mgmtId" in secrets):
     print("ERROR: mgmtId is not set in cli_secrets.json. Please set an unique management client name.")
     exit(1)
+if (not "mgmtSecret" in secrets):
+    print("ERROR: mgmtSecret is not set in cli_secrets.json. Please set an secure shared secret. Create it with python3 cli.py --createpassword")
+    exit(1)
 
 if (not "ssl" in secrets):
     print("WARNING: privKeyPath/pubKeyPath is not set in web_secrets.json. Connecting insecurely.")
@@ -80,13 +83,7 @@ app.wsgi_app = ProxyFix(
 )
 
 def createJwt():
-    if (not "ssl" in secrets):
-        return jwt.encode({"mgmtId": secrets["mgmtId"]}, "insecure", algorithm="HS256")
-    with open(secrets["ssl"]["privKeyPath"], "rb") as privKeyReader:
-       privkey = privKeyReader.read()
-    jtkn = jwt.encode({"mgmtId": secrets["mgmtId"]}, privkey, algorithm="PS256")
-    privkey = None # to not have the key in memory too long
-    return jtkn
+    return jwt.encode({"mgmtId": secrets["mgmtId"]}, secrets["mgmtSecret"], algorithm="HS256")
 
 def issueRequest(deviceUid, rq, parseJSON=False):
     # parse JSON tries to parse the response as JSON
