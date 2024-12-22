@@ -1,3 +1,23 @@
 .autopowerDeviceStatus {
     display: inline-block !important;
 }
+
+.autopowerDevicesList {
+    display: flex;
+    flex-direction: column;
+}
+
+@media screen and (min-width: 770px) {
+    .autopowerDevicesList {
+        display: flex;
+        align-items: center;
+        justify-content: space-around;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 1px;
+    }
+    
+    .autopowerDevicesList>.autopowerDevice {
+        width: 49%;
+    }
+}
