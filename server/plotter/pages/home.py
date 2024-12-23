@@ -20,7 +20,7 @@ def createDb():
 def generateClientDashboard():
     with createDb() as pgcon:
         pgcurs = pgcon.cursor(cursor_factory=pgextra.RealDictCursor)  # use dict to be able to directly pass to plotly
-        pgcurs.execute("SELECT client_uid FROM clients ORDER BY client_uid ASC")
+        pgcurs.execute("SELECT client_uid FROM clients ORDER BY LENGTH(client_uid), client_uid ASC")
         pgcon.commit()
         tuples = pgcurs.fetchall()
 
