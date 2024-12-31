@@ -3,6 +3,9 @@
 {% block main %}
 <h2>{{ sharedMsmtId | e}}</h2>
 <div>Measured with <span class="msmtDevice">{{ clientUid | e}}</span></div>
+{% if showDelete %}
+<button id="deleteBtn" class="btn btn-danger mb-2" data-bs-toggle="modal" data-bs-target="#confirmDeletionModal">Delete {{ sharedMsmtId | e }}</button>
+{% endif %}
 <div class="bg-light border p-2">
     <div class="alert p-2" id="mmStatus">Manage measurement</div>
     <form id="mmForm" method="POST" action="{{ url_for('updateMeasurement', measurementId=measurementId) }}">
@@ -15,7 +18,32 @@
         <button id="saveMmBtn" type="submit" class="btn btn-primary form-control mt-2">Save</button>
     </form>
 </div>
-<div class="text-secondary">Measurements cannot be deleted via Management UI for security reasons. Delete measurements manually from the database as shown in server/USING-POSTGRES.md</div>
+{% if showDelete %}
+<div class="modal fade" id="confirmDeletionModal" tabindex="-1" aria-labelledby="confirmDeletionLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="confirmDeletionLabel">Delete measurement "{{ sharedMsmtId | e }}"</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>
+          Do you want to permanently delete measurement "{{ sharedMsmtId | e }}" and {{ numSamples | e }} samples?
+        </p>
+        <p>
+          If yes, type "Yes, I want to delete {{ numSamples | e }} samples!" and confirm:
+        </p>
+        <input type="text" id="deleteText" class="form-control" name="deleteConfirmation" required>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="deleteBtnConfirm" data-bs-dismiss="modal" disabled>Delete measurement "{{ sharedMsmtId | e }}"</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
 <script src="{{ url_for('static', filename='formAJAXSubmit.js') }}"></script>
 <script>
   var msg = $("#mmStatus");
@@ -33,6 +61,33 @@
         $("#saveMmBtn").prop("disabled", false);
       }
     );
+
+    function monitorDeleteText() {
+        if ($("#deleteText").val() == "Yes, I want to delete {{ numSamples | e }} samples!") {
+          $("#deleteBtnConfirm").prop("disabled", false);
+        } else {
+          $("#deleteBtnConfirm").prop("disabled", true);
+        }
+    }
+
+    $("#deleteText").on("keydown", monitorDeleteText);
+    $("#deleteText").on("keyup", monitorDeleteText);
+
+    $("#deleteBtnConfirm").click(function() {
+      if ($("#deleteText").val() == "Yes, I want to delete {{ numSamples | e }} samples!") {
+        $.ajax({url:"{{ url_for('deleteMeasurement', measurementId=measurementId) }}",
+        type: "DELETE",
+          success:function() {
+            $("#mmForm").text("Deleted");
+            $("#deleteBtn").hide();
+          },
+          error:function(xhr) {
+            $("#mmForm").text("Error: " + xhr.status +  "; " + xhr.statusText + ". Response from server: " + xhr.responseText);
+            $("#deleteBtn").hide();
+          }
+        });
+      }
+    });
   });
 </script>
 {% endblock %}

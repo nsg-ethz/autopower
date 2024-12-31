@@ -254,6 +254,31 @@ def getLastMeasurementTimestampOfDevicePost():
 
         return lastMsmt.isoformat()
 
+@app.route("/measurement/<measurementId>", methods=["DELETE"])
+def deleteMeasurement(measurementId):
+    with createPgConnection() as pgConnection:
+        pgcurs = pgConnection.cursor()
+        # Delete all samples and the measurement
+        pgcurs.execute("DELETE FROM measurement_data WHERE server_measurement_id = %(srvmmid)s", {'srvmmid': int(measurementId)})
+        pgcurs.execute("DELETE FROM measurements WHERE server_measurement_id = %(srvmmid)s RETURNING shared_measurement_id", {'srvmmid': int(measurementId)})
+        pgConnection.commit()
+        res = pgcurs.fetchone()
+        if res and res[0]:
+            return {"id": res[0]}, 200
+        else:
+            return {"message": "Deleting failed"}, 500
+
+@app.route("/measurement/<measurementId>/sampleCount", methods=["GET"])
+def getSampleCount(measurementId):
+    with createPgConnection() as pgConnection:
+        pgcurs = pgConnection.cursor()
+        pgcurs.execute("SELECT COUNT(*) AS num_samples FROM measurement_data WHERE server_measurement_id = %(srvmmid)s", {'srvmmid': int(measurementId)})
+        pgConnection.commit()
+        res = pgcurs.fetchone()
+        if res and res[0]:
+            return {"numSamples": res[0]}, 200
+        else:
+            return {"message": "Retrieving the number of samples failed"}, 500
 
 @app.route("/downloadMeasurement/<measurementId>")
 def downloadMsmt(measurementId):
@@ -360,7 +385,13 @@ def manageMeasurement(measurementId):
         pgConnection.commit()
         allRuns = pgcurs.fetchall()
         allRuns.append({"run_id": None})  # Always allow run_id to be cleared by having a NULL/None field
-        return render_template("measurementManagement.html", sharedMsmtId=msmt["shared_measurement_id"], clientUid=msmt["client_uid"], measurementId=measurementId, currRun=msmt["run_id"], runsOfThisDevice=allRuns)
+        # Get the number of samples of this measurement
+        sampleRes, res = getSampleCount(measurementId)
+        if res != 200 or not sampleRes["numSamples"]:
+            return "Could not get the content of the requested measurement", 500
+        
+        numSamples = sampleRes["numSamples"]
+        return render_template("measurementManagement.html", sharedMsmtId=msmt["shared_measurement_id"], clientUid=msmt["client_uid"], measurementId=measurementId, currRun=msmt["run_id"], runsOfThisDevice=allRuns, showDelete=True, numSamples=numSamples)
 
 
 @app.route("/manageMeasurement/<measurementId>/updateMsmt", methods=["POST"])
