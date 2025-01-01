@@ -371,7 +371,7 @@ def requestIntroduceClient(deviceUid):
     return issueRequest(deviceUid, rq, parseJSON=True)
 
 
-@app.route("/manageMeasurement/<measurementId>")
+@app.route("/measurement/<measurementId>")
 def manageMeasurement(measurementId):
     with createPgConnection() as pgConnection:
         pgcurs = pgConnection.cursor(cursor_factory=pgextra.RealDictCursor)
@@ -389,7 +389,7 @@ def manageMeasurement(measurementId):
         return render_template("measurementManagement.html", sharedMsmtId=msmt["shared_measurement_id"], clientUid=msmt["client_uid"], measurementId=measurementId, currRun=msmt["run_id"], runsOfThisDevice=allRuns, showDelete=True)
 
 
-@app.route("/manageMeasurement/<measurementId>/updateMsmt", methods=["POST"])
+@app.route("/measurement/<measurementId>/updateMsmt", methods=["POST"])
 def updateMeasurement(measurementId):
     with createPgConnection() as pgConnection:
         measurementId = int(measurementId)
