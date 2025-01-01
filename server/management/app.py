@@ -385,13 +385,8 @@ def manageMeasurement(measurementId):
         pgConnection.commit()
         allRuns = pgcurs.fetchall()
         allRuns.append({"run_id": None})  # Always allow run_id to be cleared by having a NULL/None field
-        # Get the number of samples of this measurement
-        sampleRes, res = getSampleCount(measurementId)
-        if res != 200 or not sampleRes["numSamples"]:
-            return "Could not get the content of the requested measurement", 500
-        
-        numSamples = sampleRes["numSamples"]
-        return render_template("measurementManagement.html", sharedMsmtId=msmt["shared_measurement_id"], clientUid=msmt["client_uid"], measurementId=measurementId, currRun=msmt["run_id"], runsOfThisDevice=allRuns, showDelete=True, numSamples=numSamples)
+
+        return render_template("measurementManagement.html", sharedMsmtId=msmt["shared_measurement_id"], clientUid=msmt["client_uid"], measurementId=measurementId, currRun=msmt["run_id"], runsOfThisDevice=allRuns, showDelete=True)
 
 
 @app.route("/manageMeasurement/<measurementId>/updateMsmt", methods=["POST"])

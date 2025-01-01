@@ -28,7 +28,7 @@
       </div>
       <div class="modal-body">
         <p>
-          Do you want to permanently delete measurement "{{ sharedMsmtId | e }}" and <span class="samplecount">a yet unknown number of</span> samples?
+          Do you want to permanently delete measurement "{{ sharedMsmtId | e }}" and <span class="samplecount">some</span> samples?
         </p>
         <p>
           If yes, type "Yes, I want to delete <span class="samplecount">some</span> samples!" and confirm:
@@ -50,8 +50,19 @@
   var msg = $("#mmStatus");
   $(document).ready(async function() {
     // load number of measurement samples for deletion overlay
-    numSamples = await fetch("{{ url_for('getSampleCount', measurementId=measurementId) }}").then((r) => r.json()).then(p => p["numSamples"]);
-    $(".samplecount").html(numSamples);
+    numSamples = await fetch("{{ url_for('getSampleCount', measurementId=measurementId) }}")
+    .then(async function (r) {
+      if(r.ok) {
+        return r.json();
+      } else {
+        let bdy = await r.text();
+        throw Error(r.status + "; " + r.statusText + ". Response from server: " + bdy);
+      }
+    }).then(p => p["numSamples"])
+    .catch(function (err) {
+      msg.text(err);      
+    });
+    $(".samplecount").text(numSamples);
     makeAjaxForm(
       $(mmForm),
       function(resp) {
