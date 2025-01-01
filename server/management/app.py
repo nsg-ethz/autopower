@@ -129,7 +129,9 @@ def getLastSeenTimeAgo(deviceUid):
         pgcurs.execute("SELECT last_seen FROM clients WHERE client_uid = %(cluid)s LIMIT 1", {'cluid': deviceUid})
         pgConnection.commit()
         activeTimestamp = pgcurs.fetchone()
-        return getTimeAgo(activeTimestamp["last_seen"])
+        if activeTimestamp:
+          return getTimeAgo(activeTimestamp["last_seen"])
+        return None
 
 def getLastIpOfDevice(deviceUid):
     with createPgConnection() as pgConnection:
@@ -137,7 +139,9 @@ def getLastIpOfDevice(deviceUid):
         pgcurs.execute("SELECT last_known_ip FROM clients WHERE client_uid = %(cluid)s LIMIT 1", {'cluid': deviceUid})
         pgConnection.commit()
         lastIp = pgcurs.fetchone()
-        return lastIp["last_known_ip"]
+        if lastIp:
+          return lastIp["last_known_ip"]
+        return None
 
 def getAllMeasurementMetadataOfDevice(deviceUid):
     with createPgConnection() as pgConnection:
@@ -186,8 +190,26 @@ def homepage():
 
 @app.route("/device/<deviceUid>")
 def deviceManagementPage(deviceUid):
-    # get allowedPp Device list from client
-    return render_template("deviceManagement.html", deviceUid=deviceUid, lastSeen=getLastSeenTimeAgo(deviceUid), autopowerDevMeasurements=getAllMeasurementMetadataOfDevice(deviceUid), lastIp=getLastIpOfDevice(deviceUid))
+    # Check if this device exists
+    with createPgConnection() as pgConnection:
+        pgcurs = pgConnection.cursor()
+        pgcurs.execute("SELECT 1 FROM clients WHERE client_uid = %(cluid)s", {'cluid': deviceUid})
+        if pgcurs.fetchone() == None:
+            return "Device not found", 404
+    
+    return render_template("deviceManagement.html", deviceUid=deviceUid, lastSeen=getLastSeenTimeAgo(deviceUid), autopowerDevMeasurements=getAllMeasurementMetadataOfDevice(deviceUid), lastIp=getLastIpOfDevice(deviceUid), showDelete=True)
+
+@app.route("/device/<deviceUid>/sampleCount")
+def getTotalSampleCountOfDevice(deviceUid):
+    with createPgConnection() as pgConnection:
+        pgcurs = pgConnection.cursor()
+        pgcurs.execute("SELECT COUNT(*) AS num_samples FROM measurement_data WHERE server_measurement_id IN (SELECT server_measurement_id FROM measurements WHERE client_uid = %(cluid)s)", {'cluid': deviceUid})
+        pgConnection.commit()
+        res = pgcurs.fetchone()
+        if res and res[0] != None:
+            return {"numSamples": res[0]}, 200
+        else:
+            return {"message": "Retrieving the number of samples failed"}, 500
 
 @app.route("/device/<deviceUid>/getPpDeviceList")
 def getPpDeviceList(deviceUid):
@@ -275,7 +297,7 @@ def getSampleCount(measurementId):
         pgcurs.execute("SELECT COUNT(*) AS num_samples FROM measurement_data WHERE server_measurement_id = %(srvmmid)s", {'srvmmid': int(measurementId)})
         pgConnection.commit()
         res = pgcurs.fetchone()
-        if res and res[0]:
+        if res and res[0] != None:
             return {"numSamples": res[0]}, 200
         else:
             return {"message": "Retrieving the number of samples failed"}, 500
@@ -370,6 +392,21 @@ def requestIntroduceClient(deviceUid):
     rq.msgType = pbdef.api__pb2.srvRequestType.INTRODUCE_SERVER
     return issueRequest(deviceUid, rq, parseJSON=True)
 
+@app.route("/device/<deviceUid>", methods=["DELETE"])
+def deleteDevice(deviceUid):
+    # This will delete all measurement samples, measurements, client_runs, ... and the device entry.
+    with createPgConnection() as pgConnection:
+        pgcurs = pgConnection.cursor()
+        pgcurs.execute("""
+        DELETE FROM measurement_data WHERE server_measurement_id IN (SELECT server_measurement_id FROM measurements WHERE client_uid = %(cluid)s);
+        DELETE FROM measurements WHERE client_uid = %(cluid)s;
+        DELETE FROM client_runs WHERE client_uid = %(cluid)s;
+        DELETE FROM logmessages WHERE client_uid = %(cluid)s;
+        DELETE FROM clients WHERE client_uid = %(cluid)s;
+        """, {'cluid': deviceUid})
+        pgConnection.commit()
+
+        return {"deleted": deviceUid}
 
 @app.route("/measurement/<measurementId>")
 def manageMeasurement(measurementId):
