@@ -184,12 +184,12 @@ def homepage():
         return render_template("startpage.html", autopowerDevices=pgcurs.fetchall())
 
 
-@app.route("/manageDevice/<deviceUid>")
+@app.route("/device/<deviceUid>")
 def deviceManagementPage(deviceUid):
     # get allowedPp Device list from client
     return render_template("deviceManagement.html", deviceUid=deviceUid, lastSeen=getLastSeenTimeAgo(deviceUid), autopowerDevMeasurements=getAllMeasurementMetadataOfDevice(deviceUid), lastIp=getLastIpOfDevice(deviceUid))
 
-@app.route("/manageDevice/<deviceUid>/getPpDeviceList")
+@app.route("/device/<deviceUid>/getPpDeviceList")
 def getPpDeviceList(deviceUid):
     if not deviceIsRegistered(deviceUid):
         return {"status": "Not registered"}, 422  # only if client is not even on the server side --> say not registered
@@ -303,7 +303,7 @@ def downloadMsmt(measurementId):
         return buildCsv(), {"Content-Type": "text/csv", "Content-Disposition": "filename=" + escape(sharedName[0])}
 
 
-@app.route("/manageDevice/<deviceUid>/startMeasurement", methods=["POST"])
+@app.route("/device/<deviceUid>/startMeasurement", methods=["POST"])
 def startMeasurementAtDevice(deviceUid):
     if not deviceIsRegistered(deviceUid):
         return "This deviceUid is currently not registered at the server", 404
@@ -344,7 +344,7 @@ def startMeasurementAtDevice(deviceUid):
     return issueRequest(deviceUid, rq)
 
 
-@app.route("/manageDevice/<deviceUid>/stopMeasurement")
+@app.route("/device/<deviceUid>/stopMeasurement")
 def stopMeasurementAtDevice(deviceUid):
     # Check if this client is registered at the server
     if not deviceIsRegistered(deviceUid):
@@ -358,7 +358,7 @@ def stopMeasurementAtDevice(deviceUid):
     return issueRequest(deviceUid, rq)
 
 
-@app.route("/manageDevice/<deviceUid>/ping")
+@app.route("/device/<deviceUid>/ping")
 def requestIntroduceClient(deviceUid):
     # Check if this client is registered at the server
     if not deviceIsRegistered(deviceUid):
