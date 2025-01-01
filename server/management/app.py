@@ -785,7 +785,7 @@ def addNewDut():
         return str(dutIdRet[0])
 
 
-@app.route("/manageDut/<dutId>")
+@app.route("/dut/<dutId>")
 def manageDut(dutId):
     dutId = int(dutId)
     with createPgConnection() as pgConnection:
@@ -799,7 +799,7 @@ def manageDut(dutId):
         return render_template("dutManagement.html", dut=dut, dutId=dutId, showDelete=True)
 
 
-@app.route("/manageDut/<dutId>/update", methods=["POST"])
+@app.route("/dut/<dutId>/update", methods=["POST"])
 def updateDut(dutId):
     dutId = int(dutId)
     with createPgConnection() as pgConnection:
