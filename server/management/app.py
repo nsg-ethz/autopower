@@ -199,7 +199,7 @@ def getPpDeviceList(deviceUid):
     return issueRequest(deviceUid, deviceListRequest, parseJSON=True)
 
 
-@app.route("/getDeviceStatus/<deviceUid>")
+@app.route("/device/<deviceUid>/status")
 def getDeviceStatus(deviceUid):
     # Request measurement status of this device
     if not deviceIsRegistered(deviceUid):
@@ -210,12 +210,12 @@ def getDeviceStatus(deviceUid):
     return issueRequest(deviceUid, statusRq, parseJSON=True)
 
 
-@app.route("/getDeviceStatusPost", methods=["POST"])
+@app.route("/device/status", methods=["POST"])
 def getDeviceStatusPost():
     devUid = request.form.get("deviceUid")
     return getDeviceStatus(devUid)
 
-@app.route("/getAllDeviceStatus")
+@app.route("/device/status/all")
 def getAllDeviceStatus():
     with createPgConnection() as pgConnection:
         pgcurs = pgConnection.cursor()
@@ -228,7 +228,7 @@ def getAllDeviceStatus():
             res = list(tpe.map(lambda client: {"name": client[0], "response": getDeviceStatus(client[0])}, clients))
         return res
 
-@app.route("/getLastMeasurementTimestampOfDevicePost", methods=["POST"])
+@app.route("/device/LastMeasurementTimestamp", methods=["POST"])
 def getLastMeasurementTimestampOfDevicePost():
     # Get the last timestamp from device
     devUid = request.form.get("deviceUid")
@@ -280,7 +280,7 @@ def getSampleCount(measurementId):
         else:
             return {"message": "Retrieving the number of samples failed"}, 500
 
-@app.route("/downloadMeasurement/<measurementId>")
+@app.route("/measurement/<measurementId>/download")
 def downloadMsmt(measurementId):
     with createPgConnection() as pgConnection:
         pgcurs = pgConnection.cursor()
@@ -389,7 +389,7 @@ def manageMeasurement(measurementId):
         return render_template("measurementManagement.html", sharedMsmtId=msmt["shared_measurement_id"], clientUid=msmt["client_uid"], measurementId=measurementId, currRun=msmt["run_id"], runsOfThisDevice=allRuns, showDelete=True)
 
 
-@app.route("/measurement/<measurementId>/updateMsmt", methods=["POST"])
+@app.route("/measurement/<measurementId>/update", methods=["POST"])
 def updateMeasurement(measurementId):
     with createPgConnection() as pgConnection:
         measurementId = int(measurementId)
@@ -478,7 +478,7 @@ def manageRun(runId):
         return render_template("runManagement.html", runId=runId, run=run, duts=duts, clientIds=clientIds, selectedClients=selectedClients, serverTz=get_localzone(), startTime=startTime, startDate=startDate, stopTime=stopTime, stopDate=stopDate, showDelete=showDelete, linkedMmts=linkedMmts)
 
 
-@app.route("/runs")
+@app.route("/run")
 def runOverviewPage():
     with createPgConnection() as pgConnection:
         pgcurs = pgConnection.cursor(cursor_factory=pgextra.RealDictCursor)
@@ -503,7 +503,7 @@ def runOverviewPage():
         return render_template("runOverview.html", runs=runs, clients=clients, measurements=measurements)
 
 
-@app.route("/newRun")
+@app.route("/run/new")
 def newRunPage():
     with createPgConnection() as pgConnection:
         pgcurs = pgConnection.cursor(cursor_factory=pgextra.RealDictCursor)
@@ -518,7 +518,7 @@ def newRunPage():
         return render_template("runManagementAdd.html", duts=duts, clientIds=clientIds, serverTz=get_localzone(), startDate=startTs.strftime("%Y-%m-%d"), startTime=startTs.strftime("%H:%M:%S.%f")[:-3], runId=None, run=None, selectedClients=None, showDelete=False)
 
 
-@app.route("/deleteRun/<runId>")
+@app.route("/run/<runId>/delete")
 def deleteRun(runId):
     with createPgConnection() as pgConnection:
         runId = int(runId)
@@ -545,7 +545,7 @@ def deleteRun(runId):
         return str(runId)
 
 
-@app.route("/newRun/add", methods=["POST"])
+@app.route("/run/add", methods=["POST"])
 def addNewRun():
     with createPgConnection() as pgConnection:
         dutId = int(request.form.get("dut"))
@@ -599,7 +599,7 @@ def addNewRun():
             if conflictingRuns:
                 errorRunsMsg = "This run cannot be saved as run(s) with ID "
                 for conflict in conflictingRuns:
-                    errorRunsMsg += str(conflict["run_id"]) + ","
+                    errorRunsMsg += str(conflict[0]) + ","
                 errorRunsMsg = errorRunsMsg[:-1] + " may still be running. Please set the stop timestamps of those runs explicitly or use other clients!"
 
                 return errorRunsMsg, 422
@@ -620,7 +620,7 @@ def addNewRun():
         return str(runId)
 
 
-@app.route("/run/<runId>/updateRun", methods=["POST"])
+@app.route("/run/<runId>/update", methods=["POST"])
 def updateRun(runId):
     with createPgConnection() as pgConnection:
         runId = int(runId)
@@ -697,7 +697,7 @@ def updateRun(runId):
         return "OK"
 
 
-@app.route("/duts")
+@app.route("/dut")
 def dutOverviewPage():
     with createPgConnection() as pgConnection:
         pgcurs = pgConnection.cursor(cursor_factory=pgextra.RealDictCursor)
@@ -706,12 +706,12 @@ def dutOverviewPage():
         return render_template("dutOverview.html", duts=pgcurs.fetchall())
 
 
-@app.route("/newDut")
+@app.route("/dut/new")
 def newDutPage():
     return render_template('dutManagementAdd.html', dut=None, dutId=None, showDelete=False)
 
 
-@app.route("/deleteDut/<dutId>")
+@app.route("/dut/<dutId>/delete")
 def deleteDut(dutId):
     with createPgConnection() as pgConnection:
         dutId = int(dutId)
@@ -729,7 +729,7 @@ def deleteDut(dutId):
         return str(dutId)
 
 
-@app.route("/newDut/add", methods=["POST"])
+@app.route("/dut/add", methods=["POST"])
 def addNewDut():
     # Check ip addresses
     try:
@@ -863,7 +863,7 @@ def updateDut(dutId):
         return "OK"
 
 
-@app.route("/finishRun/<runId>")
+@app.route("/run/<runId>/finish")
 def finishRun(runId):
     runId = int(runId)
     with createPgConnection() as pgConnection:
@@ -895,7 +895,7 @@ def finishRun(runId):
         else:
             return "Not all clients could be stopped successfully: " + str(failedClientMsg)
 
-@app.route("/finishRunPost", methods=["POST"])
+@app.route("/run/finish", methods=["POST"])
 def finishRunPost():
     runId = int(request.form.get("runId"))
     return finishRun(runId)
