@@ -429,7 +429,7 @@ def updateMeasurement(measurementId):
         return oldMeasurement[1]
 
 
-@app.route("/manageRun/<runId>")
+@app.route("/run/<runId>")
 def manageRun(runId):
     with createPgConnection() as pgConnection:
         runId = int(runId)
@@ -620,7 +620,7 @@ def addNewRun():
         return str(runId)
 
 
-@app.route("/manageRun/<runId>/updateRun", methods=["POST"])
+@app.route("/run/<runId>/updateRun", methods=["POST"])
 def updateRun(runId):
     with createPgConnection() as pgConnection:
         runId = int(runId)
