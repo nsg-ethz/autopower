@@ -28,10 +28,10 @@
       </div>
       <div class="modal-body">
         <p>
-          Do you want to permanently delete measurement "{{ sharedMsmtId | e }}" and {{ numSamples | e }} samples?
+          Do you want to permanently delete measurement "{{ sharedMsmtId | e }}" and <span class="samplecount">a yet unknown number of</span> samples?
         </p>
         <p>
-          If yes, type "Yes, I want to delete {{ numSamples | e }} samples!" and confirm:
+          If yes, type "Yes, I want to delete <span class="samplecount">some</span> samples!" and confirm:
         </p>
         <input type="text" id="deleteText" class="form-control" name="deleteConfirmation" required>
       </div>
@@ -46,8 +46,12 @@
 {% endif %}
 <script src="{{ url_for('static', filename='formAJAXSubmit.js') }}"></script>
 <script>
+  let numSamples = "some";
   var msg = $("#mmStatus");
-  $(document).ready(function() {
+  $(document).ready(async function() {
+    // load number of measurement samples for deletion overlay
+    numSamples = await fetch("{{ url_for('getSampleCount', measurementId=measurementId) }}").then((r) => r.json()).then(p => p["numSamples"]);
+    $(".samplecount").html(numSamples);
     makeAjaxForm(
       $(mmForm),
       function(resp) {
@@ -63,7 +67,7 @@
     );
 
     function monitorDeleteText() {
-        if ($("#deleteText").val() == "Yes, I want to delete {{ numSamples | e }} samples!") {
+        if ($("#deleteText").val() == "Yes, I want to delete " + numSamples + " samples!") {
           $("#deleteBtnConfirm").prop("disabled", false);
         } else {
           $("#deleteBtnConfirm").prop("disabled", true);
@@ -74,7 +78,7 @@
     $("#deleteText").on("keyup", monitorDeleteText);
 
     $("#deleteBtnConfirm").click(function() {
-      if ($("#deleteText").val() == "Yes, I want to delete {{ numSamples | e }} samples!") {
+      if ($("#deleteText").val() == "Yes, I want to delete " + numSamples + " samples!") {
         $.ajax({url:"{{ url_for('deleteMeasurement', measurementId=measurementId) }}",
         type: "DELETE",
           success:function() {
