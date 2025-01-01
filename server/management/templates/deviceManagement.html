@@ -6,6 +6,32 @@
 <link href="{{ url_for('static', filename='deviceMgmt.css' )}}" rel="stylesheet" />
 {% endblock %}
 <h2>{{ deviceUid | e}}</h2>
+{% if showDelete %}
+<div class="modal fade" id="confirmDeletionModal" tabindex="-1" aria-labelledby="confirmDeletionLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="confirmDeletionLabel">Delete everything related to "{{ deviceUid | e }}"?</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <p>
+            Do you want to really want to permanently delete this device including <strong>all measurement samples</strong>, measurements, log messages and links to runs "{{ deviceUid | e }}?
+            This cannot be undone and is a distructive action. There is no way to recover the data once deleted.
+            </p>
+            <p>
+              If yes, type "Yes, I am aware of the consequences and want to delete <span class="samplecount">a lot of</span> samples!" and confirm:
+            </p>
+          <input type="text" id="deleteText" class="form-control" name="deleteConfirmation" required>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">No</button>
+          <button type="button" class="btn btn-danger" id="deleteBtnConfirm" data-bs-dismiss="modal" disabled>Yes. Permanently delete all data related to "{{ deviceUid | e }}"</button>
+        </div>
+      </div>
+    </div>
+</div>
+{% endif %}
 <div class="deviceManagementControls">
     <div>Last seen {{ lastSeen | e }}</div>
     <div id="ip" class="mb-2">IP: <span class="unknownIp">Maybe </span><code class="p-2" id="ipLabel">{{ lastIp | e }}</code></div>
@@ -52,36 +78,12 @@
             {% endfor %}
         </div>
     </div>
-    {% if showDelete %}
-    <div class="modal fade" id="confirmDeletionModal" tabindex="-1" aria-labelledby="confirmDeletionLabel" aria-hidden="true">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="confirmDeletionLabel">Delete everything related to "{{ deviceUid | e }}"?</h1>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>
-                Do you want to really want to permanently delete this device including <strong>all measurement samples</strong>, measurements, log messages and links to runs "{{ deviceUid | e }}?
-                This cannot be undone and is a distructive action. There is no way to recover the data once deleted.
-                </p>
-                <p>
-                  If yes, type "Yes, I am aware of the consequences and want to delete <span class="samplecount">a lot of</span> samples!" and confirm:
-                </p>
-              <input type="text" id="deleteText" class="form-control" name="deleteConfirmation" required>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">No</button>
-              <button type="button" class="btn btn-danger" id="deleteBtnConfirm" data-bs-dismiss="modal" disabled>Yes. Permanently delete all data related to "{{ deviceUid | e }}"</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    <div>
-        <button class="btn btn-danger" id="openDeleteBtn" data-bs-toggle="modal" data-bs-target="#confirmDeletionModal">Delete everything related to {{ deviceUid | e }}</button>
-    </div>
-    {% endif %}
 </div>
+{% if showDelete %}
+<div>
+    <button class="btn btn-danger" id="openDeleteBtn" data-bs-toggle="modal" data-bs-target="#confirmDeletionModal">Delete everything related to {{ deviceUid | e }}</button>
+</div>
+{% endif %}
 <script src="{{ url_for('static', filename='formAJAXSubmit.js') }}"></script>
 <script>
     let numSamples = "a huge number of";
@@ -236,7 +238,21 @@
             if ($("#deleteText").val() == "Yes, I am aware of the consequences and want to delete "+numSamples+" samples!") {
                 let res = await fetch("{{url_for('deleteDevice', deviceUid=deviceUid)}}", {
                 "method": "DELETE"
+                }).then(async function(r) {
+                    if(r.ok) {
+                        return r.json();
+                    } else {
+                        let bdy = await r.text();
+                        throw Error(r.status + "; " + r.statusText + ". Response from server: " + bdy);
+                    }
+                }).catch(function (err) {
+                    $(".deviceManagementControls").text(err);
+                    return;       
                 });
+
+                $("#openDeleteBtn").hide();
+                $(".deviceManagementControls").text("Deleted: " + res["deleted"] + " and all respective data.");
+               
             }
 
         });
