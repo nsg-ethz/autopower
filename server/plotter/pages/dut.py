@@ -23,7 +23,7 @@ def createDb():
       secrets = json.load(secrFile)
     pgcon = postgres.connect(host=secrets["postgres"]["host"], database=secrets["postgres"]["database"], user=secrets["postgres"]["user"], password=secrets["postgres"]["password"])
     pgcurs = pgcon.cursor()
-    # getMmtAggregateOfDut: (msmt_ids, bin_interval, bin_start_timestamp, measurement_start_timestamp, end_timestamp)
+    # getAggregateOfMmts: (msmt_ids, bin_interval, bin_start_timestamp, measurement_start_timestamp, end_timestamp)
     prepare_ctxt = """
         PREPARE getMmtPtsBinned(VARCHAR(255), INT, TIMESTAMP, TIMESTAMP, TIMESTAMP) AS
           SELECT measurement_bin::timestamp AS measurement_timestamp, AVG(measurement_value) AS measurement_value FROM (
@@ -60,8 +60,26 @@ with createDb() as pgcon:
             END; $$;
     COMMIT;
     BEGIN;
+            SELECT pg_advisory_xact_lock(435889894);
+            CREATE OR REPLACE FUNCTION runsOfThisDut(chosen_dut INT) RETURNS TABLE (run_id INT, run_description TEXT, start_run TIMESTAMP WITH TIME ZONE, stop_run TIMESTAMP WITH TIME ZONE) LANGUAGE plpgsql AS $$
+              BEGIN
+              RETURN QUERY (
+                SELECT DISTINCT runs.run_id, runs.run_description, runs.start_run, runs.stop_run FROM runs, measurements WHERE runs.dut_id = chosen_dut AND measurements.run_id = runs.run_id
+              );
+            END; $$;
+    COMMIT;
+    BEGIN;
+            SELECT pg_advisory_xact_lock(412310562);
+            CREATE OR REPLACE FUNCTION measurementsOfThisRun(chosen_run INT) RETURNS TABLE (server_measurement_id INT, client_uid VARCHAR(255)) LANGUAGE plpgsql AS $$
+              BEGIN
+              RETURN QUERY (
+                SELECT measurements.server_measurement_id, measurements.client_uid FROM measurements WHERE measurements.run_id = chosen_run
+              );
+            END; $$;
+    COMMIT;
+    BEGIN;
           SELECT pg_advisory_xact_lock(934810324982);
-          CREATE OR REPLACE FUNCTION getMmtAggregateOfDut(INT[], VARCHAR(255), TIMESTAMP, TIMESTAMP, TIMESTAMP) RETURNS TABLE (measurement_value_out NUMERIC, measurement_timestamp_out TIMESTAMP WITH TIME ZONE) LANGUAGE plpgsql AS $$
+          CREATE OR REPLACE FUNCTION getAggregateOfMmts(INT[], VARCHAR(255), TIMESTAMP, TIMESTAMP, TIMESTAMP) RETURNS TABLE (measurement_value_out NUMERIC, measurement_timestamp_out TIMESTAMP WITH TIME ZONE) LANGUAGE plpgsql AS $$
           BEGIN
           RETURN QUERY (
             WITH
@@ -98,7 +116,7 @@ with createDb() as pgcon:
               DATE_PART('isodow', measurement_timestamp_out) AS measurement_dow, -- isodow has 1 = Monday
               measurement_timestamp_out AS measurement_timestamp
             FROM
-              getMmtAggregateOfDut($1,$2, DATE_TRUNC('week',$3),$3,$4)
+              getAggregateOfMmts($1,$2, DATE_TRUNC('week',$3),$3,$4)
             ORDER BY DATE_PART('dow', measurement_timestamp_out), CAST(measurement_timestamp_out AS TIME) ASC
           );
           END; $$;
@@ -113,7 +131,7 @@ with createDb() as pgcon:
             CAST(measurement_timestamp_out AS TIME) AS measurement_time,
             measurement_timestamp_out AS measurement_timestamp
           FROM
-            getMmtAggregateOfDut($1,$2,DATE_TRUNC('day', $3),$3,$4)
+            getAggregateOfMmts($1,$2,DATE_TRUNC('day', $3),$3,$4)
           ORDER BY CAST(measurement_timestamp_out AS TIME) ASC
         );
         END; $$;
@@ -164,7 +182,22 @@ def layoutDutPage(dut_id=None):
     with createDb() as pgcon:
         layoutCurs = pgcon.cursor(cursor_factory=pgextra.RealDictCursor)  # use dict to be able to directly pass to plotly
         timingCurs = pgcon.cursor(cursor_factory=pgextra.RealDictCursor)  # cursor to get min/max timings
-
+        # get all runs of this dut
+        layoutCurs.execute("SELECT runs_of_this_dut.run_id, runs_of_this_dut.run_description, runs_of_this_dut.start_run, runs_of_this_dut.stop_run FROM runsOfThisDut(%(dutId)s) AS runs_of_this_dut", {'dutId': dut_id})
+        pgcon.commit()
+        allRuns = []
+        allRunIds = []
+        allRunsIterator = layoutCurs.fetchall()
+        for run in allRunsIterator:
+            # get measurments of this run also
+            layoutCurs.execute("SELECT * FROM measurementsOfThisRun(%(runid)s)", {'runid': run["run_id"]})
+            mmtsOfThisRunIterator = layoutCurs.fetchall()
+            mmtsOfThisRun = []
+            for mmt in mmtsOfThisRunIterator:
+                mmtsOfThisRun.append(mmt['server_measurement_id'])
+            run["measurements"] = str(mmtsOfThisRun)
+            allRunIds.append(run["run_id"])
+            allRuns.append(run)
         layoutCurs.execute("SELECT msmts_of_this_dut.server_measurement_id, measurements.client_uid, measurements.shared_measurement_id FROM measurementsOfThisDut(%(dutId)s) AS msmts_of_this_dut, measurements WHERE measurements.server_measurement_id = msmts_of_this_dut.server_measurement_id GROUP BY measurements.shared_measurement_id, msmts_of_this_dut.server_measurement_id, measurements.client_uid", {"dutId": dut_id})
         pgcon.commit()
         allMsmts = layoutCurs.fetchall()
@@ -190,6 +223,8 @@ def layoutDutPage(dut_id=None):
                 html.Div([  # div for measurements table
                     html.H2(deviceName, id="dutName"),
                     html.H3(dut_id, id="dutId"),  # attention: This is also used to get data into the callback
+                    dash_table.DataTable(allRuns, id="runMsmtTable"),
+                    dcc.Dropdown(allRunIds, id="runIdDropdown"),
                     dash_table.DataTable(allMsmts, id="dutMsmtTable")
                 ]),
                 html.Div(
@@ -233,6 +268,22 @@ def layoutDutPage(dut_id=None):
 
 # TODO: Debug callback missing
 
+@callback(
+    Output("dutMsmtDropdown", "value"),
+    Input("runIdDropdown", "value"),
+    prevent_initial_call=True
+)
+def updateRunSelection(runSelectedId):
+    with createDb() as pgcon:
+        layoutCurs = pgcon.cursor(cursor_factory=pgextra.RealDictCursor)  # use dict to be able to directly pass to plotly
+        # get measurments of this run also
+        layoutCurs.execute("SELECT * FROM measurementsOfThisRun(%(runid)s)", {'runid': runSelectedId})
+        mmtsOfThisRunIterator = layoutCurs.fetchall()
+        mmtsOfThisRun = []
+        for mmt in mmtsOfThisRunIterator:
+            mmtsOfThisRun.append(mmt['server_measurement_id'])
+        
+        return mmtsOfThisRun
 
 @callback(
     [Output("dutMsmtTimeSelect", "startDate"), Output("dutMsmtTimeSelect", "endDate"), Output("dutLoadingPowergraph", "loading_state", allow_duplicate=True)],
@@ -278,7 +329,7 @@ def showMsmtPlot(binTime, startDate, endDate, msmt_ids, n_clicks):
         def buildTimeseriesPlot():
             # compose the graph together
             # first add the aggregated measurements
-            allRecentMsmts = pd.read_sql_query(sql="SELECT measurement_value_out AS measurement_value, measurement_timestamp_out::timestamp AS measurement_timestamp FROM getMmtAggregateOfDut (%(mmtids)s, %(bintime)s, %(startts)s, %(startts)s, %(endts)s)", params={"bintime": binTime, "mmtids": msmt_ids, "startts": startDate, "endts": endDate}, con=createDb())
+            allRecentMsmts = pd.read_sql_query(sql="SELECT measurement_value_out AS measurement_value, measurement_timestamp_out::timestamp AS measurement_timestamp FROM getAggregateOfMmts (%(mmtids)s, %(bintime)s, %(startts)s, %(startts)s, %(endts)s)", params={"bintime": binTime, "mmtids": msmt_ids, "startts": startDate, "endts": endDate}, con=createDb())
             allRecentMsmts["measurement_value"] = allRecentMsmts["measurement_value"].div(1000)  # convert mW into W
             plt = go.Figure(layout_title_text="Aggregated measurements")
             plt.add_trace(go.Scatter(x=allRecentMsmts["measurement_timestamp"], y=allRecentMsmts["measurement_value"], name="Summed measurement"))
