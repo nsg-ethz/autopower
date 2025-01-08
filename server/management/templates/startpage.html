@@ -7,6 +7,12 @@
 
 {% endblock %}
 {% block main %}
+<div class="autopowerDeviceFilter">
+    <form>
+        <input type="checkbox" id="showOnlyRecents">
+        <label for="showOnlyRecents" name="showOnlyRecents">Only show devices active less than a month ago</label>
+    </form>
+</div>
 <div class="autopowerDevicesList">
     {% for device in autopowerDevices %}
     <div class="d-flex justify-content-lg-between align-items-lg-center flex-lg-row flex-column autopowerDevice bg-light border p-2 mt-2">
@@ -23,6 +29,28 @@
 </div>
 <script>
     $(document).ready(function() {
+        $("#showOnlyRecents").prop("checked", false);
+        $("#showOnlyRecents").change(function() {
+            // filter checkbox changer
+            const showRecentsCbx = this;
+            $(".autopowerDevice").each(function() {
+                if (showRecentsCbx.checked) {
+                    const deviceLastSeen = new Date($(this).find(".lastSeenTimestamp").attr("data-lastseen"));
+                    var longAgo = new Date();
+                    longAgo.setMonth(longAgo.getMonth() - 1); // 1 month ago means that this device is considered "old"
+                    if (deviceLastSeen < longAgo) {
+                        $(this).removeClass("d-flex");
+                        $(this).hide();
+                    } else {
+                        $(this).addClass("d-flex");
+                        $(this).show();
+                    }
+                } else {
+                    $(this).addClass("d-flex");
+                    $(this).show();
+                }
+            });
+        });
         $("time.timeago").timeago(); // init timeago
         $(".lastSeenTimestamp").each(function() {
             var timeBox = $(this);
