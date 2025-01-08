@@ -29,12 +29,10 @@
 </div>
 <script>
     $(document).ready(function() {
-        $("#showOnlyRecents").prop("checked", false);
-        $("#showOnlyRecents").change(function() {
-            // filter checkbox changer
-            const showRecentsCbx = this;
+
+        function applyFilterRecentDevices(doFilter) {
             $(".autopowerDevice").each(function() {
-                if (showRecentsCbx.checked) {
+                if (doFilter) {
                     const deviceLastSeen = new Date($(this).find(".lastSeenTimestamp").attr("data-lastseen"));
                     var longAgo = new Date();
                     longAgo.setMonth(longAgo.getMonth() - 1); // 1 month ago means that this device is considered "old"
@@ -50,7 +48,27 @@
                     $(this).show();
                 }
             });
+        }
+
+        if (localStorage.getItem("filterRecents") == "1") {
+            $("#showOnlyRecents").prop("checked", true);
+        } else {
+            $("#showOnlyRecents").prop("checked", false);
+        }
+        
+        applyFilterRecentDevices(localStorage.getItem("filterRecents") == "1");
+
+        $("#showOnlyRecents").change(function() {
+            // filter checkbox changer
+            if (this.checked) {
+                localStorage.setItem("filterRecents", "1");
+            } else {
+                localStorage.setItem("filterRecents", "0");
+            }
+
+            applyFilterRecentDevices(this.checked);
         });
+
         $("time.timeago").timeago(); // init timeago
         $(".lastSeenTimestamp").each(function() {
             var timeBox = $(this);
