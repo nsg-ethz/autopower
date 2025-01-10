@@ -4,4 +4,4 @@ Hostname=ßß§$$$rplceClientUid$$$§ßß
 TLSConnect=psk
 TLSAccept=psk
 TLSPSKFile=/etc/zabbix/psk.psk
-TLSPSKIdentity=Autopower Client
+TLSPSKIdentity=AutopowerClient
