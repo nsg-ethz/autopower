@@ -99,3 +99,4 @@ Now check if you can access the Pi as described in the next section.
 ### Accessing the Pi
 
 The Pi is configured to get an IP address via DHCP. To connect via SSH, after setup, use port 21092 (not 22) and the ethditet user: `ssh ethditet@<autopowerip> -p 21092`
+If a device is deployed and reverse ssh set up, you can connect to the jump host server with agent forwarding: `ssh <name>@<jumphost> -A`. Then on the server connect to the autopower device with `ssh ethditet@localhost -p 28XY` where XY represents the autopower number. If the autopower number is smaller than 10, e.g. 9 use `ssh ethditet@localhost -p 2809`
