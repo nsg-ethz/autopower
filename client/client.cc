@@ -207,10 +207,12 @@ std::unique_ptr<autopapi::CMeasurementApi::Stub> AutopowerClient::createGrpcConn
   grpc::ChannelArguments chanOptions;
 
   // set keep alive settings since devices may be deployed behind a NAT
-  chanOptions.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 60000);          // set time period to send pings every minute
+  chanOptions.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 20 * 1000);          // set time period to send pings every 20 seconds
+  chanOptions.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 10 * 1000);       // set timeout to 10 seconds
   chanOptions.SetInt(GRPC_ARG_KEEPALIVE_PERMIT_WITHOUT_CALLS, 1); // send keep alive without any streams. Should make the connection more stable even if the registerClient method somehow failed for a long time.
   std::shared_ptr<grpc::Channel> cnl = grpc::CreateCustomChannel(remoteHost + ":" + remotePort, cred, chanOptions);
-  std::unique_ptr<autopapi::CMeasurementApi::Stub> stub = autopapi::CMeasurementApi::NewStub(cnl);
+  this->cnl = cnl;
+  std::unique_ptr<autopapi::CMeasurementApi::Stub> stub = autopapi::CMeasurementApi::NewStub(this->cnl);
   return stub;
 }
 
@@ -966,11 +968,17 @@ void AutopowerClient::manageMsmt() {
     srvRequestPool.join();
 
     grpc::Status sf = serverApiStream->Finish();
-    std::cerr << sf.error_code() << ": " << sf.error_message() << ": " << sf.error_details() << std::endl;
-    std::cerr << "Server stream exited. Attempting to re-register." << std::endl;
+    if (!sf.ok()) {
+      std::cerr << sf.error_code() << ": " << sf.error_message() << ": " << sf.error_details() << std::endl
+                << "Channel state: " << cnl->GetState(false) << std::endl;
+      std::cerr << "Server stream exited. Attempting to re-register." << std::endl;
+    } else {
+      std::cerr << "Server stream exited with success error code. This hints at a bug. Attempting to re-register." << std::endl;
+    }
+
     cc.TryCancel(); // try to free up context as this is no longer possible to use.
     notifyLEDConnectionFailed();
-    sleep(5); // sleep for 5 seconds before re-registering
+    sleep(10); // sleep for 10 seconds before re-registering
   }
 
   std::cerr << "manageMsmt() exited..." << std::endl;

@@ -60,6 +60,7 @@ class AutopowerClient {
     return this->lastSampleTimestamp;
   }
 
+  std::shared_ptr<grpc::Channel> cnl; // gRPC channel to create stub from
   std::unique_ptr<autopapi::CMeasurementApi::Stub> stub; // stub for connecting to GRPC server
   bool measuring() {
     // read measuring

@@ -630,8 +630,10 @@ class CMeasurementApiServicer():
 
 
 def serve(secrets, config, args):
-    gRPCOpts = opts = [ 
+    gRPCOpts = [ 
         ("grpc.keepalive_permit_without_calls", True),
+        ("grpc.keepalive_time_ms", 10*60*1000),
+        ("grpc.keepalive_timeout_ms", 20*1000),
         ("grpc.http2.max_ping_strikes", 0)] 
     grpcServer = grpc.server(futures.ThreadPoolExecutor(max_workers=20), options=gRPCOpts)
     if ("ssl" in secrets):
