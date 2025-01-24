@@ -30,7 +30,7 @@ jobs:
     - name: "Compile client"
       run: |
             # Compile client
-            cd ../../../client
+            cd client
             chmod +x genCppProto.sh
             ./genCppProto.sh
             mkdir -p cmake/build
