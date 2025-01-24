@@ -6,12 +6,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: "Update System and install dependencies"
-        run: |
+      run: |
             # update system and install dependencies
             apt update
             apt install -y cmake git build-essential autoconf libtool pkg-config libjsoncpp-dev libpqxx-dev libboost-all-dev
     - name: "Compile gRPC"
-        run: |
+      run: |
             # Compile gRPC 
             export MY_INSTALL_DIR=$HOME/.local
             mkdir -p $MY_INSTALL_DIR
@@ -27,7 +27,7 @@ jobs:
             make -j 2
             make install
     - name: "Compile client"
-        run: |
+      run: |
             # Compile client
             cd ../../../client
             chmod +x genCppProto.sh
