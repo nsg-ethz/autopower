@@ -37,7 +37,7 @@ jobs:
             cd cmake/build
             cmake ../..
             make -j 4
-            mv client mmclient
+            mv client "${{ github.workspace }}"/mmclient
     - name: Upload binary release file
       uses: actions/upload-artifact@v4
       with:
