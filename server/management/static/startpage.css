@@ -9,15 +9,27 @@
 
 @media screen and (min-width: 770px) {
     .autopowerDevicesList {
-        display: flex;
         align-items: center;
-        justify-content: space-around;
+        justify-content: start;
         flex-direction: row;
         flex-wrap: wrap;
-        gap: 1px;
     }
-    
+}
+
+@media screen and (min-width: 770px) and (max-width: 1000px){
     .autopowerDevicesList>.autopowerDevice {
-        width: 49%;
+        width: 50%;
+    }
+}
+
+@media screen and (min-width: 1001px) and (max-width: 2000px){
+    .autopowerDevicesList>.autopowerDevice {
+        width: 33%;
+    }
+}
+
+@media screen and (min-width: 1200px) {
+    .autopowerDevicesList>.autopowerDevice {
+        width: 25%;
     }
 }

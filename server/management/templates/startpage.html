@@ -13,7 +13,7 @@
         <label for="showOnlyRecents" name="showOnlyRecents">Only show devices last seen less than a month ago</label>
     </form>
 </div>
-<div class="autopowerDevicesList">
+<div class="autopowerDevicesList d-flex">
     {% for device in autopowerDevices %}
     <div class="d-flex justify-content-lg-between align-items-start flex-column autopowerDevice bg-light border p-2 mt-2">
         <a href="{{ url_for('deviceManagementPage', deviceUid=device.client_uid) }}" class="text-decoration-none"><h2>{{ device.client_uid | e }}</h2></a>
