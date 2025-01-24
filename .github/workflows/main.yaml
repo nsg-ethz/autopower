@@ -25,7 +25,7 @@ jobs:
               -DgRPC_BUILD_TESTS=OFF \
               -DCMAKE_INSTALL_PREFIX=$MY_INSTALL_DIR \
               ../..
-            make -j 2
+            make -j 4
             make install
     - name: "Compile client"
       run: |
@@ -36,7 +36,7 @@ jobs:
             mkdir -p cmake/build
             cd cmake/build
             cmake ../..
-            make -j 2
+            make -j 4
             mv client mmclient
     - name: Upload binary release file
       uses: actions/upload-artifact@v4
