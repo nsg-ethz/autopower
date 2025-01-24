@@ -2,17 +2,20 @@ name: CI Client builder
 on: [workflow_dispatch]
 jobs:
   build:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-24.04
     steps:
-    - name: "Download repo code"
-      uses: actions/checkout@v4
-    - name: "Update System and install dependencies"
-      run: |
+    - uses: actions/checkout@v4
+    - uses: pguyot/arm-runner-action@v2
+      with:
+        image_additional_mb: 8192
+        base_image: raspios_lite_arm64:latest
+        bind_mount_repository: true
+        copy_artifact_path: client/cmake/build/mmclient
+        copy_artifact_dest: ${{ github.workspace }}
+        commands: |
             # update system and install dependencies
-            sudo apt update
-            sudo apt install -y cmake git build-essential autoconf libtool pkg-config libjsoncpp-dev libpqxx-dev libboost-all-dev
-    - name: "Compile gRPC"
-      run: |
+            apt update
+            apt install -y cmake git build-essential autoconf libtool pkg-config libjsoncpp-dev libpqxx-dev libboost-all-dev
             # Compile gRPC 
             export MY_INSTALL_DIR=$HOME/.local
             mkdir -p $MY_INSTALL_DIR
@@ -25,19 +28,17 @@ jobs:
               -DgRPC_BUILD_TESTS=OFF \
               -DCMAKE_INSTALL_PREFIX=$MY_INSTALL_DIR \
               ../..
-            make -j 4
+            make -j 2
             make install
-    - name: "Compile client"
-      run: |
             # Compile client
-            cd client
+            cd ../../../client
             chmod +x genCppProto.sh
             ./genCppProto.sh
             mkdir -p cmake/build
             cd cmake/build
             cmake ../..
-            make -j 4
-            mv client "${{ github.workspace }}"/mmclient
+            make -j 2
+            mv client mmclient
     - name: Upload binary release file
       uses: actions/upload-artifact@v4
       with:
