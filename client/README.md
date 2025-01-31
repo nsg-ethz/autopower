@@ -2,19 +2,17 @@
 
 ## My deployment process
 
-- We need the IP of the PI, which means 
-  - first flashing the OS
-  - boot and plug in a monitor to get the MAC
-  - Get the MAC registered on the ETH network and get a static IP
-- Once the IP is knonw, add it to my SSH config 
+- Get the MAC of the PI, which can be read by powering the PI and plug it to a monitor
+- Register the MAC on the ETH network and get a static IP 
+- Once the IP is knonw, add it to the SSH config 
 - then
 ```
-scp -r -P 22 -o "StrictHostKeyChecking no" client/ autopowerX:/tmp/
-ssh autopowerX -p 22
+scp -r -P 22 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no client/ autopowerX:/tmp/
+ssh -p 22 -A -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no autopowerX
 cd /tmp/client
 sudo chmod +x deploy.sh && sudo ./deploy.sh
 sudo chmod +x signCerts.sh && ./signCerts.sh
-sudo shutdown now
+sudo reboot now
 ```
 
 
