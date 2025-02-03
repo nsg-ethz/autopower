@@ -419,14 +419,6 @@ class CMeasurementApiServicer():
         with self.pgFactory.createConnection() as con:
             # own connection for a measurement upload to not conflict in any way with others.
             with con.cursor() as curs:
-                curs.execute("""
-                    PREPARE insMsmtData (VARCHAR(255), INT, TIMESTAMP, INT) AS
-                        INSERT INTO measurement_data (server_measurement_id, measurement_value, measurement_timestamp)
-                        VALUES(
-                            (SELECT server_measurement_id FROM measurements WHERE shared_measurement_id = $1 LIMIT 1) -- handles only the server id
-                        ,$2,$3) RETURNING $4 AS sampleid;
-                """)
-
                 mmlist = []
                 for mmt in msmts:
                     # We need to tell the python Datetime that this is in UTC (see https://github.com/protocolbuffers/protobuf/issues/5910)
@@ -461,26 +453,30 @@ class CMeasurementApiServicer():
 
                     mmlist.append((internalId, mmt.msmtContent,mmtTime, mmt.sampleId))
                 # in the normal case insert tuples just into the measurement_data table.
-                # See https://stackoverflow.com/a/60443582 as information how we (ab) use RETURNING
-                ackdIds = pgextras.execute_values(curs,"""
-                    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+                # Returns the ack ids which are inserted
+                insertedAcks = pgextras.execute_values(curs,
+                """
                     WITH ists (server_measurement_id, measurement_value, measurement_timestamp, ack_id) AS (
                       VALUES %s
-                    ), new_ists AS (
-                        INSERT INTO measurement_data (server_measurement_id, measurement_value, measurement_timestamp, ack_id)
-                        (SELECT * FROM ists) ON CONFLICT (server_measurement_id, ack_id) DO NOTHING RETURNING ack_id
-                    ) SELECT ack_id FROM new_ists
-                      UNION (
-                        SELECT measurement_data.ack_id FROM measurement_data, ists WHERE measurement_data.server_measurement_id = ists.server_measurement_id AND measurement_data.ack_id = ists.ack_id
-                      );
-                        """, mmlist, fetch=True)
+                    )
+                    INSERT INTO measurement_data (server_measurement_id, measurement_value, measurement_timestamp, ack_id)
+                    (SELECT * FROM ists) ON CONFLICT (server_measurement_id, ack_id) DO NOTHING RETURNING ack_id
+                """, mmlist, fetch=True)
                 con.commit()
-                # acknowledge writing to DB successfully
+
+                if len(insertedAcks) != len(mmlist):
+                    # The insertion skipped duplicates
+                    print("WARNING: Did not insert all received samples as some already existed in the database.")
+
+                
+                # Since the commit succeeded here (if no exception was thrown), we acknowledge all insertions.
+                # Even if there were duplicates, due to the conflict input, nothing should happen.
+
                 def createAck(id):
                     ack = pbdef.api__pb2.sampleAck()
-                    ack.sampleId = id[0]
+                    ack.sampleId = id[3]
                     return ack
-                yield from map(createAck, ackdIds)
+                yield from map(createAck, mmlist)
                 
 
     def getMsmtSttngsAndStart(self, request, context):
