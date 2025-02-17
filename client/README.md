@@ -1,11 +1,11 @@
 # Autopower client
 
-## My deployment process
-
-- Get the MAC of the PI, which can be read by powering the PI and plug it to a monitor
-- Register the MAC on the ETH network and get a static IP 
-- Once the IP is knonw, add it to the SSH config 
-- then
+## Setup of a new device ("quick and dirty")
+In order to set up a new autopower device:
+* Get the MAC of the PI, which can be read by powering the PI and plug it to a monitor
+* Register the MAC on the (ETH) network and get a static IP 
+* Once the IP is known, add it to the SSH config 
+* then
 ```
 scp -r -P 22 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no client/ autopowerX:/tmp/
 ssh -p 22 -A -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no autopowerX
@@ -14,7 +14,7 @@ sudo chmod +x deploy.sh && sudo ./deploy.sh
 sudo chmod +x signCerts.sh && ./signCerts.sh
 sudo reboot now
 ```
-
+Now check the Management UI if the device registered correctly.
 
 ## Folder content
 
@@ -26,7 +26,7 @@ This folder contains files needed for the client side of the autopower project:
 - `config/client_config.json.example`: Example config file for the client. This contains setting parameters like the uid of an autopower device.
 - `config/secrets.json.example`: Example config file which contains secrets like the path to certificates for the client.
 
-## Deployment
+## Deployment (step by step)
 
 In order to deploy an autopower device, you may need to use a Raspberry Pi 4 - preferred Pi 4 4 GB or more to compile the code. Deployment was tested on a Raspberry Pi 3 B, 3 B+ and 4 B 1 GB is enough.
 
@@ -58,7 +58,7 @@ First of all, flash an OS to the SD card of the Raspberry Pi. This project was t
 
 ### Deployment on the Pi
 
-**Note:** This method uses a USB stick mounted at `/mnt`, but you can of course also copy the files via SFTP or SCP if you know the IP.
+**Note:** This method uses a USB stick mounted at `/mnt`, but you can of course also copy the files via SFTP or SCP if you know the IP as mentioned in the "quick and dirty" section.
 
 **SSH Keys:** To add a SSH key for SSH connection to the Pi (e.g. if you did not use the Raspberry Pi imager), put your SSH Key into a file called `ssh_key.pub` in the `client/deploy/` folder. This will then be added to each Pis' `authorized_keys` file.
 
@@ -69,14 +69,14 @@ First of all, flash an OS to the SD card of the Raspberry Pi. This project was t
 5. Mount the USB stick e.g. via `sudo mount /dev/sda1 /mnt`
 6. Copy the client folder to `/tmp/client`: `cp -r /mnt/client /tmp/client`
 
-### Running the deploy script
+### Running the deploy and signCerts scripts
 
 1. Change to the /tmp/client directory via `cd /tmp/client`
 2. Run the deployment script: `sudo chmod +x deploy.sh && sudo ./deploy.sh`. You are asked to input the name of the device you want to deploy. This will also set the hostname of this device and copy a SSH key to the `ethditet` user. Do **not** disconnect if you are using SSH as this may prevent you from reconnecting before a forced reboot due to the port change of the SSH server and the firewall.
 3. Now run the `signCerts.sh` script as `ethditet` user (not root) to sign the client certificates and set up reverse ssh access to the gateway VM.
 
-### Manual Zabbix passive client setup
-After the deploy script has finished, copy the resulting `client.csr` file and the `zabbix_psk.psk` file to the server. If you are using a USB stick, use `cp /etc/mmclient/client_<deviceName>.csr /mnt/<deviceName>.csr` and `cp zabbix_psk.psk /mnt/zabbix_psk_<deviceName>.psk` and then remove zabbix_psk.psk via: `rm zabbix_psk.psk`.
+### Manual client setup
+If the `signCerts.sh` script failed e.g. due to a network error, you can also manually finish the certificate setup. After the deploy script has finished, copy the resulting `client.csr` file to the server. If you use passive Zabbix monitoring (we usually don't) also copy the `zabbix_psk.psk` file to the server. If you are using a USB stick, use `cp /etc/mmclient/client_<deviceName>.csr /mnt/<deviceName>.csr` and `cp zabbix_psk.psk /mnt/zabbix_psk_<deviceName>.psk` and then remove zabbix_psk.psk via: `rm zabbix_psk.psk`.
 
 ### Manual signing
 On the server (e.g. in a seperate `certs` folder where you generated the CA signing the certificates of the Pi), sign the client.csr file with e.g. `openssl x509 -req -in <deviceName>.csr -CA ca.cer -CAkey ca.key -CAcreateserial -out <deviceName>.cer -days 365 -sha512` and copy the resulting client.cer file to `/etc/mmclient/client.cer` and `ca.cer` file to `/etc/mmclient/ca.cer` and set the owner to `mmclient`: `sudo chown mmclient: /etc/mmclient/client.cer` and `sudo chown mmclient: /etc/mmclient/ca.cer` on the Pi. For more information, check the README file in the server folder.
