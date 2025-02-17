@@ -10,7 +10,7 @@ if [ -f ca.key ]; then
 else
   echo "Generating CA. Please input a secure password if asked"
   openssl genrsa -des3 -out ca.key 4096
-  openssl req -new -nodes -x509 -days 365 -key ca.key -out ca.cer -sha512 -subj "/C=CH/ST=Switzerland/L=Zuerich/O=ETH-Zuerich/OU=D-ITET/CN=Autopower Root"
+  openssl req -new -nodes -x509 -days 3653 -key ca.key -out ca.cer -sha512 -subj "/C=CH/ST=Switzerland/L=Zuerich/O=ETH-Zuerich/OU=D-ITET/CN=Autopower Root"
 fi
 
 # Generate valid Server Key/Cert (may in practice be replaced with e.g. letsencrypt certificate)
