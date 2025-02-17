@@ -11,35 +11,41 @@ source serverAdminConfig.sh
 DEVICENAME=$(hostname)
 
 # ssh into the server (which works thanks to agent forwarding) 
+if [ "${USE_JUMPHOST}" == "yes" ]; then
+  # For external flashing, use jumphost
+  JUMPHOSTSTRING="-J autopowerconnect@${EXTERNALJUMPHOST}"
+else
+  JUMPHOSTSTRING=""
+fi
 
 # clean existing read-only files
 echo "cleaning existing files on the server..."
 if [ "$1" != "resign" ]; then
   # Only clean up zabbix psk if we are not resigning
-  ssh ${NOKEYCHECK} -J autopowerconnect@${EXTERNALJUMPHOST} autopower@${REMOTEHOST} -t "rm -f /usr/autopower/zabbix/zabbix_client_${DEVICENAME}.psk"
+  ssh ${NOKEYCHECK} ${JUMPHOSTSTRING} autopower@${REMOTEHOST} -t "rm -f /usr/autopower/zabbix/zabbix_client_${DEVICENAME}.psk"
 fi
 
-ssh ${NOKEYCHECK} -J autopowerconnect@${EXTERNALJUMPHOST} autopower@${REMOTEHOST} -t "rm -f /usr/autopower/certs/client_${DEVICENAME}.csr"
-ssh ${NOKEYCHECK} -J autopowerconnect@${EXTERNALJUMPHOST} autopower@${REMOTEHOST} -t "rm -f /usr/autopower/certs/client_${DEVICENAME}.cer"
+ssh ${NOKEYCHECK} ${JUMPHOSTSTRING} autopower@${REMOTEHOST} -t "rm -f /usr/autopower/certs/client_${DEVICENAME}.csr"
+ssh ${NOKEYCHECK} ${JUMPHOSTSTRING} autopower@${REMOTEHOST} -t "rm -f /usr/autopower/certs/client_${DEVICENAME}.cer"
 
 
 # copy certificates to the server with scp
 echo "copying the new files..."
 sudo cp /etc/mmclient/client_${DEVICENAME}.csr .
-scp ${NOKEYCHECK} -J autopowerconnect@${EXTERNALJUMPHOST} client_${DEVICENAME}.csr autopower@${REMOTEHOST}:/usr/autopower/certs/client_${DEVICENAME}.csr
+scp ${NOKEYCHECK} ${JUMPHOSTSTRING} client_${DEVICENAME}.csr autopower@${REMOTEHOST}:/usr/autopower/certs/client_${DEVICENAME}.csr
 
 # sign the certificate on the server  
 echo "signing the new certificate..."
 
 SIGN_CMD="openssl x509 -req -in /usr/autopower/certs/client_${DEVICENAME}.csr -CA /usr/autopower/certs/ca.cer -CAkey /usr/autopower/certs/ca.key -CAcreateserial -out /usr/autopower/certs/client_${DEVICENAME}.cer -days 365 -sha512 -passin pass:'${PASSPHRASE}'"
-ssh ${NOKEYCHECK} -J autopowerconnect@${EXTERNALJUMPHOST} autopower@${REMOTEHOST} -t "${SIGN_CMD}"
+ssh ${NOKEYCHECK} ${JUMPHOSTSTRING} autopower@${REMOTEHOST} -t "${SIGN_CMD}"
 
 
 # copy back client.cer and ca.cer (can be done via scp from the PI)
 # > scp-ing directly would require to make the mmclient directory globally writable
 echo "copying the signed certificate back on the client..."
-scp ${NOKEYCHECK} -J autopowerconnect@${EXTERNALJUMPHOST} autopower@${REMOTEHOST}:/usr/autopower/certs/client_${DEVICENAME}.cer ~/client.cer
-scp ${NOKEYCHECK} -J autopowerconnect@${EXTERNALJUMPHOST} autopower@${REMOTEHOST}:/usr/autopower/certs/ca.cer ~/ca.cer
+scp ${NOKEYCHECK} ${JUMPHOSTSTRING} autopower@${REMOTEHOST}:/usr/autopower/certs/client_${DEVICENAME}.cer ~/client.cer
+scp ${NOKEYCHECK} ${JUMPHOSTSTRING} autopower@${REMOTEHOST}:/usr/autopower/certs/ca.cer ~/ca.cer
 sudo mv ~/*.cer /etc/mmclient/
 sudo chown mmclient: /etc/mmclient/client.cer
 sudo chown mmclient: /etc/mmclient/ca.cer
