@@ -224,7 +224,7 @@ def layoutDutPage(dut_id=None):
                     html.H2(deviceName, id="dutName"),
                     html.H3(dut_id, id="dutId"),  # attention: This is also used to get data into the callback
                     dash_table.DataTable(allRuns, id="runMsmtTable"),
-                    dcc.Dropdown(allRunIds, id="runIdDropdown"),
+                    dcc.Dropdown([""] + allRunIds, id="runIdDropdown"),
                     dash_table.DataTable(allMsmts, id="dutMsmtTable")
                 ]),
                 html.Div(
@@ -274,34 +274,46 @@ def layoutDutPage(dut_id=None):
     prevent_initial_call=True
 )
 def updateRunSelection(runSelectedId):
-    with createDb() as pgcon:
-        layoutCurs = pgcon.cursor(cursor_factory=pgextra.RealDictCursor)  # use dict to be able to directly pass to plotly
-        # get measurments of this run also
-        layoutCurs.execute("SELECT * FROM measurementsOfThisRun(%(runid)s)", {'runid': runSelectedId})
-        mmtsOfThisRunIterator = layoutCurs.fetchall()
-        mmtsOfThisRun = []
-        for mmt in mmtsOfThisRunIterator:
-            mmtsOfThisRun.append(mmt['server_measurement_id'])
-        
-        return mmtsOfThisRun
+    if runSelectedId and runSelectedId != "": 
+        with createDb() as pgcon:
+            layoutCurs = pgcon.cursor(cursor_factory=pgextra.RealDictCursor)  # use dict to be able to directly pass to plotly
+            # get measurments of this run also
+            layoutCurs.execute("SELECT * FROM measurementsOfThisRun(%(runid)s)", {'runid': runSelectedId})
+            mmtsOfThisRunIterator = layoutCurs.fetchall()
+            mmtsOfThisRun = []
+            for mmt in mmtsOfThisRunIterator:
+                mmtsOfThisRun.append(mmt['server_measurement_id'])
+            
+            return mmtsOfThisRun
 
 @callback(
     [Output("dutMsmtTimeSelect", "startDate"), Output("dutMsmtTimeSelect", "endDate"), Output("dutLoadingPowergraph", "loading_state", allow_duplicate=True)],
-    Input("dutMsmtDropdown", "value"),
+    [Input("dutMsmtDropdown", "value"), Input("runIdDropdown", "value")],
     prevent_initial_call=True
 )
-def updateStartEndSelection(mmtids):
+def updateStartEndSelection(mmtids, runid):
     with createDb() as pgcon:
         updateStartEndCurs = pgcon.cursor(cursor_factory=pgextra.RealDictCursor)
-        updateStartEndCurs.execute("""
-      SELECT MAX(lower_measurement_timestamp) AS min_ts, MIN(upper_measurement_timestamp) AS max_ts FROM (
-          SELECT MIN(measurement_timestamp) AS lower_measurement_timestamp, MAX(measurement_timestamp) AS upper_measurement_timestamp
-          FROM measurement_data
-          WHERE server_measurement_id = ANY (%(mmtids)s)
-          GROUP BY server_measurement_id
-      ) AS idMinMaxGroups;
-      """, {"mmtids": mmtids})
-        res = updateStartEndCurs.fetchone()
+        # if a run is selected, we just use the run start, else we try to approximate the start/end dates
+        if runid and runid != "":
+            updateStartEndCurs.execute("""
+            SELECT start_run AS min_ts,
+                CASE
+                  WHEN stop_run IS NULL THEN NOW()
+                  ELSE stop_run
+                END as max_ts
+            FROM runs WHERE run_id = %(rid)s""", {"rid": runid})
+            res = updateStartEndCurs.fetchone()
+        else:
+            updateStartEndCurs.execute("""
+            SELECT MAX(lower_measurement_timestamp) AS min_ts, MIN(upper_measurement_timestamp) AS max_ts FROM (
+                SELECT MIN(measurement_timestamp) AS lower_measurement_timestamp, MAX(measurement_timestamp) AS upper_measurement_timestamp
+                FROM measurement_data
+                WHERE server_measurement_id = ANY (%(mmtids)s)
+                GROUP BY server_measurement_id
+            ) AS idMinMaxGroups;
+            """, {"mmtids": mmtids})
+            res = updateStartEndCurs.fetchone()
         # TODO: Handle min/max not present
         return res["min_ts"], res["max_ts"], {"component_name": "dutPowergraph", "is_loading": True}
 
