@@ -67,8 +67,8 @@
                     Active measurement
                 </div>
                 <h4><a href="{{ url_for('manageMeasurement', measurementId=measurement.server_measurement_id) }}">{{ measurement.shared_measurement_id | e }}</a></h4>
-                <div class="measurementDetail" data-measurementid="{{ measurement.server_measurement_id | e}}">
-                    First sample at <strong><time class="startSample">?</time></strong>, Last sample at <strong><time class="endSample ">?</time></strong>
+                <div class="measurementDetail" data-measurementid="{{ measurement.server_measurement_id | e }}">
+                    Click to update first/last sample.
                 </div>
                 {% if measurement.run_id %}
                 <div>Run <span class="runid"><a href="{{ url_for('manageRun', runId=measurement.run_id) }}">{{ measurement.run_id | e }}</a></span></div>
@@ -237,9 +237,11 @@
         );
 
         // get the sample counts of the measurements
-        $(".measurementDetail").each(async function (index) {
-            const sampleDetail = $(this)[0];
-            const measurementId = sampleDetail.getAttribute("data-measurementid");
+        $(".measurementDetail").click(async function () {
+            const sampleDetail = $(this);
+            console.log(sampleDetail);
+            sampleDetail.html('First sample at <strong><time class="startSample">?</time></strong>, Last sample at <strong><time class="endSample ">?</time></strong>');
+            const measurementId = sampleDetail.attr("data-measurementid");
             // client side hack to build the sample count url
             let timeRangeUrl = "{{ url_for('getMeasurementTimeRange', measurementId='-toreplace-') }}";
 
@@ -280,7 +282,6 @@
 
                 $("#openDeleteBtn").hide();
                 $(".deviceManagementControls").text("Deleted: " + res["deleted"] + " and all respective data.");
-               
             }
 
         });
