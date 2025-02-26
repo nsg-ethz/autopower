@@ -68,7 +68,7 @@
                 </div>
                 <h4><a href="{{ url_for('manageMeasurement', measurementId=measurement.server_measurement_id) }}">{{ measurement.shared_measurement_id | e }}</a></h4>
                 <div class="measurementDetail" data-measurementid="{{ measurement.server_measurement_id | e}}">
-                    Last sample at <strong><time class="startSample">?</time></strong>, first sample at <strong><time class="endSample ">?</time></strong>
+                    First sample at <strong><time class="startSample">?</time></strong>, Last sample at <strong><time class="endSample ">?</time></strong>
                 </div>
                 {% if measurement.run_id %}
                 <div>Run <span class="runid"><a href="{{ url_for('manageRun', runId=measurement.run_id) }}">{{ measurement.run_id | e }}</a></span></div>
