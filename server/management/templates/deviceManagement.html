@@ -223,9 +223,8 @@
         );
 
         // get the sample counts of the measurements
-        $(".measurementDetail").click(async function () {
-            const sampleDetail = $(this);
-            sampleDetail.text("Please wait...");
+
+        async function updateMeasurementDetail(sampleDetail) {
             sampleDetail.html('First sample at <strong><time class="startSample">?</time></strong>, Last sample at <strong><time class="endSample ">?</time></strong>');
             const measurementId = sampleDetail.attr("data-measurementid");
             // client side hack to build the sample count url
@@ -248,6 +247,16 @@
             const endSampleDate = new Date(protEndSampleDate);
             $(sampleDetail).find(".startSample").text(startSampleDate.toLocaleString());
             $(sampleDetail).find(".endSample").text(endSampleDate.toLocaleString());
+        }
+        
+        $(".measurementDetail").each(async function () {
+            const sampleDetail = $(this);
+            updateMeasurementDetail(sampleDetail);
+        });
+
+        $(".measurementDetail").click(async function () {
+            const sampleDetail = $(this);
+            updateMeasurementDetail(sampleDetail);
         });
 
         // load number of measurement samples for deletion overlay
