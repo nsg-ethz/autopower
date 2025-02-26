@@ -239,7 +239,7 @@
         // get the sample counts of the measurements
         $(".measurementDetail").click(async function () {
             const sampleDetail = $(this);
-            console.log(sampleDetail);
+            sampleDetail.text("Please wait...");
             sampleDetail.html('First sample at <strong><time class="startSample">?</time></strong>, Last sample at <strong><time class="endSample ">?</time></strong>');
             const measurementId = sampleDetail.attr("data-measurementid");
             // client side hack to build the sample count url
