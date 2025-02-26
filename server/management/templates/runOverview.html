@@ -1,7 +1,7 @@
 {% extends "mainlayout.html" %}
 {% block title %}Autopower Management Runs{% endblock %}
 {% block main %}
-<a href="{{ url_for('newRunPage')}}" class="btn btn-primary">New Run</a>
+<a href="{{ url_for('newRunPage')}}" class="btn btn-primary">Add new Run</a>
 <div class="runList">
     {% for run in runs %}
     <div class="run bg-light border p-2 mt-2">
