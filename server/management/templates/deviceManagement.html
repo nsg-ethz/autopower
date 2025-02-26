@@ -67,6 +67,9 @@
                     Active measurement
                 </div>
                 <h4><a href="{{ url_for('manageMeasurement', measurementId=measurement.server_measurement_id) }}">{{ measurement.shared_measurement_id | e }}</a></h4>
+                <div class="measurementDetail" data-measurementid="{{ measurement.server_measurement_id | e}}">
+                    Last sample at <strong><time class="startSample">?</time></strong>, first sample at <strong><time class="endSample ">?</time></strong>
+                </div>
                 {% if measurement.run_id %}
                 <div>Run <span class="runid"><a href="{{ url_for('manageRun', runId=measurement.run_id) }}">{{ measurement.run_id | e }}</a></span></div>
                 <div>Dut <span class="dutid"><a href="{{ url_for('manageDut', dutId=measurement.dut_id) }}">{{ measurement.dut_name | e }}</a></span></div>
@@ -233,6 +236,31 @@
             }
         );
 
+        // get the sample counts of the measurements
+        $(".measurementDetail").each(async function (index) {
+            const sampleDetail = $(this)[0];
+            const measurementId = sampleDetail.getAttribute("data-measurementid");
+            // client side hack to build the sample count url
+            let timeRangeUrl = "{{ url_for('getMeasurementTimeRange', measurementId='-toreplace-') }}";
+
+            timeRangeUrl = timeRangeUrl.replace("-toreplace-", measurementId);
+
+            startEnd = await fetch(timeRangeUrl)
+            .then(async function (r) {
+                if(r.ok) {
+                    return r.json();
+                } else {
+                    let bdy = await r.text();
+                    throw Error(r.status + "; " + r.statusText + ". Response from server: " + bdy);
+                }
+            });
+            const protStartSampleDate = Date.parse(startEnd["min_timestamp"]);
+            const protEndSampleDate = Date.parse(startEnd["max_timestamp"]);
+            const startSampleDate = new Date(protStartSampleDate);
+            const endSampleDate = new Date(protEndSampleDate);
+            $(sampleDetail).find(".startSample").text(startSampleDate.toLocaleString());
+            $(sampleDetail).find(".endSample").text(endSampleDate.toLocaleString());
+        });
         // delete everyhing danger button
         $("#deleteBtnConfirm").click(async function() {
             if ($("#deleteText").val() == "Yes, I am aware of the consequences and want to delete "+numSamples+" samples!") {

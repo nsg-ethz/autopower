@@ -276,6 +276,18 @@ def getLastMeasurementTimestampOfDevicePost():
 
         return lastMsmt.isoformat()
 
+@app.route("/measurement/<measurementId>/timeRange")
+def getMeasurementTimeRange(measurementId):
+    measurementId = int(measurementId)
+    with createPgConnection() as pgConnection:
+        pgcurs = pgConnection.cursor()
+        pgcurs.execute("SELECT MAX(measurement_timestamp) AS max_ts, MIN(measurement_timestamp) AS min_ts FROM measurement_data WHERE server_measurement_id = %(mmid)s", {'mmid': measurementId})
+        tsRow = pgcurs.fetchone()
+        if tsRow[0] and tsRow[1]:
+          return {"max_timestamp": tsRow[0].isoformat(), "min_timestamp": tsRow[1].isoformat()}
+        else:
+            return {"max_timestamp": None, "min_timestamp": None}
+
 @app.route("/measurement/<measurementId>", methods=["DELETE"])
 def deleteMeasurement(measurementId):
     with createPgConnection() as pgConnection:
