@@ -94,6 +94,8 @@
         type: "DELETE",
           success:function() {
             $("#mmForm").text("Deleted");
+            const deviceUrl = "{{ url_for('deviceManagementPage', deviceUid=clientUid) }}";
+            $("#mmForm").append('<div><a href='+deviceUrl+' class="btn btn-primary">Manage {{ clientUid | e }}</a></div>');
             $("#deleteBtn").hide();
           },
           error:function(xhr) {
