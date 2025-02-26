@@ -139,20 +139,6 @@
             }
         });
         updateStatus();
-        // load number of measurement samples for deletion overlay
-        numSamples = await fetch("{{ url_for('getTotalSampleCountOfDevice', deviceUid=deviceUid) }}")
-        .then(async function (r) {
-        if(r.ok) {
-            return r.json();
-        } else {
-            let bdy = await r.text();
-            throw Error(r.status + "; " + r.statusText + ". Response from server: " + bdy);
-        }
-        }).then(p => p["numSamples"])
-        .catch(function (err) {
-          msg.text(err);      
-        });
-        $(".samplecount").text(numSamples);
 
         function monitorDeleteText() {
             if ($("#deleteText").val() == "Yes, I am aware of the consequences and want to delete "+numSamples+" samples!") {
@@ -263,7 +249,22 @@
             $(sampleDetail).find(".startSample").text(startSampleDate.toLocaleString());
             $(sampleDetail).find(".endSample").text(endSampleDate.toLocaleString());
         });
-        // delete everyhing danger button
+
+        // load number of measurement samples for deletion overlay
+        numSamples = await fetch("{{ url_for('getTotalSampleCountOfDevice', deviceUid=deviceUid) }}")
+        .then(async function (r) {
+        if(r.ok) {
+            return r.json();
+        } else {
+            let bdy = await r.text();
+            throw Error(r.status + "; " + r.statusText + ". Response from server: " + bdy);
+        }
+        }).then(p => p["numSamples"])
+        .catch(function (err) {
+          msg.text(err);      
+        });
+        $(".samplecount").text(numSamples);
+        // delete everything danger button
         $("#deleteBtnConfirm").click(async function() {
             if ($("#deleteText").val() == "Yes, I am aware of the consequences and want to delete "+numSamples+" samples!") {
                 let res = await fetch("{{url_for('deleteDevice', deviceUid=deviceUid)}}", {
