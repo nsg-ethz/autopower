@@ -80,8 +80,8 @@
     </div>
 </div>
 {% if showDelete %}
-<div>
-    <button class="btn btn-danger" id="openDeleteBtn" data-bs-toggle="modal" data-bs-target="#confirmDeletionModal">Delete everything related to {{ deviceUid | e }}</button>
+<div class="text-end">
+    <button class="btn btn-danger mt-3" id="openDeleteBtn" data-bs-toggle="modal" data-bs-target="#confirmDeletionModal">Delete everything related to {{ deviceUid | e }}</button>
 </div>
 {% endif %}
 <script src="{{ url_for('static', filename='formAJAXSubmit.js') }}"></script>

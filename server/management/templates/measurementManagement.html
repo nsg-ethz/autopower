@@ -2,10 +2,8 @@
 {% block title %}Manage {{ sharedMsmtId | e }}{% endblock %}
 {% block main %}
 <h2>{{ sharedMsmtId | e}}</h2>
-<div>Measured with <span class="msmtDevice">{{ clientUid | e}}</span></div>
-{% if showDelete %}
-<button id="deleteBtn" class="btn btn-danger mb-2" data-bs-toggle="modal" data-bs-target="#confirmDeletionModal">Delete {{ sharedMsmtId | e }}</button>
-{% endif %}
+<div>Measured with <a href="{{ url_for('deviceManagementPage', deviceUid=clientUid) }}" class="msmtDevice">{{ clientUid | e}}</a></div>
+
 <div class="bg-light border p-2">
     <div class="alert p-2" id="mmStatus">Manage measurement</div>
     <form id="mmForm" method="POST" action="{{ url_for('updateMeasurement', measurementId=measurementId) }}">
@@ -19,6 +17,9 @@
     </form>
 </div>
 {% if showDelete %}
+<div class="text-end">
+  <button id="deleteBtn" class="btn btn-danger mb-2 mt-3" data-bs-toggle="modal" data-bs-target="#confirmDeletionModal">Delete {{ sharedMsmtId | e }}</button>
+</div>
 <div class="modal fade" id="confirmDeletionModal" tabindex="-1" aria-labelledby="confirmDeletionLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
@@ -67,7 +68,9 @@
       $(mmForm),
       function(resp) {
         $("#mmForm").hide();
-        msg.text("Saved measurement");
+        msg.text("Saved measurement.");
+        const deviceUrl = "{{ url_for('deviceManagementPage', deviceUid=clientUid) }}";
+        msg.append('<div><a href='+deviceUrl+' class="btn btn-primary">Manage {{ clientUid | e }}</a></div>');
         setAlertSeverity(msg, "alert-success");
       },
       function(xhr) {
