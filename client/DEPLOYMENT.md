@@ -9,6 +9,8 @@ This document serves as writeup for deployment of an autopower device in the dat
 4. Connect the Power Meter to the device under test
 5. Connect the Raspberry Pi to power
 
+![PowerMeterSetup](https://github.com/user-attachments/assets/16b141c6-653e-41a7-8a34-5f6b43fcdc2d)
+
 After some time, the Raspberry Pi should register and show that it is measuring in the Management UI.
 
 * If the red [PWR LED is blinking three times in a row (video)](https://github.com/user-attachments/assets/58c559cf-ebc2-44a6-bb93-a173dd1b309d) periodically for an extended period of time, there is a connectivity issue to the server. Please check the network connectivity of the Autopower device. Ping the IP of the Autopower device. If it responds, restart mmclient on the Autopower device via ssh (`systemctl restart mmclient`) if you have the rights. Before power cycling the device, ensure if any firewall or similar blocks outgoing messages from the Pi to the ETH/SWITCH network to rule out network issues.
