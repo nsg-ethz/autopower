@@ -11,7 +11,7 @@ This document serves as writeup for deployment of an autopower device in the dat
 
 After some time, the Raspberry Pi should register and show that it is measuring in the Management UI.
 
-* If the red PWR LED is blinking three times in a row periodically for an extended period of time, there is a connectivity issue to the server. Please check the network connectivity of the Autopower device. Ping the IP of the Autopower device. If it responds, restart mmclient on the Autopower device via ssh (`systemctl restart mmclient`) if you have the rights. Before power cycling the device, ensure if any firewall or similar blocks outgoing messages from the Pi to the ETH/SWITCH network to rule out network issues.
+* If the red [PWR LED is blinking three times in a row (video)](https://github.com/user-attachments/assets/58c559cf-ebc2-44a6-bb93-a173dd1b309d) periodically for an extended period of time, there is a connectivity issue to the server. Please check the network connectivity of the Autopower device. Ping the IP of the Autopower device. If it responds, restart mmclient on the Autopower device via ssh (`systemctl restart mmclient`) if you have the rights. Before power cycling the device, ensure if any firewall or similar blocks outgoing messages from the Pi to the ETH/SWITCH network to rule out network issues.
 * If the ACT LED is blinking 4 times in a row right after starting the Autopower device, the measurement could not start successfully. Check the USB connection to the power meter and restart the Pi if necessary.
 
 In a working environment, the power meter should blink periodically and the Management UI should show recent data uploads. By default, the recently uploaded data should not be older than 5 to 6 minutes. 
