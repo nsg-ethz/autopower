@@ -3,7 +3,8 @@
 ## Setup of a new device ("quick and dirty")
 In order to set up a new autopower device:
 * Get the MAC of the PI, which can be read by powering the PI and plug it to a monitor
-* Register the MAC on the (ETH) network and get a static IP 
+* Register the MAC on the (ETH) network and get a static IP
+* Clone a Host in Zabbix, remove the IP of the template and set the new host name
 * Once the IP is known, add it to the SSH config 
 * then
 ```
