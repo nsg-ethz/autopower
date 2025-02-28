@@ -3,6 +3,10 @@
 ## Application monitoring
 Zabbix periodically (every hour) calls `http://localhost:5000/device/status/all` which gives back a JSON-Response of the current state of the whole deployment gathered by the Management UID. Changes here are only logged, not interpreted. With more involved setup in Zabbix, this could be used to detect specific bad conditions in a very detailled way. For now this is just a convinience metric.
 
+
+### Setup of application monitoring
+App status monitoring can be found in `Monitoring>Hosts>Autopower App status monitoring`. It contains a HTTP agent calling `http://localhost:5000/device/status/all`. The timeout is set to 60s due to potentially needing to wait on a slow client.
+
 ## Database monitoring
 
 Zabbix also monitors the PostgreSQL database via ODBC on the server to detect > 5 second data loss, clients which no longer measure, new log messages uploaded by the clients and if the latest measurement timestamp changed. This gives metrics to see if there are errors. If the output of the following SQL queries changes/doesn't change in case of "Latest measurement timestamp", Zabbix sends a message to Slack to inform the administrator of potential errors.
@@ -36,3 +40,7 @@ SELECT EXTRACT(epoch FROM MAX(measurement_timestamp))::integer FROM measurement_
 ```
 
 Gets the latest measurment timestamp from the measurement_data table. This can be used to get notified in case no client uploads any data and the database stays unchanged for a log period. This could point at a crash of `mmserver`.
+
+### Setup of DB monitoring
+
+Found under `Data collection>Hosts>localhost DB`. All four items are Database monitors [using ODBC](https://www.zabbix.com/documentation/current/en/manual/config/items/itemtypes/odbc_checks). Due to the size of the database, the timeout should be set to a high number (e.g. 2 minutes) such that each query can execute.
