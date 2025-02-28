@@ -5,7 +5,7 @@ This document serves as writeup for deployment of an autopower device in the dat
 ## Hardware setup
 1. Plug in the power meter in a USB port of the Raspberry Pi
 2. Set up internet access for this autopower device. **Note:** Dual Stack (IPv4 and IPv6) is preferred. The devices should also work behind NAT, or IPv4 only networks, however it is preferrable to have both protocols enabled. By default, the devices get their adresses via DHCP. Custom/other configuration needs to be done on the operating system level during initial setup.
-3. Connect the Ethernet cable to the Pi
+3. Connect the RJ45 cable to the Pi
 4. Connect the Power Meter to the device under test
 5. Connect the Raspberry Pi to power
 
