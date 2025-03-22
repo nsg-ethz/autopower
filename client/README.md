@@ -91,7 +91,7 @@ To configure PSK encryption and register this agent in the Zabbix frontend:
  
 If everything works, the host will register and the `Avaibility` tag will turn green.
 
-Now plug in the power meter and then reboot the Pi. Note that the client will stop attempting to start a measurement if no data is coming in from the power-meter within the first 10 + samplingInterval[ms]/1000 seconds after starting the client or starting a measurement.
+Now plug in the power meter and then reboot the Pi. Note that the client will stop attempting to start a measurement if no data is coming in from the power-meter within the first 30 + samplingInterval[ms]/1000 seconds after starting the client or starting a measurement.
 
 Now check if you can access the Pi as described in the next section.
 

@@ -360,15 +360,6 @@ void AutopowerClient::getAndSavePpData() {
 
       std::string line = "";
 
-      // start connection to postgres for saving the data locally
-      pqxx::connection pgcon{this->pgConString};
-      // prepare insert of datapoints
-
-      pgcon.prepare(
-          "addMsmtPoint",
-          "INSERT INTO measurement_data (internal_measurement_id, measurement_value, measurement_timestamp) VALUES ($1, $2, TO_TIMESTAMP($3))");
-      // start transaction
-      pqxx::work txn(pgcon);
       bool gotData = false; // log to output that we got data from pinpoint
       int ppWaitTime = 10;
 
@@ -378,73 +369,92 @@ void AutopowerClient::getAndSavePpData() {
         std::cerr << "Warning: Could not parse sampling interval: " << e.what() << ". Setting wait time for pinpoint failure detection to 10 seconds." << std::endl;
       }
 
-      while (true) { // get next character with timeout
-        if (!gotData) {
-          gotData = true;
-        }
+      // start connection to postgres for saving the data locally
+      try {
+        pqxx::connection pgcon{this->pgConString}; // TODO: Handle DB exceptions
+        // prepare insert of datapoints
 
-        // set up polling and reading with timeout (see https://stackoverflow.com/a/56048171 as example). This restarts pinpoint if we didn't receive data after ppWaitTime e.g. on power loss of the power meter
-        struct pollfd ppPollFd;
-        ppPollFd.fd = pipe_comm[0];
-        ppPollFd.events = POLLIN;
+        pgcon.prepare(
+            "addMsmtPoint",
+            "INSERT INTO measurement_data (internal_measurement_id, measurement_value, measurement_timestamp) VALUES ($1, $2, TO_TIMESTAMP($3))");
+        // start transaction
+        pqxx::work txn(pgcon);
 
-        int pollStatus = poll(&ppPollFd, 1, ppWaitTime * 1000); // check if new sample available
-        if (pollStatus == -1) {
-          std::string errorMsg = "Error: Could not poll on Pinpoint pipe. Killing pinpoint and trying again.";
-
-          if (kill(pid, SIGQUIT) != 0) { // tell child to quit as we detected an error.
-            std::cerr << "Could not kill pinpoint" << std::endl;
-            errorMsg += " Also could not kill pinpoint. Please also check the client for hardware errors.";
+        while (true) { // get next character with timeout
+          if (!gotData) {
+            gotData = true;
           }
 
-          std::cerr << errorMsg << std::endl;
-          putStatusToServer(1, errorMsg);
-          break;
-        } else if (pollStatus == 0) {
-          std::string errorMsg = "Error: Pinpoint didn't respond within a reasonable time with new data. Killing pinpoint and trying again.";
+          // set up polling and reading with timeout (see https://stackoverflow.com/a/56048171 as example). This restarts pinpoint if we didn't receive data after ppWaitTime e.g. on power loss of the power meter
+          struct pollfd ppPollFd;
+          ppPollFd.fd = pipe_comm[0];
+          ppPollFd.events = POLLIN;
 
-          if (kill(pid, SIGQUIT) != 0) { // tell child to terminate as we detected an error.
-            errorMsg += "Also could not kill pinpoint. Please also check for hardware errors.";
-          }
+          int pollStatus = poll(&ppPollFd, 1, ppWaitTime * 1000); // check if new sample available
+          if (pollStatus == -1) {
+            std::string errorMsg = "Error: Could not poll on Pinpoint pipe. Killing pinpoint and trying again.";
 
-          std::cerr << errorMsg << std::endl;
-          putStatusToServer(1, errorMsg);
-          break;
-        }
+            if (kill(pid, SIGQUIT) != 0) { // tell child to quit as we detected an error.
+              std::cerr << "Could not kill pinpoint" << std::endl;
+              errorMsg += " Also could not kill pinpoint. Please also check the client for hardware errors.";
+            }
 
-        int readChar = read(pipe_comm[0], &rdbuffer, 1); // read new character
-        if (readChar <= 0) {
-          // no new data
-          break;
-        }
-
-        if (rdbuffer == '\n') {
-
-          struct CMsmtSample msmtPoint = parseMsmt(line);
-          try {
-            txn.exec_prepared("addMsmtPoint", getInternalMsmtId(), msmtPoint.measurement, msmtPoint.rawTimestamp);
-            txn.commit();
-            setHasWrittenOnce(true); // specify success of writing at least once to DB
-            setLastSampleTimestamp(msmtPoint.timestamp);
-          } catch (std::exception &e) {
-            std::string exprContent = e.what();
-            std::string errorMsg = "Error while writing measurement to database: " + exprContent;
             std::cerr << errorMsg << std::endl;
-
-            // put error to server
             putStatusToServer(1, errorMsg);
+            break;
+          } else if (pollStatus == 0) {
+            std::string errorMsg = "Error: Pinpoint didn't respond within a reasonable time with new data. Killing pinpoint and trying again.";
+
+            if (kill(pid, SIGQUIT) != 0) { // tell child to terminate as we detected an error.
+              errorMsg += "Also could not kill pinpoint. Please also check for hardware errors.";
+            }
+
+            std::cerr << errorMsg << std::endl;
+            putStatusToServer(1, errorMsg);
+            break;
           }
-          line = "";
-        } else {
-          // add one non newline character to internal line buffer
-          line.append(1, rdbuffer);
+
+          int readChar = read(pipe_comm[0], &rdbuffer, 1); // read new character
+          if (readChar <= 0) {
+            // no new data
+            break;
+          }
+
+          if (rdbuffer == '\n') {
+
+            struct CMsmtSample msmtPoint = parseMsmt(line);
+            try {
+              txn.exec_prepared("addMsmtPoint", getInternalMsmtId(), msmtPoint.measurement, msmtPoint.rawTimestamp);
+              txn.commit();
+              setHasWrittenOnce(true); // specify success of writing at least once to DB
+              setLastSampleTimestamp(msmtPoint.timestamp);
+            } catch (std::exception &e) {
+              std::string exprContent = e.what();
+              std::string errorMsg = "Error while writing measurement to database: " + exprContent;
+              std::cerr << errorMsg << std::endl;
+
+              // put error to server
+              putStatusToServer(1, errorMsg);
+            }
+            line = "";
+          } else {
+            // add one non newline character to internal line buffer
+            line.append(1, rdbuffer);
+          }
+          // check if we are still measuring
+          if (!measuring()) {
+            // std::cout << "getData(): Detected no longer measuring" <<
+            // std::endl;
+            break; // break out of loop to sleep
+          }
         }
-        // check if we are still measuring
-        if (!measuring()) {
-          // std::cout << "getData(): Detected no longer measuring" <<
-          // std::endl;
-          break; // break out of loop to sleep
-        }
+      } catch (pqxx::pqxx_exception &e) {
+          std::string exprContent = e.base().what();
+          std::string errorMsg = "Error from database: " + exprContent;
+          std::cerr << errorMsg << std::endl;
+
+          // put error to server
+          putStatusToServer(1, errorMsg);
       }
 
       close(pipe_comm[0]);
@@ -469,7 +479,7 @@ void AutopowerClient::getAndSavePpData() {
     }
 
     if (measuring()) {
-      std::cerr << "Warning: Attempting to restart measurement since pinpoint exited..." << std::endl;
+      std::cerr << "Warning: Attempting to restart measurement since pinpoint exited or an error in the database was found..." << std::endl;
       notifyLEDMeasurementCrashed();
     } else {
       loggedErrorToServer = false; // restart to log errors for a new measurement
@@ -505,11 +515,11 @@ std::pair<bool, std::string> AutopowerClient::startMeasurement() {
     // wait until it is known that there was at least one write to the db. Then we assume that pinpoint can succeed.
     // this is not a fully sure method to check if the measurement will continue working as pinpoint may crash. For the actual current status, check the lastKnownPpPid.
     std::shared_lock wol(writtenOnceMtx);
-    uint64_t waitTime = 10;
+    uint64_t waitTime = 30;
     try {
       waitTime += (std::stoll(ppSamplingInterval) / 1000);
     } catch (std::exception &e) {
-      std::cerr << "Warning: Could not parse sampling interval: " << e.what() << ". Setting wait time to 10 seconds." << std::endl;
+      std::cerr << "Warning: Could not parse sampling interval: " << e.what() << ". Setting wait time to 30 seconds." << std::endl;
     }
     if (!hasWrittenOnceCv.wait_until(wol, std::chrono::system_clock::now() + std::chrono::seconds(waitTime), [this]() { return this->thisMeasurementHasWrittenOnce; })) {
       wol.unlock();
@@ -838,9 +848,15 @@ void AutopowerClient::handleIntroduceServer(autopapi::srvRequest sRequest, autop
 void AutopowerClient::handleMeasurementList(autopapi::srvRequest sRequest, autopapi::clientUid cluid) {
   uint32_t statusCode = 0;
   std::string statusMsg = "Sent list successfully";
-  if (!uploadMeasurementList()) {
+  try {
+    bool couldUpload = uploadMeasurementList();
+    if (!couldUpload) {
+      throw std::runtime_error("could not send measurement list. Please check client for errors.");
+    }
+  } catch (std::exception &e) {
+    std::cerr << e.what() << std::endl;
     statusCode = 1;
-    statusMsg = "Could not send measurement list. Please check client for errors.";
+    statusMsg = e.what();
   }
 
   putResponseToServer(statusCode, statusMsg, autopapi::clientResponseType::MEASUREMENT_LIST_RESPONSE, sRequest.requestno());
