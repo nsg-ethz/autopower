@@ -523,14 +523,17 @@ std::pair<bool, std::string> AutopowerClient::startMeasurement() {
     }
     if (!hasWrittenOnceCv.wait_until(wol, std::chrono::system_clock::now() + std::chrono::seconds(waitTime), [this]() { return this->thisMeasurementHasWrittenOnce; })) {
       wol.unlock();
-      std::cout << "Couldn't start measurement as the measurement did not write in the last " << waitTime << " seconds. Thus stopping again. Please check pinpoint output!" << std::endl;
-      stopMeasurement();
+      std::string waitErr = "Couldn't start measurement as the measurement did not write in the last " + std::to_string(waitTime) + " seconds. Thus stopping again. Please check pinpoint output!";
+      std::cout << waitErr << std::endl;
+      putStatusToServer(1, waitErr);
       return std::pair<bool, std::string>(false, sharedMsmtId);
     }
     std::cout << "Started measurement." << std::endl;
     return std::pair<bool, std::string>(true, sharedMsmtId);
   } catch (std::exception &e) {
-    std::cerr << "Error while starting measurement: " << e.what() << std::endl;
+    std::string mmStartErr =  "Error while starting measurement: " + std::string(e.what());
+    std::cerr << mmStartErr << std::endl;
+    putStatusToServer(1, mmStartErr);
     return std::pair<bool, std::string>(false, "");
   }
 }
@@ -1017,7 +1020,16 @@ AutopowerClient::AutopowerClient(std::string _clientUid,
   std::thread managementThread(&AutopowerClient::manageMsmt, this); // thread to connect to server and for API
   std::thread measurementThread(&AutopowerClient::getAndSavePpData, this);
   std::thread uploadThread(&AutopowerClient::doPeriodicDataUpload, this);
-  startMeasurement();
+  std::pair startMsmtStatus = startMeasurement();
+  if (!startMsmtStatus.first) {
+    std::cerr << "Couln't start measurement. Trying once more after 5 seconds" << std::endl;
+    sleep(5);
+    startMsmtStatus = startMeasurement();
+    if (!startMsmtStatus.first) {
+      std::cerr << "ATTENTION: Gave up on trying to start measurement on first run. Not measuring." << std::endl;
+      putStatusToServer(1, "Starting measurement on program start failed after trying twice. Please check for errors on the client and start the measurement manually.");
+    }
+  }
   uploadThread.join(); // should never get here
   measurementThread.join();
   managementThread.join();
