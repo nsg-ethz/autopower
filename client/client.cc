@@ -207,8 +207,8 @@ std::unique_ptr<autopapi::CMeasurementApi::Stub> AutopowerClient::createGrpcConn
   grpc::ChannelArguments chanOptions;
 
   // set keep alive settings since devices may be deployed behind a NAT
-  chanOptions.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 20 * 1000);          // set time period to send pings every 20 seconds
-  chanOptions.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 10 * 1000);       // set timeout to 10 seconds
+  chanOptions.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, 20 * 1000);      // set time period to send pings every 20 seconds
+  chanOptions.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, 10 * 1000);   // set timeout to 10 seconds
   chanOptions.SetInt(GRPC_ARG_KEEPALIVE_PERMIT_WITHOUT_CALLS, 1); // send keep alive without any streams. Should make the connection more stable even if the registerClient method somehow failed for a long time.
   std::shared_ptr<grpc::Channel> cnl = grpc::CreateCustomChannel(remoteHost + ":" + remotePort, cred, chanOptions);
   this->cnl = cnl;
@@ -449,12 +449,12 @@ void AutopowerClient::getAndSavePpData() {
           }
         }
       } catch (pqxx::pqxx_exception &e) {
-          std::string exprContent = e.base().what();
-          std::string errorMsg = "Error from database: " + exprContent;
-          std::cerr << errorMsg << std::endl;
+        std::string exprContent = e.base().what();
+        std::string errorMsg = "Error from database: " + exprContent;
+        std::cerr << errorMsg << std::endl;
 
-          // put error to server
-          putStatusToServer(1, errorMsg);
+        // put error to server
+        putStatusToServer(1, errorMsg);
       }
 
       close(pipe_comm[0]);
@@ -531,7 +531,7 @@ std::pair<bool, std::string> AutopowerClient::startMeasurement() {
     std::cout << "Started measurement." << std::endl;
     return std::pair<bool, std::string>(true, sharedMsmtId);
   } catch (std::exception &e) {
-    std::string mmStartErr =  "Error while starting measurement: " + std::string(e.what());
+    std::string mmStartErr = "Error while starting measurement: " + std::string(e.what());
     std::cerr << mmStartErr << std::endl;
     putStatusToServer(1, mmStartErr);
     return std::pair<bool, std::string>(false, "");
@@ -613,65 +613,71 @@ bool AutopowerClient::streamMeasurementData(std::string measId) {
 
   std::thread streamWriterThread([&] {
     // upload measurement samples
-    pqxx::connection pgReadCon{this->pgConString};
-    pqxx::work readTxn(pgReadCon);
-    std::string getMmStartSql = "SELECT md_id, measurement_value, measurement_timestamp, measurements.internal_measurement_id AS internal_measurement_id, measurements.shared_measurement_id AS shared_mm_id, measurements.client_uid FROM measurement_data, measurements WHERE measurements.internal_measurement_id = measurement_data.internal_measurement_id";
+    try {
+      pqxx::connection pgReadCon{this->pgConString};
+      pqxx::work readTxn(pgReadCon);
+      std::string getMmStartSql = "SELECT md_id, measurement_value, measurement_timestamp, measurements.internal_measurement_id AS internal_measurement_id, measurements.shared_measurement_id AS shared_mm_id, measurements.client_uid FROM measurement_data, measurements WHERE measurements.internal_measurement_id = measurement_data.internal_measurement_id";
 
-    if (measId.empty()) {
-      getMmStartSql += " AND was_uploaded = false";
-    } else {
-      // MUST escape via readTxn.esc since not found how to give parameters to cursor.
-      getMmStartSql += " AND measurements.shared_measurement_id = '" + readTxn.esc(measId) + "'";
-    }
-
-    // https://stackoverflow.com/questions/16128142/how-to-use-pqxxstateless-cursor-class-from-libpqxx
-
-    pqxx::stateless_cursor<pqxx::cursor_base::read_only, pqxx::cursor_base::owned> tuplesToStream(readTxn, getMmStartSql, "uploadTupleCurs", false); // the tuples returned from the database to be uploaded
-
-    int numTuplesNotWritten = 0;
-    for (size_t idx = 0; true; idx++) {
-      pqxx::result res = tuplesToStream.retrieve(idx, idx + 1);
-      if (res.empty()) {
-        // on cursor end --> exit
-        break;
+      if (measId.empty()) {
+        getMmStartSql += " AND was_uploaded = false";
+      } else {
+        // MUST escape via readTxn.esc since not found how to give parameters to cursor.
+        getMmStartSql += " AND measurements.shared_measurement_id = '" + readTxn.esc(measId) + "'";
       }
 
-      auto tuple = res[0];
-      // build up the measurement sample for grpc based on the DB content
-      autopapi::msmtSample grpcMsmtSample;
-      if (tuple["client_uid"].as<std::string>() != clientUid) {
-        std::cout << "Warning: Uploading measurement from different clientUid then currently set." << std::endl;
-      }
-      grpcMsmtSample.set_clientuid(tuple["client_uid"].as<std::string>());
-      grpcMsmtSample.set_msmtcontent(tuple["measurement_value"].as<uint32_t>());
-      grpcMsmtSample.set_msmtid(tuple["shared_mm_id"].as<std::string>());
-      grpcMsmtSample.set_sampleid(tuple["md_id"].as<uint64_t>());
-      // we must create a new object/timestamp ptr to pass it to the sample. It will be automatically freed by grpc
-      google::protobuf::Timestamp *gTimestamp = new google::protobuf::Timestamp();
-      std::string ts = tuple["measurement_timestamp"].as<std::string>();
-      std::replace(ts.begin(), ts.end(), ' ', 'T');
-      bool couldParseTs = google::protobuf::util::TimeUtil::FromString(ts, gTimestamp);
+      // https://stackoverflow.com/questions/16128142/how-to-use-pqxxstateless-cursor-class-from-libpqxx
 
-      if (!couldParseTs) {
-        delete gTimestamp;
+      pqxx::stateless_cursor<pqxx::cursor_base::read_only, pqxx::cursor_base::owned> tuplesToStream(readTxn, getMmStartSql, "uploadTupleCurs", false); // the tuples returned from the database to be uploaded
+
+      int numTuplesNotWritten = 0;
+      for (size_t idx = 0; true; idx++) {
+        pqxx::result res = tuplesToStream.retrieve(idx, idx + 1);
+        if (res.empty()) {
+          // on cursor end --> exit
+          break;
+        }
+
+        auto tuple = res[0];
+        // build up the measurement sample for grpc based on the DB content
+        autopapi::msmtSample grpcMsmtSample;
+        if (tuple["client_uid"].as<std::string>() != clientUid) {
+          std::cout << "Warning: Uploading measurement from different clientUid then currently set." << std::endl;
+        }
+        grpcMsmtSample.set_clientuid(tuple["client_uid"].as<std::string>());
+        grpcMsmtSample.set_msmtcontent(tuple["measurement_value"].as<uint32_t>());
+        grpcMsmtSample.set_msmtid(tuple["shared_mm_id"].as<std::string>());
+        grpcMsmtSample.set_sampleid(tuple["md_id"].as<uint64_t>());
+        // we must create a new object/timestamp ptr to pass it to the sample. It will be automatically freed by grpc
+        google::protobuf::Timestamp *gTimestamp = new google::protobuf::Timestamp();
+        std::string ts = tuple["measurement_timestamp"].as<std::string>();
+        std::replace(ts.begin(), ts.end(), ' ', 'T');
+        bool couldParseTs = google::protobuf::util::TimeUtil::FromString(ts, gTimestamp);
+
+        if (!couldParseTs) {
+          delete gTimestamp;
+          uploadWasSuccessful = false;
+          throw std::runtime_error("Could not parse timestamp: " + ts);
+        }
+
+        grpcMsmtSample.set_allocated_msmttime(gTimestamp); // grpc will free the object itself, so NO need to call free!
+        // finally write to server
+        bool couldWrite = smpStream->Write(grpcMsmtSample);
+        if (!couldWrite) {
+          numTuplesNotWritten++;
+          // exit early
+          break;
+        }
+      }
+
+      if (numTuplesNotWritten > 0) {
         uploadWasSuccessful = false;
-        throw std::runtime_error("Could not parse timestamp: " + ts);
+        std::cerr << "Could not write tuples to the server. Maybe the connection failed?" << std::endl;
       }
-
-      grpcMsmtSample.set_allocated_msmttime(gTimestamp); // grpc will free the object itself, so NO need to call free!
-
-      // finally write to server
-      bool couldWrite = smpStream->Write(grpcMsmtSample);
-      if (!couldWrite) {
-        numTuplesNotWritten++;
-        // exit early
-        break;
-      }
-    }
-
-    if (numTuplesNotWritten > 0) {
+    } catch (std::exception &e) {
       uploadWasSuccessful = false;
-      std::cerr << "Could not write tuples to the server. Maybe the connection failed?" << std::endl;
+      std::string mmStreamErr = "Error while streaming measurement: " + std::string(e.what());
+      std::cerr << mmStreamErr << std::endl;
+      putStatusToServer(1, mmStreamErr);
     }
 
     smpStream->WritesDone(); // completed writes
@@ -679,17 +685,23 @@ bool AutopowerClient::streamMeasurementData(std::string measId) {
 
   std::thread streamAckThread([&] {
     // collect the ACKs for uploaded measurements
-    pqxx::connection pgcon{this->pgConString};
-    pqxx::work txn(pgcon);
-    pgcon.prepare( // sets all correctly uploaded datapoints to be uploaded
-        "confirmMmUploaded",
-        "UPDATE measurement_data SET was_uploaded = true WHERE md_id = $1");
-    grpc::ClientContext cc;
-    autopapi::sampleAck smpAck;
-    while (smpStream->Read(&smpAck)) {
-      txn.exec_prepared("confirmMmUploaded", smpAck.sampleid());
+    try {
+      pqxx::connection pgcon{this->pgConString};
+      pqxx::work txn(pgcon);
+      pgcon.prepare( // sets all correctly uploaded datapoints to be uploaded
+          "confirmMmUploaded",
+          "UPDATE measurement_data SET was_uploaded = true WHERE md_id = $1");
+      grpc::ClientContext cc;
+      autopapi::sampleAck smpAck;
+      while (smpStream->Read(&smpAck)) {
+        txn.exec_prepared("confirmMmUploaded", smpAck.sampleid());
+      }
+      txn.commit();
+    } catch (std::exception &e) {
+      std::string mmStreamErr = "Error while receiving ACKS of measurements: " + std::string(e.what());
+      std::cerr << mmStreamErr << std::endl;
+      putStatusToServer(1, mmStreamErr);
     }
-    txn.commit();
   });
 
   streamWriterThread.join();
