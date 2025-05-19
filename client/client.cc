@@ -701,6 +701,7 @@ bool AutopowerClient::streamMeasurementData(std::string measId) {
       std::string mmStreamErr = "Error while receiving ACKS of measurements: " + std::string(e.what());
       std::cerr << mmStreamErr << std::endl;
       putStatusToServer(1, mmStreamErr);
+      sFmCtxt.TryCancel();
     }
   });
 
