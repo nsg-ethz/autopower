@@ -23,7 +23,7 @@ To set up the management ui:
 * Install apache
 * Copy the autopower-management.conf file to `/etc/apache2/sites-available/`
 * Edit `/etc/apache2/sites-available/autopower-management.conf` to fit to your authentication method and set the correct server domain.
-* You may for example want to add your e-mail address to allow your account to log in via shibboleth in `/usr/autopower/config/autopowerusers.conf` by adding `Require shib-attr mail <my@mail.com>` to the `autopowerusers.config` file.
+* You may for example want to add your e-mail address to allow your account to log in via shibboleth in `/usr/autopower/config/autopowerusers.conf` by adding `Require shib-attr mail <my@mail.com>` to the `autopowerusers.config` file. You need to `sudo systemctl restart apache2.service` to implement updates.
 * Enable mod proxy via `a2enmod proxy` (Not yet tested)
 * Enable the autopower-management site `a2ensite autopower-management.conf`
 * Copy the `../config/web_config.json.example` file to `../config/web_config.json` and the `../web_secrets.json.example` file to `../web_secrets.json`
