@@ -18,8 +18,9 @@ def build_channel(cfg, sec):
 def main():
     p = argparse.ArgumentParser()
 
-    p.add_argument("--config", required=True, help="Path to config.json")
-    p.add_argument("--secrets", required=True, help="Path to secrets.json")
+    # optional now (defaults handled in loader)
+    p.add_argument("--config", help="Path to config.json")
+    p.add_argument("--secrets", help="Path to secrets.json")
 
     sub = p.add_subparsers(dest="cmd", required=True)
 
@@ -43,6 +44,7 @@ def main():
 
     args = p.parse_args()
 
+    # defaults kick in if None
     cfg = load_config(args.config)
     sec = load_secrets(args.secrets)
 
