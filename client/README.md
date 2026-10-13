@@ -37,11 +37,15 @@ Afterwards compile the autopower client (mmclient) from this repository as descr
 
 You can also use the precompiled binaries from [GitHub releases](https://github.com/nsg-ethz/autopower/releases).
 
+> The latest release (to date 3.0.3) seems to be broken by some other software updates. If `mmclient` fails to start, try a prior release. 
+
 Now edit the `serverIpConfig.sh` script with the domain and IP of the autopower server.
 
 ### Setting up a Raspberry Pi
 
 First of all, flash an OS to the SD card of the Raspberry Pi. This project was tested with Raspberry Pi OS Lite (64-bit).
+
+> As of Oct. 13, 2026, Zabbix client is not supported for the latest version of Raspbian (the Pi OS). To get everything working smoothly, you need to install Raspbian 12 (Bookworm), which is currently available in the Raspberry Pi Imager as "Legacy" OS.
 
 1. Download and install the Raspberry Pi Imager from the [official website](https://www.raspberrypi.com/software/). 
 2. Select the correct Model and OS in the imager UI. You may need to select `Raspberrypi OS (other)` in the OS selection menu to select the version without desktop.
@@ -55,7 +59,7 @@ First of all, flash an OS to the SD card of the Raspberry Pi. This project was t
   - Now save the settings
 6. Write the image to the SD card
 
-**Note:** Instead of using the imager, you may also [download the OS image](https://www.raspberrypi.com/software/operating-systems/) and use use dd to flash it: `dd if=/path/to/raspberrypiosLite64bit.img of=/path/to/sdcard bs=4M`. You may need to enable SSH by creating an empty file in the bootfs volume of the SD card called `ssh` manually: `touch /media/bootfs/ssh`. After that, continue with the deploy script as follows.
+**Note:** Instead of using the imager, you may also [download the OS image](https://www.raspberrypi.com/software/operating-systems/) and use dd to flash it: `dd if=/path/to/raspberrypiosLite64bit.img of=/path/to/sdcard bs=4M`. You may need to enable SSH by creating an empty file in the bootfs volume of the SD card called `ssh` manually: `touch /media/bootfs/ssh`. After that, continue with the deploy script as follows.
 
 ### Deployment on the Pi
 
